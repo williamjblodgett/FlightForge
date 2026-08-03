@@ -1,0 +1,77 @@
+import Link from "next/link";
+import { Bell, MessageCircle, Search, ShieldCheck, UserRound } from "lucide-react";
+import { BrandMark } from "@/components/brand/BrandMark";
+import { SignOutButton } from "@/components/auth/SignOutButton";
+import { getCurrentUser } from "@/modules/auth/current-user";
+import { can } from "@/modules/auth/permissions";
+
+const primaryNavigation = [
+  { label: "Discover", href: "/courses" },
+  { label: "Play", href: "/roadmap#play" },
+  { label: "Events", href: "/roadmap#events" },
+  { label: "Leagues", href: "/roadmap#leagues" },
+  { label: "Learn", href: "/roadmap#learn" },
+  { label: "Bag", href: "/roadmap#bag" },
+  { label: "Community", href: "/roadmap#community" },
+];
+
+export async function SiteHeader() {
+  const user = await getCurrentUser();
+  return (
+    <header className="site-header">
+      <div className="header-inner">
+        <BrandMark />
+        <nav className="desktop-nav" aria-label="Primary navigation">
+          {primaryNavigation.map((item) => (
+            <Link key={item.label} href={item.href}>{item.label}</Link>
+          ))}
+        </nav>
+        <div className="header-actions">
+          {can(user, "viewAdmin") ? (
+            <Link className="manage-link" href="/admin/claims">
+              <ShieldCheck size={16} aria-hidden="true" /> Admin
+            </Link>
+          ) : user?.roles.includes("COURSE_OWNER") ? (
+            <Link className="manage-link" href="/roadmap#owner">Manage course</Link>
+          ) : null}
+          <Link className="icon-button" href="/courses" aria-label="Search courses">
+            <Search aria-hidden="true" />
+          </Link>
+          <button className="icon-button" type="button" aria-label="Notifications — coming soon" disabled>
+            <Bell aria-hidden="true" />
+          </button>
+          <button className="icon-button" type="button" aria-label="Messages — coming soon" disabled>
+            <MessageCircle aria-hidden="true" />
+          </button>
+          {user ? (
+            <details className="profile-menu">
+              <summary aria-label={`Open profile menu for ${user.displayName}`}>
+                <span className="avatar" aria-hidden="true">{initials(user.displayName)}</span>
+              </summary>
+              <div className="profile-popover">
+                <strong>{user.displayName}</strong>
+                <span>{user.email}</span>
+                <Link href="/favorites">Saved courses</Link>
+                {can(user, "viewAdmin") ? <Link href="/admin/claims">Admin review</Link> : null}
+                {user.source === "demo" ? <SignOutButton /> : null}
+              </div>
+            </details>
+          ) : (
+            <Link className="profile-link" href="/sign-in">
+              <UserRound size={19} aria-hidden="true" />
+              <span>Sign in</span>
+            </Link>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/u)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
