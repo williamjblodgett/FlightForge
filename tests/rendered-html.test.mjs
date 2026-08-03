@@ -84,17 +84,42 @@ test("creates a free player account and persists first-run privacy settings", as
   const profile = await fetch(`${baseUrl}/profile`, { headers: { accept: "text/html", cookie } });
   assert.equal(profile.status, 200);
   assert.match(await profile.text(), /Player profile & privacy|Player profile and privacy/i);
+
+  const passwordChange = await fetch(`${baseUrl}/api/account/password`, {
+    method: "PUT",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie },
+    body: JSON.stringify({
+      currentPassword: "TrailBasket2026!",
+      newPassword: "PrivateTrail2026!",
+      confirmation: "PrivateTrail2026!",
+    }),
+  });
+  assert.equal(passwordChange.status, 200);
+  assert.ok(passwordChange.headers.get("set-cookie"), "password change must rotate the session cookie");
+  const oldLogin = await fetch(`${baseUrl}/api/auth/login`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ email, password: "TrailBasket2026!" }),
+  });
+  assert.equal(oldLogin.status, 401);
+  const newLogin = await fetch(`${baseUrl}/api/auth/login`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ email, password: "PrivateTrail2026!" }),
+  });
+  assert.equal(newLogin.status, 200);
 });
 
 test("seeds the player-only JPhillips tester on first successful login", async () => {
   const login = await fetch(`${baseUrl}/api/auth/login`, {
     method: "POST",
     headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
-    body: JSON.stringify({ email: "jphillips@demo.flightforge.app", password: "FlightForge-JPhillips-2026!" }),
+    body: JSON.stringify({ email: "jphillips@demo.flightforge.app", password: "password1234" }),
   });
   assert.equal(login.status, 200);
   const body = await login.json();
   assert.deepEqual(body.user.roles, ["PLAYER"]);
   assert.equal(body.user.onboardingComplete, false);
-  assert.equal(body.next, "/onboarding");
+  assert.equal(body.user.mustChangePassword, true);
+  assert.equal(body.next, "/account/password");
 });

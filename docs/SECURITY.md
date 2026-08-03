@@ -7,6 +7,7 @@
 - PBKDF2-SHA256 password hashing with per-user salts and a 210,000-iteration work factor;
 - opaque 256-bit session tokens stored only as SHA-256 hashes server-side;
 - secure, HTTP-only, SameSite cookies with expiration and logout revocation;
+- forced replacement of the JPhillips bootstrap password, with all prior sessions revoked on change;
 - demo auth disabled unless explicitly enabled;
 - same-origin checks on cookie-affecting mutations;
 - hashed D1 rate-limit keys for sign-in, favorites, claims, and reviews;

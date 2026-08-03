@@ -73,9 +73,9 @@ The public server-backed build includes a player-only shared test account:
 
 | Player | Email | Password |
 | --- | --- | --- |
-| JPhillips | `jphillips@demo.flightforge.app` | `FlightForge-JPhillips-2026!` |
+| JPhillips | `jphillips@demo.flightforge.app` | `password1234` (temporary) |
 
-It begins private and opens profile/privacy setup on first login. Use fictional details only.
+It begins private, forces JPhillips to create a different private password, revokes the temporary session, and then opens profile/privacy setup. The starter password stops working after replacement. Use fictional profile details only.
 
 For local role testing, set the demo variables below.
 

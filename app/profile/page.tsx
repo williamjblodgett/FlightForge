@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Player profile and privacy", robots:
 export default async function ProfilePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in?return_to=/profile");
+  if (user.mustChangePassword) redirect("/account/password");
   const settings = await getAccountSettings(user);
   return (
     <main className="profile-page page-shell">

@@ -9,6 +9,8 @@ export const users = sqliteTable(
     passwordHash: text("password_hash"),
     passwordSalt: text("password_salt"),
     passwordIterations: integer("password_iterations"),
+    mustChangePassword: integer("must_change_password", { mode: "boolean" }).default(false).notNull(),
+    passwordBootstrapVersion: integer("password_bootstrap_version").default(0).notNull(),
     authProviderSubject: text("auth_provider_subject"),
     status: text("status").default("ACTIVE").notNull(),
     isTestAccount: integer("is_test_account", { mode: "boolean" }).default(false).notNull(),

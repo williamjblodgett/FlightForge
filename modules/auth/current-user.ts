@@ -32,6 +32,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
       source: "chatgpt",
       onboardingComplete: persisted?.onboardingComplete ?? false,
       isTestAccount: false,
+      mustChangePassword: persisted?.mustChangePassword ?? false,
     };
   }
 

@@ -46,7 +46,11 @@ export async function POST(request: Request) {
     const session = await createAccountSession(user.id, request.headers.get("user-agent"));
     const response = NextResponse.json({
       user,
-      next: user.onboardingComplete ? "/profile" : "/onboarding",
+      next: user.mustChangePassword
+        ? "/account/password"
+        : user.onboardingComplete
+          ? "/profile"
+          : "/onboarding",
     });
     response.cookies.set(ACCOUNT_SESSION_COOKIE, session.token, {
       httpOnly: true,
@@ -60,4 +64,3 @@ export async function POST(request: Request) {
     return apiError("SIGNIN_FAILED", "The sign-in service is temporarily unavailable.", 503);
   }
 }
-

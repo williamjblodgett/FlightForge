@@ -30,15 +30,17 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
       const body = (await response.json()) as {
         error?: { message?: string };
         next?: string;
-        user?: { onboardingComplete?: boolean };
+        user?: { onboardingComplete?: boolean; mustChangePassword?: boolean };
       };
       if (!response.ok) {
         setError(body.error?.message ?? "Sign-in failed. Try again.");
         return;
       }
-      const destination = body.user?.onboardingComplete && returnTo !== "/"
-        ? returnTo
-        : body.next ?? returnTo;
+      const destination = body.user?.mustChangePassword
+        ? body.next ?? "/account/password"
+        : body.user?.onboardingComplete && returnTo !== "/"
+          ? returnTo
+          : body.next ?? returnTo;
       window.location.assign(destination);
     } catch {
       setError(`${brand.productName} could not reach the sign-in service.`);
@@ -96,7 +98,7 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
         <UserRoundPlus aria-hidden="true" />
         <span className="eyebrow">Built for JPhillips</span>
         <h2>A ready-to-use player account.</h2>
-        <p>This non-privileged test account starts private and opens the profile setup on first sign-in.</p>
+        <p>This non-privileged test account starts private and requires JPhillips to replace the temporary password before profile setup.</p>
         <dl>
           <div><dt>Email</dt><dd>{jPhillipsTestAccount.email}</dd></div>
           <div><dt>Password</dt><dd>{jPhillipsTestAccount.password}</dd></div>
@@ -104,7 +106,7 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
         <button className="button button-ink button-wide" type="button" onClick={useTesterAccount}>
           Fill JPhillips credentials
         </button>
-        <small>Shared test credentials; do not store personal or sensitive information in this account.</small>
+        <small>The starter password works only until JPhillips creates a private replacement.</small>
       </aside>
     </div>
   );

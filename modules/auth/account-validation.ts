@@ -16,6 +16,22 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(128),
 });
 
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: z.string().min(1).max(128).superRefine((value, context) => {
+    const issue = validatePasswordStrength(value);
+    if (issue) context.addIssue({ code: "custom", message: issue });
+  }),
+  confirmation: z.string().min(1).max(128),
+}).superRefine((value, context) => {
+  if (value.newPassword !== value.confirmation) {
+    context.addIssue({ code: "custom", path: ["confirmation"], message: "Passwords do not match." });
+  }
+  if (value.newPassword === value.currentPassword) {
+    context.addIssue({ code: "custom", path: ["newPassword"], message: "Choose a different password." });
+  }
+});
+
 const optionalDistance = z.union([z.number().int().min(50).max(1000), z.null()]);
 
 export const onboardingSchema = z.object({

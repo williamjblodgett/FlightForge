@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { onboardingSchema, signupSchema } from "./account-validation";
+import { onboardingSchema, passwordChangeSchema, signupSchema } from "./account-validation";
 
 describe("account validation", () => {
   it("normalizes a valid free signup and requires terms acceptance", () => {
@@ -20,5 +20,23 @@ describe("account validation", () => {
     });
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.homeRegionCode).toBe("ME");
+  });
+
+  it("requires a different confirmed replacement password", () => {
+    expect(passwordChangeSchema.safeParse({
+      currentPassword: "password1234",
+      newPassword: "PrivateTrail2026!",
+      confirmation: "PrivateTrail2026!",
+    }).success).toBe(true);
+    expect(passwordChangeSchema.safeParse({
+      currentPassword: "password1234",
+      newPassword: "PrivateTrail2026!",
+      confirmation: "DifferentTrail2026!",
+    }).success).toBe(false);
+    expect(passwordChangeSchema.safeParse({
+      currentPassword: "password1234",
+      newPassword: "password1234",
+      confirmation: "password1234",
+    }).success).toBe(false);
   });
 });

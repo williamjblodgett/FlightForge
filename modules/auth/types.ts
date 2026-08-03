@@ -18,4 +18,5 @@ export type AuthenticatedUser = {
   source: "chatgpt" | "demo" | "password";
   onboardingComplete: boolean;
   isTestAccount: boolean;
+  mustChangePassword: boolean;
 };

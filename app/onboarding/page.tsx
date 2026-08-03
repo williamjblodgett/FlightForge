@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Set up your player profile", robots:
 export default async function OnboardingPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in?return_to=/onboarding");
+  if (user.mustChangePassword) redirect("/account/password");
   const settings = await getAccountSettings(user);
   return (
     <main className="profile-page page-shell">
@@ -22,4 +23,3 @@ export default async function OnboardingPage() {
     </main>
   );
 }
-

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { apiError } from "@/lib/http/api-response";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { onboardingSchema } from "@/modules/auth/account-validation";
-import { saveOnboarding } from "@/modules/auth/account-repository";
+import { PasswordChangeRequiredError, saveOnboarding } from "@/modules/auth/account-repository";
 import {
   checkRateLimit,
   isSameOriginMutation,
@@ -43,7 +43,10 @@ export async function PUT(request: Request) {
   try {
     await saveOnboarding(user, parsed.data);
     return NextResponse.json({ saved: true, next: "/profile" });
-  } catch {
+  } catch (error) {
+    if (error instanceof PasswordChangeRequiredError) {
+      return apiError("PASSWORD_CHANGE_REQUIRED", error.message, 409);
+    }
     return apiError("PROFILE_SAVE_FAILED", "Your changes could not be saved right now.", 503);
   }
 }

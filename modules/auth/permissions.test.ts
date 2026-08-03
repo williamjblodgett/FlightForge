@@ -11,6 +11,7 @@ function user(roles: AuthenticatedUser["roles"]): AuthenticatedUser {
     source: "demo",
     onboardingComplete: true,
     isTestAccount: true,
+    mustChangePassword: false,
   };
 }
 

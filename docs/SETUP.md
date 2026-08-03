@@ -50,4 +50,4 @@ Mapbox, Stripe, and AI variables are placeholders for disabled feature modules. 
 
 ## Built-in player tester
 
-Sign in with `jphillips@demo.flightforge.app` / `FlightForge-JPhillips-2026!`. The account is created lazily in D1, has only the `PLAYER` role, begins with private visibility, and enters first-run profile/privacy setup. It is a shared test account; use fictional information only.
+Sign in with `jphillips@demo.flightforge.app` / `password1234`. This is a temporary credential: the account is created lazily in D1, has only the `PLAYER` role, and must choose a different private password before profile/privacy setup. Changing it revokes every existing session. Use fictional profile information only.

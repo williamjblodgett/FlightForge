@@ -13,7 +13,7 @@ export async function MobileNav() {
         <span>Play</span>
       </Link>
       <Link href="/roadmap#events"><CalendarDays aria-hidden="true" /><span>Events</span></Link>
-      <Link href={user ? (user.onboardingComplete ? "/profile" : "/onboarding") : "/sign-in"}><UserRound aria-hidden="true" /><span>Profile</span></Link>
+      <Link href={user ? (user.mustChangePassword ? "/account/password" : user.onboardingComplete ? "/profile" : "/onboarding") : "/sign-in"}><UserRound aria-hidden="true" /><span>Profile</span></Link>
     </nav>
   );
 }

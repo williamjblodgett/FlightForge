@@ -19,6 +19,8 @@ type UserRow = {
   passwordHash: string | null;
   passwordSalt: string | null;
   passwordIterations: number | null;
+  mustChangePassword: number;
+  passwordBootstrapVersion: number;
   status: string;
   isTestAccount: number;
   onboardingCompletedAt: string | null;
@@ -28,6 +30,7 @@ export type AccountSettings = OnboardingInput & {
   email: string;
   onboardingComplete: boolean;
   isTestAccount: boolean;
+  mustChangePassword: boolean;
 };
 
 export class AccountEmailTakenError extends Error {
@@ -37,12 +40,28 @@ export class AccountEmailTakenError extends Error {
   }
 }
 
+export class InvalidCurrentPasswordError extends Error {
+  constructor() {
+    super("The current password is incorrect.");
+    this.name = "InvalidCurrentPasswordError";
+  }
+}
+
+export class PasswordChangeRequiredError extends Error {
+  constructor() {
+    super("Set a private password before completing profile setup.");
+    this.name = "PasswordChangeRequiredError";
+  }
+}
+
 let schemaInitialization: Promise<void> | null = null;
 
 const accountSchemaStatements = [
   `CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY, email TEXT NOT NULL, display_name TEXT NOT NULL,
     password_hash TEXT, password_salt TEXT, password_iterations INTEGER,
+    must_change_password INTEGER NOT NULL DEFAULT 0,
+    password_bootstrap_version INTEGER NOT NULL DEFAULT 0,
     auth_provider_subject TEXT, status TEXT NOT NULL DEFAULT 'ACTIVE',
     is_test_account INTEGER NOT NULL DEFAULT 0, email_verified_at TEXT,
     onboarding_completed_at TEXT, last_signed_in_at TEXT,
@@ -114,6 +133,16 @@ export async function ensureAccountSchema(): Promise<void> {
 async function initializeSchema(): Promise<void> {
   const database = getD1Database();
   await database.batch(accountSchemaStatements.map((statement) => database.prepare(statement)));
+  const columns = await database.prepare("PRAGMA table_info(users)").all<{ name: string }>();
+  const names = new Set(columns.results.map((column) => column.name));
+  const additions: D1PreparedStatement[] = [];
+  if (!names.has("must_change_password")) {
+    additions.push(database.prepare("ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0"));
+  }
+  if (!names.has("password_bootstrap_version")) {
+    additions.push(database.prepare("ALTER TABLE users ADD COLUMN password_bootstrap_version INTEGER NOT NULL DEFAULT 0"));
+  }
+  if (additions.length) await database.batch(additions);
 }
 
 export async function createAccount(input: {
@@ -187,6 +216,7 @@ export async function createAccount(input: {
     source: "password",
     onboardingComplete: false,
     isTestAccount: false,
+    mustChangePassword: false,
   };
 }
 
@@ -196,11 +226,10 @@ export async function authenticateAccount(
 ): Promise<AuthenticatedUser | null> {
   await ensureAccountSchema();
   const email = emailInput.trim().toLowerCase();
-  let row = await findUserRowByEmail(email);
-  if (!row && email === jPhillipsTestAccount.email) {
+  if (email === jPhillipsTestAccount.email) {
     await ensureJPhillipsTestAccount();
-    row = await findUserRowByEmail(email);
   }
+  const row = await findUserRowByEmail(email);
 
   if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations) {
     await verifyPassword(passwordInput, {
@@ -262,7 +291,9 @@ export async function getAccountUserBySession(
     .prepare(
       `SELECT u.id, u.email, u.display_name AS displayName,
         u.password_hash AS passwordHash, u.password_salt AS passwordSalt,
-        u.password_iterations AS passwordIterations, u.status,
+        u.password_iterations AS passwordIterations,
+        u.must_change_password AS mustChangePassword,
+        u.password_bootstrap_version AS passwordBootstrapVersion, u.status,
         u.is_test_account AS isTestAccount,
         u.onboarding_completed_at AS onboardingCompletedAt
        FROM auth_sessions s JOIN users u ON u.id = s.user_id
@@ -290,6 +321,38 @@ export async function findAccountUserByEmail(emailInput: string): Promise<Authen
   return row ? accountUserFromRow(row, await rolesForUser(row.id)) : null;
 }
 
+export async function changeAccountPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await ensureAccountSchema();
+  const row = await findUserRowById(userId);
+  if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations) {
+    throw new InvalidCurrentPasswordError();
+  }
+  const verified = await verifyPassword(currentPassword, {
+    hash: row.passwordHash,
+    salt: row.passwordSalt,
+    iterations: row.passwordIterations,
+  });
+  if (!verified) throw new InvalidCurrentPasswordError();
+
+  const replacement = await createPasswordRecord(newPassword);
+  const timestamp = new Date().toISOString();
+  const database = getD1Database();
+  await database.batch([
+    database.prepare(
+      `UPDATE users SET password_hash = ?, password_salt = ?, password_iterations = ?,
+        must_change_password = 0, updated_at = ?, version = version + 1 WHERE id = ?`,
+    ).bind(replacement.hash, replacement.salt, replacement.iterations, timestamp, userId),
+    database.prepare(
+      "UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL",
+    ).bind(timestamp, userId),
+    auditStatement(database, userId, "PASSWORD_CHANGED", "user", userId, timestamp),
+  ]);
+}
+
 export async function getAccountSettings(user: AuthenticatedUser): Promise<AccountSettings> {
   await ensureAccountSchema();
   const userId = await ensureExternalAccount(user);
@@ -298,6 +361,7 @@ export async function getAccountSettings(user: AuthenticatedUser): Promise<Accou
       `SELECT u.email, u.display_name AS displayName,
         u.onboarding_completed_at AS onboardingCompletedAt,
         u.is_test_account AS isTestAccount,
+        u.must_change_password AS mustChangePassword,
         p.home_city AS homeCity, p.home_region_code AS homeRegionCode,
         p.postal_code AS postalCode, p.experience_level AS experienceLevel,
         p.throwing_hand AS throwingHand,
@@ -327,6 +391,7 @@ export async function getAccountSettings(user: AuthenticatedUser): Promise<Accou
     displayName: String(row.displayName),
     onboardingComplete: Boolean(row.onboardingCompletedAt),
     isTestAccount: Boolean(row.isTestAccount),
+    mustChangePassword: Boolean(row.mustChangePassword),
     homeCity: nullableString(row.homeCity),
     homeRegionCode: nullableString(row.homeRegionCode),
     postalCode: nullableString(row.postalCode),
@@ -353,6 +418,7 @@ export async function saveOnboarding(
   input: OnboardingInput,
 ): Promise<void> {
   await ensureAccountSchema();
+  if (user.mustChangePassword) throw new PasswordChangeRequiredError();
   const database = getD1Database();
   const userId = await ensureExternalAccount(user);
   const timestamp = new Date().toISOString();
@@ -438,16 +504,35 @@ export async function saveOnboarding(
 
 async function ensureJPhillipsTestAccount(): Promise<void> {
   const existing = await findUserRowByEmail(jPhillipsTestAccount.email);
-  if (existing) return;
+  if (existing && existing.passwordBootstrapVersion >= jPhillipsTestAccount.passwordBootstrapVersion) return;
   const database = getD1Database();
   const password = await createPasswordRecord(jPhillipsTestAccount.password);
   const timestamp = new Date().toISOString();
+  if (existing) {
+    await database.batch([
+      database.prepare(
+        `UPDATE users SET password_hash = ?, password_salt = ?, password_iterations = ?,
+          must_change_password = 1, password_bootstrap_version = ?, updated_at = ?,
+          version = version + 1 WHERE id = ?`,
+      ).bind(
+        password.hash,
+        password.salt,
+        password.iterations,
+        jPhillipsTestAccount.passwordBootstrapVersion,
+        timestamp,
+        existing.id,
+      ),
+      auditStatement(database, existing.id, "TEMPORARY_PASSWORD_ISSUED", "user", existing.id, timestamp),
+    ]);
+    return;
+  }
   await database.batch([
     database.prepare(
       `INSERT OR IGNORE INTO users
         (id, email, display_name, password_hash, password_salt, password_iterations,
-         status, is_test_account, created_at, updated_at, version)
-       VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', 1, ?, ?, 1)`,
+         must_change_password, password_bootstrap_version, status, is_test_account,
+         created_at, updated_at, version)
+       VALUES (?, ?, ?, ?, ?, ?, 1, ?, 'ACTIVE', 1, ?, ?, 1)`,
     ).bind(
       jPhillipsTestAccount.id,
       jPhillipsTestAccount.email,
@@ -455,6 +540,7 @@ async function ensureJPhillipsTestAccount(): Promise<void> {
       password.hash,
       password.salt,
       password.iterations,
+      jPhillipsTestAccount.passwordBootstrapVersion,
       timestamp,
       timestamp,
     ),
@@ -507,12 +593,30 @@ async function findUserRowByEmail(email: string): Promise<UserRow | null> {
     .prepare(
       `SELECT id, email, display_name AS displayName,
         password_hash AS passwordHash, password_salt AS passwordSalt,
-        password_iterations AS passwordIterations, status,
+        password_iterations AS passwordIterations,
+        must_change_password AS mustChangePassword,
+        password_bootstrap_version AS passwordBootstrapVersion, status,
         is_test_account AS isTestAccount,
         onboarding_completed_at AS onboardingCompletedAt
        FROM users WHERE email = ? AND deleted_at IS NULL LIMIT 1`,
     )
     .bind(email.toLowerCase())
+    .first<UserRow>();
+}
+
+async function findUserRowById(id: string): Promise<UserRow | null> {
+  return getD1Database()
+    .prepare(
+      `SELECT id, email, display_name AS displayName,
+        password_hash AS passwordHash, password_salt AS passwordSalt,
+        password_iterations AS passwordIterations,
+        must_change_password AS mustChangePassword,
+        password_bootstrap_version AS passwordBootstrapVersion, status,
+        is_test_account AS isTestAccount,
+        onboarding_completed_at AS onboardingCompletedAt
+       FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1`,
+    )
+    .bind(id)
     .first<UserRow>();
 }
 
@@ -536,6 +640,7 @@ function accountUserFromRow(row: UserRow, roles: Role[]): AuthenticatedUser {
     source: "password",
     onboardingComplete: Boolean(row.onboardingCompletedAt),
     isTestAccount: Boolean(row.isTestAccount),
+    mustChangePassword: Boolean(row.mustChangePassword),
   };
 }
 
