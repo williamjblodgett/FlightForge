@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, FileCheck2, LockKeyhole, Send } from "lucide-react";
 import type { AuthenticatedUser } from "@/modules/auth/types";
+import { brand } from "@/config/brand";
 import type { Course } from "../types";
 
 type Props = {
@@ -33,7 +34,7 @@ export function CourseClaimForm({ course, user }: Props) {
       setResult(body);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
-      setError("FlightForge could not reach the claim service. Your form remains on this page.");
+      setError(`${brand.productName} could not reach the claim service. Your form remains on this page.`);
     } finally {
       setSubmitting(false);
     }
@@ -46,7 +47,7 @@ export function CourseClaimForm({ course, user }: Props) {
         <span className="eyebrow">Claim received</span>
         <h1>Your application is in the review queue.</h1>
         <p>
-          FlightForge recorded an immutable submission event. An administrator can request more information, verify, or reject the claim with a written reason.
+          {brand.productName} recorded an immutable submission event. An administrator can request more information, verify, or reject the claim with a written reason.
         </p>
         <dl>
           <div><dt>Course</dt><dd>{course.name}</dd></div>

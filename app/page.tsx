@@ -3,13 +3,13 @@ import { CourseExplorer } from "@/modules/courses/components/CourseExplorer";
 import { courses } from "@/modules/courses/demo-courses";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { getFavoriteCourseIds } from "@/modules/courses/course-repository";
+import { brand } from "@/config/brand";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Find your next round",
-  description:
-    "Discover source-attributed Maine disc golf listings in FlightForge's first launch collection.",
+  description: `Discover source-attributed Maine disc golf listings in ${brand.productName}'s first launch collection.`,
 };
 
 export default async function Home() {

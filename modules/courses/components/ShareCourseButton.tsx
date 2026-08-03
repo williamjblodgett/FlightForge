@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Share2 } from "lucide-react";
+import { brand } from "@/config/brand";
 
 type Props = { courseName: string };
 
@@ -9,7 +10,7 @@ export function ShareCourseButton({ courseName }: Props) {
   const [message, setMessage] = useState("");
 
   async function share() {
-    const shareData = { title: courseName, text: `Explore ${courseName} on FlightForge`, url: window.location.href };
+    const shareData = { title: courseName, text: `Explore ${courseName} on ${brand.productName}`, url: window.location.href };
     try {
       if (navigator.share) {
         await navigator.share(shareData);

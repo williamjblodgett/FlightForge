@@ -17,6 +17,10 @@
 
 The Vinext local runtime owns D1/R2 emulator state under ignored project directories. Favorites, claim applications, evidence, audit events, and rate limits survive page reloads.
 
+## GitHub Pages edition
+
+Run `npm run pages:dev` to open the static PWA locally. It requires no environment variables and stores only fictional interaction data in that browser. Run `npm run test:pages` to build `pages-dist/` with the same repository-relative paths used by the deployment workflow and verify the app shell, manifest, service worker, and emitted assets.
+
 ## PostgreSQL/PostGIS
 
 1. Set `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` in `.env`.

@@ -57,4 +57,4 @@ Private evidence bytes live in R2. Public course facts remain version-controlled
 
 ## Future entities
 
-Booking, pricing, payments, groups, rounds, statistics, ratings, bags, events, leagues, AI, learning, notifications, moderation, and commerce are intentionally not migrated yet. Their boundaries are recorded in the master product plan and should be added only with the vertical slice that exercises them.
+Booking, pricing, payments, groups, rounds, statistics, ratings, bags, events, leagues, AI, learning, notifications, moderation, and commerce are not yet migrated into PostgreSQL. Pure domain engines and versioned device-local demonstration records now exercise booking, group, round, bag, event, caddie, and import behaviors, but those records are not a substitute for server persistence. The next migration should accompany the cross-device booking/scoring vertical slice and its authorization, transaction, and integration tests.

@@ -57,7 +57,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: brand.productName,
       title: `${brand.productName} — Find your next round`,
       description: "Maine is the first tee. Find courses, plan a round, and build your game.",
-      images: [{ url: socialImage, width: 1734, height: 907, alt: "FlightForge — Find your line. Forge your game." }],
+      images: [{ url: socialImage, width: 1734, height: 907, alt: `${brand.productName} — Find your line. Forge your game.` }],
     },
     twitter: {
       card: "summary_large_image",

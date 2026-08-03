@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import type { DemoUser } from "@/modules/auth/demo-users";
+import { brand } from "@/config/brand";
 
 type Props = {
   demoEnabled: boolean;
@@ -34,7 +35,7 @@ export function SignInForm({ demoEnabled, users, returnTo, hostedSignInPath }: P
       }
       window.location.assign(returnTo);
     } catch {
-      setError("FlightForge could not reach the sign-in service.");
+      setError(`${brand.productName} could not reach the sign-in service.`);
     } finally {
       setSubmitting(false);
     }
@@ -57,7 +58,7 @@ export function SignInForm({ demoEnabled, users, returnTo, hostedSignInPath }: P
     <div className="auth-grid">
       <form className="auth-card" onSubmit={submit}>
         <span className="eyebrow">Local demonstration</span>
-        <h2>Choose a FlightForge role</h2>
+        <h2>Choose a {brand.productName} role</h2>
         <p>These accounts contain fictional data and are disabled in production by default.</p>
 
         <label className="field-label" htmlFor="demo-user">Demo account</label>
@@ -88,7 +89,7 @@ export function SignInForm({ demoEnabled, users, returnTo, hostedSignInPath }: P
 
         {error ? <div className="form-error" role="alert">{error}</div> : null}
         <button className="button button-primary button-wide" type="submit" disabled={submitting}>
-          {submitting ? "Signing in…" : "Enter FlightForge"}
+          {submitting ? "Signing in…" : `Enter ${brand.productName}`}
           {!submitting ? <ArrowRight size={18} aria-hidden="true" /> : null}
         </button>
       </form>

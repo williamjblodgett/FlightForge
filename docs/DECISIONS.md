@@ -27,3 +27,7 @@ Store evidence in private R2 and authorize every download server-side. Rationale
 ## D-007 — No copied course imagery
 
 Use original code-native terrain art for the first release. Rationale: avoid unlicensed photography while giving every card a clear visual identity.
+
+## D-008 — Separate static demonstration adapter
+
+Build GitHub Pages as a public, credential-free client over the same pure domain engines, with versioned and validated device-local records. Rationale: GitHub Pages can demonstrate complete interaction design and offline behavior but cannot safely host trusted identity, payments, shared inventory, private uploads, or server authorization. The interface discloses this boundary on every relevant flow.

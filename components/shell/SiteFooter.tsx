@@ -17,7 +17,7 @@ export function SiteFooter() {
           <a href={`mailto:${brand.supportEmail}`}>Support</a>
         </div>
         <p className="footer-legal">
-          FlightForge is a working title. Seed sources are attributed; no partnership with listed courses or directories is implied.
+          {brand.productName} is a working title. Seed sources are attributed; no partnership with listed courses or directories is implied.
         </p>
       </div>
     </footer>

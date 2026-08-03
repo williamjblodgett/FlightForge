@@ -1,4 +1,5 @@
 import type { Course } from "./types";
+import { brand } from "@/config/brand";
 
 export const courses: Course[] = [
   {
@@ -297,7 +298,7 @@ export const courses: Course[] = [
     claimStatus: "VERIFIED",
     dataVerificationStatus: "FICTIONAL_DEMO",
     lastReviewedAt: "2026-08-03T12:00:00.000Z",
-    sourceName: "FlightForge demonstration data",
+    sourceName: `${brand.productName} demonstration data`,
     sourceUrl: "https://flightforge.example/demo-data",
     sourceType: "COURSE_OWNER",
     verifiedBadge: true,

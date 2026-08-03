@@ -7,6 +7,7 @@
 - [ ] Fictional data is visibly labeled on cards, pages, and admin records
 - [ ] No copied photos, reviews, maps, or protected descriptions
 - [ ] Course operator verification and dispute process staffed
+- [ ] Static-demo actions and production actions remain visibly distinguishable
 
 ## Security and privacy
 
@@ -21,6 +22,7 @@
 ## Reliability
 
 - [ ] Type checking, linting, unit tests, rendered tests, and build green
+- [ ] GitHub Pages artifact tests and deployment workflow green
 - [ ] D1 and PostgreSQL migrations inspected and tested on clean databases
 - [ ] Backups and version rollback rehearsed
 - [ ] Error tracking, structured logs, health checks, and on-call alerts configured

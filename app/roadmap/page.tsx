@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Bot, CalendarDays, CheckCircle2, Disc3, Flag, MapPinned, Play, Trophy, Users } from "lucide-react";
+import { brand } from "@/config/brand";
 
 export const metadata: Metadata = { title: "Product roadmap" };
 
@@ -18,7 +19,7 @@ const slices = [
 export default function RoadmapPage() {
   return (
     <main className="roadmap-page page-shell">
-      <header className="roadmap-heading"><span className="eyebrow">Built in complete slices</span><h1>The first tee, then the whole course.</h1><p>FlightForge’s architecture includes the wider platform while delivery stays focused on complete, testable player and operator journeys.</p><Link className="button button-primary" href="/courses">Explore the live slice</Link></header>
+      <header className="roadmap-heading"><span className="eyebrow">Built in complete slices</span><h1>The first tee, then the whole course.</h1><p>{brand.productName}’s architecture includes the wider platform while delivery stays focused on complete, testable player and operator journeys.</p><Link className="button button-primary" href="/courses">Explore the live slice</Link></header>
       <div className="roadmap-grid">{slices.map((slice, index) => { const Icon = slice.icon; return <article key={slice.id} id={slice.id}><div className="roadmap-icon"><Icon aria-hidden="true" /></div><span className={`roadmap-status${index === 0 ? " is-live" : ""}`}>{index === 0 ? <CheckCircle2 aria-hidden="true" /> : null}{slice.status}</span><h2>{slice.title}</h2><p>{slice.body}</p><span className="roadmap-number">{String(index + 1).padStart(2, "0")}</span></article>; })}</div>
     </main>
   );

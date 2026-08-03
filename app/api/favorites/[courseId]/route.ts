@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/modules/auth/current-user";
 import { getCourseById } from "@/modules/courses/demo-courses";
 import { toggleFavoriteCourse } from "@/modules/courses/course-repository";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
+import { brand } from "@/config/brand";
 
 type RouteContext = { params: Promise<{ courseId: string }> };
 
@@ -30,7 +31,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   } catch {
     return apiError(
       "FAVORITE_UNAVAILABLE",
-      "FlightForge could not update this favorite. Try again.",
+      `${brand.productName} could not update this favorite. Try again.`,
       503,
     );
   }

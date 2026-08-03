@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarChart3, Database, Flag, ShieldCheck, SlidersHorizontal, Users } from "lucide-react";
+import { brand } from "@/config/brand";
 
 type Props = {
   active: "claims" | "imports";
@@ -15,7 +16,7 @@ export function AdminShell({ active, children }: Props) {
   return (
     <main className="admin-page page-shell">
       <header className="admin-heading">
-        <div><span className="eyebrow">Platform operations</span><h1>FlightForge administration</h1><p>Every decision requires a reason and creates an audit event.</p></div>
+        <div><span className="eyebrow">Platform operations</span><h1>{brand.productName} administration</h1><p>Every decision requires a reason and creates an audit event.</p></div>
         <span className="admin-secure"><ShieldCheck aria-hidden="true" /> Protected surface</span>
       </header>
       <div className="admin-layout">

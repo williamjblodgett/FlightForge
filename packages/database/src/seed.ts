@@ -1,5 +1,6 @@
 import { demoUsers } from "../../../modules/auth/demo-users";
 import { courses as seedCourses } from "../../../modules/courses/demo-courses";
+import { brand } from "../../../config/brand";
 import { getPostgresDatabase } from "./client";
 import {
   courseLocations,
@@ -86,7 +87,7 @@ await database
       sourceType: course.sourceType,
       externalId: course.slug,
       attribution: course.fictionalDemo
-        ? "FlightForge fictional demonstration data"
+        ? `${brand.productName} fictional demonstration data`
         : "Factual seed fields only; no partnership implied",
       lastVerifiedAt: new Date(course.lastReviewedAt),
     })),
@@ -113,7 +114,7 @@ function role(
   code: "PLAYER" | "COURSE_STAFF" | "COURSE_OWNER" | "TOURNAMENT_DIRECTOR" | "LEAGUE_ADMIN" | "INSTRUCTOR" | "PLATFORM_ADMIN",
   name: string,
 ) {
-  return { id, code, name, description: `${name} role for FlightForge authorization.` };
+  return { id, code, name, description: `${name} role for ${brand.productName} authorization.` };
 }
 
 function flag(key: string, enabled: boolean, description: string) {

@@ -1,8 +1,8 @@
 # FlightForge
 
-FlightForge is a responsive disc golf platform beginning with source-attributed Maine course discovery and designed to grow into booking, scoring, events, leagues, a digital bag, and trustworthy AI coaching.
+FlightForge is a responsive disc golf platform beginning with source-attributed Maine course discovery and designed to scale beyond the seed market. The repository contains both a server-backed application slice and a self-contained GitHub Pages edition that makes broader player and operator journeys usable without pretending static hosting is a production backend.
 
-This first implementation cycle delivers a complete discovery-to-course-claim slice rather than a static mockup:
+The server-backed application delivers a complete discovery-to-course-claim slice:
 
 - replaceable global brand configuration;
 - hosted identity plus explicitly gated local demo sessions;
@@ -17,6 +17,19 @@ This first implementation cycle delivers a complete discovery-to-course-claim sl
 - administrator claim and import review;
 - unit, rendered integration, type, lint, and production-build validation.
 
+The GitHub Pages edition adds working, device-local versions of previously deferred flows:
+
+- capacity-safe booking with explainable, time-limited price quotes and idempotent confirmation;
+- public/private playing groups and join-state controls;
+- offline scorekeeping with versioned corrections and basic statistics;
+- digital bag management, gap/overlap analysis, and an owned-disc-aware caddie;
+- fictional tournament registration and league standings;
+- owner condition updates, pricing simulation, CSV preview, duplicate detection, and rollback;
+- structured learning, upload-safety validation, privacy preferences, data export, and local deletion;
+- an installable PWA shell, responsive map/list discovery, and mobile active-round navigation.
+
+All mutable Pages data stays in that browser. No real reservation, payment, claim, registration, course publication, or AI media analysis occurs from the static edition.
+
 ## Quick start
 
 Prerequisites: Node.js 22.13 or newer. Docker is optional and is used only when exercising the PostgreSQL/PostGIS adapter locally.
@@ -28,6 +41,20 @@ npm run dev
 ```
 
 The application prints its local URL. The built-in local runtime supplies persistent D1 and private R2 emulators for favorites, claims, evidence, and rate limits.
+
+Run the GitHub Pages edition locally:
+
+```powershell
+npm run pages:dev
+```
+
+Create and verify its production artifact:
+
+```powershell
+npm run test:pages
+```
+
+The output is written to `pages-dist/` and is intentionally ignored by Git.
 
 To exercise PostgreSQL/PostGIS as well:
 
@@ -63,6 +90,7 @@ npm run typecheck
 npm run lint
 npm run test:unit
 npm run build
+npm run test:pages
 npm test
 npm audit
 ```
@@ -86,7 +114,12 @@ npx tsx scripts/validate-course-import.ts data/import/maine-courses.sample.csv
 - [Decision log](docs/DECISIONS.md)
 - [Implementation checklist](docs/IMPLEMENTATION_CHECKLIST.md)
 - [Launch checklist](docs/LAUNCH_CHECKLIST.md)
+- [Release scope and remaining gates](docs/RELEASE_SCOPE.md)
+
+## GitHub Pages publishing
+
+The workflow at `.github/workflows/pages.yml` validates and deploys `pages-dist/` with GitHub Actions. In repository settings, select **GitHub Actions** as the Pages source. The Vite base path is derived from `GITHUB_REPOSITORY`, so project-site asset URLs work without hard-coding a future repository name.
 
 ## Honest scope boundary
 
-Booking, payments, offline scoring, tournaments, leagues, AI caddie, and media coaching are represented in architecture and feature flags but are not presented as live. The recommended next slice is capacity-safe tee-time booking with quote locking, groups, waitlists, notifications, and an owner calendar.
+The Pages edition is a functional product demonstration, not a write-enabled production service. Public identity, cross-device persistence, marketplace payments, private media processing, real provider AI, notification delivery, security operations, and attorney approval require credentials or external review and remain deliberately gated. See [release scope](docs/RELEASE_SCOPE.md) for the exact boundary and next production slice.

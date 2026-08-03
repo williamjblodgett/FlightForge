@@ -14,9 +14,7 @@ export function BrandMark({ compact = false }: Props) {
         <Disc3 className="brand-disc" />
       </span>
       {!compact ? (
-        <span className="brand-wordmark">
-          Flight<span>Forge</span>
-        </span>
+        <span className="brand-wordmark">{brand.logo.wordmark}</span>
       ) : null}
     </Link>
   );

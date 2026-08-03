@@ -10,6 +10,7 @@ import { submitCourseClaim } from "@/modules/courses/course-repository";
 import { getCourseById } from "@/modules/courses/demo-courses";
 import { courseClaimSchema } from "@/modules/courses/validation";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
+import { brand } from "@/config/brand";
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) {
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
     }
     return apiError(
       "CLAIM_SUBMISSION_FAILED",
-      "FlightForge could not save the claim. No evidence file was retained.",
+      `${brand.productName} could not save the claim. No evidence file was retained.`,
       503,
     );
   }

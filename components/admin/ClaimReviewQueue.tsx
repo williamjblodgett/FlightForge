@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckCircle2, Download, FileClock, ShieldAlert } from "lucide-react";
 import type { CourseClaimRecord } from "@/modules/courses/course-repository";
 import type { Course } from "@/modules/courses/types";
+import { brand } from "@/config/brand";
 
 type Props = {
   initialClaims: CourseClaimRecord[];
@@ -110,7 +111,7 @@ function ClaimReviewCard({
 
       {claim.status === "CLAIM_SUBMITTED" || claim.status === "ADDITIONAL_INFORMATION_REQUIRED" ? (
         <div className="claim-decision-panel">
-          <div className="decision-warning"><ShieldAlert aria-hidden="true" /><span>Confirm evidence outside FlightForge when needed. A verified decision grants future management access.</span></div>
+          <div className="decision-warning"><ShieldAlert aria-hidden="true" /><span>Confirm evidence outside {brand.productName} when needed. A verified decision grants future management access.</span></div>
           <div className="decision-fields">
             <label><span>Decision</span><select value={status} onChange={(event) => setStatus(event.target.value as DecisionStatus)}><option value="VERIFIED">Verify claim</option><option value="ADDITIONAL_INFORMATION_REQUIRED">Request more information</option><option value="REJECTED">Reject claim</option><option value="SUSPENDED">Suspend claim</option></select></label>
             <label><span>Required reason</span><textarea rows={3} value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Describe the evidence and policy basis for this decision." /></label>

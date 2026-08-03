@@ -1,5 +1,17 @@
 # Deployment
 
+## GitHub Pages edition
+
+The repository includes a static, installable demonstration under `pages-demo/`. It intentionally keeps mutable data in validated browser storage and does not embed server credentials.
+
+1. Run `npm run typecheck`, `npm run lint`, `npm run test`, and `npm audit`.
+2. Push to a repository with GitHub Pages enabled.
+3. In **Settings → Pages**, choose **GitHub Actions** as the source.
+4. The `Deploy FlightForge Pages Demo` workflow builds `pages-dist/`, uploads the artifact, and deploys it.
+5. Verify the workflow's `page_url`, installability, navigation, refresh behavior, and offline score restoration.
+
+The workflow derives the project-site base path from `GITHUB_REPOSITORY`. Do not add authentication secrets, payment keys, AI keys, private media, or production user data to a Pages deployment; all downloaded assets and browser JavaScript are public.
+
 ## Sites deployment
 
 `.openai/hosting.json` declares logical `DB` and `MEDIA` bindings. Sites creates the physical D1 database and private R2 bucket, injects identity, saves immutable versions, and builds the Vinext Cloudflare Worker output.
@@ -27,4 +39,4 @@ For a conventional Next.js deployment, connect the course/favorite/claim reposit
 
 ## Rollback
 
-Sites versions are immutable and can be redeployed. Import batches retain IDs and applied/rolled-back timestamps in the PostgreSQL model. The current reviewed seed is version-controlled; a live import apply/rollback mutation is not implemented yet.
+GitHub Pages can be rolled back by reverting the source commit and rerunning the workflow. Sites versions are immutable and can be redeployed. Import batches retain IDs and applied/rolled-back timestamps in the PostgreSQL model. The Pages edition also demonstrates reversible device-local batches; it does not modify a shared catalog.

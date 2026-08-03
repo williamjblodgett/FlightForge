@@ -3,12 +3,13 @@ import { getCurrentUser } from "@/modules/auth/current-user";
 import { CourseExplorer } from "@/modules/courses/components/CourseExplorer";
 import { getFavoriteCourseIds } from "@/modules/courses/course-repository";
 import { courses } from "@/modules/courses/demo-courses";
+import { brand } from "@/config/brand";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Discover courses",
-  description: "Search FlightForge's source-attributed Maine launch course collection.",
+  description: `Search ${brand.productName}'s source-attributed Maine launch course collection.`,
   alternates: { canonical: "/courses" },
 };
 

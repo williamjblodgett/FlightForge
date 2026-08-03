@@ -24,6 +24,7 @@ import { CourseLocator } from "@/modules/courses/components/CourseLocator";
 import { FavoriteButton } from "@/modules/courses/components/FavoriteButton";
 import { ShareCourseButton } from "@/modules/courses/components/ShareCourseButton";
 import { UnclaimedNotice } from "@/modules/courses/components/UnclaimedNotice";
+import { brand } from "@/config/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: `${course.name} in ${course.city}, ${course.state}: ${course.holeCount} holes, ${course.terrain.join(", ").toLowerCase()} terrain, and source-attributed course facts.`,
     alternates: { canonical: `/courses/${course.slug}` },
     openGraph: {
-      title: `${course.name} · FlightForge`,
+      title: `${course.name} · ${brand.productName}`,
       description: `Explore ${course.holeCount} holes in ${course.city}, Maine.`,
     },
   };
@@ -157,7 +158,7 @@ export default async function CourseDetailPage({ params }: Props) {
             <div className="amenity-grid">
               {course.amenities.map((amenity) => <span key={amenity}><Check aria-hidden="true" />{amenity}</span>)}
             </div>
-            {!course.verifiedBadge ? <p className="data-caveat">Amenities are source-reviewed but have not been confirmed by the operator in FlightForge.</p> : null}
+            {!course.verifiedBadge ? <p className="data-caveat">Amenities are source-reviewed but have not been confirmed by the operator in {brand.productName}.</p> : null}
           </section>
 
           <section className="detail-section" aria-labelledby="layouts-heading">
@@ -187,7 +188,7 @@ export default async function CourseDetailPage({ params }: Props) {
             <ShieldCheck aria-hidden="true" />
             <div>
               <h2 id="source-heading">Source and data status</h2>
-              <p>FlightForge stores factual seed fields and a source link. It does not copy third-party reviews, photographs, maps, or protected descriptions.</p>
+              <p>{brand.productName} stores factual seed fields and a source link. It does not copy third-party reviews, photographs, maps, or protected descriptions.</p>
               <dl>
                 <div><dt>Source</dt><dd><a href={course.sourceUrl} target="_blank" rel="noreferrer">{course.sourceName} <ExternalLink aria-hidden="true" /></a></dd></div>
                 <div><dt>Reviewed</dt><dd>{new Date(course.lastReviewedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</dd></div>

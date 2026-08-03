@@ -7,6 +7,7 @@ import type { Course, CourseDifficulty, CoursePriceType } from "../types";
 import { filterCourses } from "../search";
 import { CourseCard } from "./CourseCard";
 import { CourseMap } from "./CourseMap";
+import { brand } from "@/config/brand";
 
 type Props = {
   courses: Course[];
@@ -67,7 +68,7 @@ export function CourseExplorer({
                 <Link className="button button-ghost-on-dark" href="/roadmap">See what’s taking shape</Link>
               </div>
             </div>
-            <div className="hero-signal-card" aria-label="FlightForge launch snapshot">
+            <div className="hero-signal-card" aria-label={`${brand.productName} launch snapshot`}>
               <div className="signal-orbit"><MapPinned aria-hidden="true" /></div>
               <span className="signal-kicker">Launch region</span>
               <strong>Maine</strong>
