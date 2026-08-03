@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, List, Map, MapPinned, Search, SlidersHorizontal, Sparkles } from "lucide-react";
+import { ArrowRight, List, Map, MapPinned, Search, SlidersHorizontal } from "lucide-react";
 import type { Course, CourseDifficulty, CoursePriceType } from "../types";
 import { filterCourses } from "../search";
 import { CourseCard } from "./CourseCard";
@@ -58,25 +58,25 @@ export function CourseExplorer({
           <div className="hero-grid-overlay" />
           <div className="hero-content page-shell">
             <div className="hero-copy">
-              <span className="eyebrow"><Sparkles aria-hidden="true" /> Built for every kind of round</span>
-              <h1>Find your line.<br /><span>Forge your game.</span></h1>
+              <span className="eyebrow">Maine field index · source checked</span>
+              <h1>Know before<br /><span>you throw.</span></h1>
               <p>
-                Discover courses, compare the details that matter, and build a home for every round—starting in Maine, ready for anywhere.
+                A statewide course ledger with evidence attached: who lists it, when it was checked, and whether “available” came from an operator or a directory.
               </p>
               <div className="hero-actions">
                 <a className="button button-primary" href="#course-results">Explore Maine courses <ArrowRight aria-hidden="true" /></a>
-                <Link className="button button-ghost-on-dark" href="/roadmap">See what’s taking shape</Link>
+                <Link className="button button-ghost-on-dark" href="/sign-up">Create a free field book</Link>
               </div>
             </div>
             <div className="hero-signal-card" aria-label={`${brand.productName} launch snapshot`}>
               <div className="signal-orbit"><MapPinned aria-hidden="true" /></div>
-              <span className="signal-kicker">Launch region</span>
-              <strong>Maine</strong>
-              <p>One source-aware dataset. A nationwide geographic architecture.</p>
+              <span className="signal-kicker">Field audit · Aug 3, 2026</span>
+              <strong>{courses.length} listings</strong>
+              <p>Public factual fields only. No copied descriptions, reviews, photos, or proprietary maps.</p>
               <div className="signal-stats">
-                <div><b>{courses.filter((course) => !course.fictionalDemo).length}</b><span>reviewed seeds</span></div>
-                <div><b>1</b><span>verified demo</span></div>
-                <div><b>50</b><span>states ready</span></div>
+                <div><b>{courses.filter((course) => course.verificationLevel === "DIRECTORY_CROSS_CHECKED").length}</b><span>double-sourced</span></div>
+                <div><b>{courses.filter((course) => course.verificationLevel === "OPERATOR_SOURCE_REVIEWED").length}</b><span>operator-sourced</span></div>
+                <div><b>{courses.filter((course) => course.operationalStatus === "UNAVAILABLE_REPORTED").length}</b><span>unavailable</span></div>
               </div>
             </div>
           </div>
@@ -86,7 +86,7 @@ export function CourseExplorer({
           <div>
             <span className="eyebrow">Course discovery</span>
             <h1>Choose the round that fits today.</h1>
-            <p>Search source-attributed listings and compare terrain, difficulty, price, amenities, and operator verification.</p>
+            <p>Search all currently reviewed Maine listings, then inspect the source evidence before making the drive.</p>
           </div>
           <div className="directory-stat"><strong>{courses.length}</strong><span>launch listings</span></div>
         </section>
@@ -127,6 +127,7 @@ export function CourseExplorer({
             <span>Difficulty</span>
             <select value={difficulty} onChange={(event) => setDifficulty(event.target.value as CourseDifficulty | "ALL")}>
               <option value="ALL">Any level</option>
+              <option value="UNRATED">Not yet rated</option>
               <option value="BEGINNER">Beginner</option>
               <option value="RECREATIONAL">Recreational</option>
               <option value="INTERMEDIATE">Intermediate</option>
@@ -156,10 +157,10 @@ export function CourseExplorer({
 
         <div className="results-summary">
           <div>
-            <span className="eyebrow">Maine launch collection</span>
+            <span className="eyebrow">Statewide Maine field index</span>
             <h2 id="results-heading">{filteredCourses.length} {filteredCourses.length === 1 ? "course" : "courses"} ready to explore</h2>
           </div>
-          <p>Locations are approximate until an operator verifies the listing.</p>
+          <p>Coordinates are directory-sourced; same-day conditions still require operator confirmation.</p>
         </div>
 
         <div className={`explorer-layout view-${viewMode}`}>

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { chatGPTSignInPath } from "@/app/chatgpt-auth";
-import { demoUsers } from "@/modules/auth/demo-users";
-import { isDemoAuthEnabled } from "@/modules/auth/demo-session";
 import { SignInForm } from "./SignInForm";
 
 export const dynamic = "force-dynamic";
@@ -21,13 +19,11 @@ export default async function SignInPage({ searchParams }: Props) {
   return (
     <main className="auth-page page-shell">
       <div className="auth-heading">
-        <span className="eyebrow">Your rounds, your courses, your community</span>
-        <h1>Pick up where you left off.</h1>
-        <p>Save a course, submit a verified claim, or manage the next great Maine round.</p>
+        <span className="eyebrow">Player field book · private by default</span>
+        <h1>Pick up at the next tee.</h1>
+        <p>Save courses, carry your preferences, and decide exactly what other players can see.</p>
       </div>
       <SignInForm
-        demoEnabled={isDemoAuthEnabled()}
-        users={demoUsers}
         returnTo={returnTo}
         hostedSignInPath={chatGPTSignInPath(returnTo)}
       />

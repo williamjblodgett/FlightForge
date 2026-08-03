@@ -3,33 +3,17 @@ import { courses } from "./demo-courses";
 import { filterCourses, normalizeSearchText } from "./search";
 
 describe("course search", () => {
-  it("matches course, city, ZIP, terrain, and amenities without case sensitivity", () => {
-    const byCity = filterCourses(courses, {
-      query: "LEWISTON",
-      difficulty: "ALL",
-      priceType: "ALL",
-      minimumHoles: null,
-    });
-    expect(byCity.map((course) => course.slug)).toContain("devils-grove-disc-golf");
-
-    const byAmenity = filterCourses(courses, {
-      query: "disc rentals",
-      difficulty: "ALL",
-      priceType: "ALL",
-      minimumHoles: null,
-    });
-    expect(byAmenity.length).toBeGreaterThan(0);
+  it("matches course, city, access, and cost fields without case sensitivity", () => {
+    const byCity = filterCourses(courses, { query: "LEWISTON", difficulty: "ALL", priceType: "ALL", minimumHoles: null });
+    expect(byCity.map((course) => course.slug)).toContain("devils-grove-disc-golf-devil");
+    const byAccess = filterCourses(courses, { query: "everyone", difficulty: "ALL", priceType: "ALL", minimumHoles: null });
+    expect(byAccess.length).toBeGreaterThan(0);
   });
 
-  it("combines difficulty, price, and minimum hole filters", () => {
-    const result = filterCourses(courses, {
-      query: "",
-      difficulty: "ADVANCED",
-      priceType: "PAID",
-      minimumHoles: 36,
-    });
-    expect(result.every((course) => course.difficulty === "ADVANCED")).toBe(true);
-    expect(result.every((course) => course.holeCount >= 36)).toBe(true);
+  it("combines difficulty, price, and minimum-hole filters", () => {
+    const result = filterCourses(courses, { query: "", difficulty: "UNRATED", priceType: "PAID", minimumHoles: 18 });
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.every((course) => course.difficulty === "UNRATED" && course.holeCount >= 18)).toBe(true);
   });
 
   it("normalizes curly punctuation and accents", () => {

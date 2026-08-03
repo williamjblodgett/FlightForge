@@ -9,6 +9,8 @@ function user(roles: AuthenticatedUser["roles"]): AuthenticatedUser {
     displayName: "Test User",
     roles,
     source: "demo",
+    onboardingComplete: true,
+    isTestAccount: true,
   };
 }
 

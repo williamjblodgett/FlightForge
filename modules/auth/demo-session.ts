@@ -73,6 +73,8 @@ export async function verifyDemoSessionToken(
     displayName: payload.displayName,
     roles: payload.roles,
     source: "demo",
+    onboardingComplete: true,
+    isTestAccount: true,
   };
 }
 

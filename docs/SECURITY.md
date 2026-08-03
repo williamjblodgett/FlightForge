@@ -4,7 +4,9 @@
 
 - server-side identity and role checks on every write and administrator read;
 - exact role-to-permission helpers instead of hidden-UI authorization;
-- signed, HTTP-only, SameSite demo cookies with expiration;
+- PBKDF2-SHA256 password hashing with per-user salts and a 210,000-iteration work factor;
+- opaque 256-bit session tokens stored only as SHA-256 hashes server-side;
+- secure, HTTP-only, SameSite cookies with expiration and logout revocation;
 - demo auth disabled unless explicitly enabled;
 - same-origin checks on cookie-affecting mutations;
 - hashed D1 rate-limit keys for sign-in, favorites, claims, and reviews;
@@ -22,7 +24,7 @@
 
 - connect a production malware scanner and quarantine step for uploads;
 - verify runtime CSP and security headers at the edge;
-- add session revocation, device/session management, and brute-force telemetry to the chosen public identity provider;
+- add email verification, password reset, MFA/passkeys, device/session management, and richer brute-force telemetry;
 - perform organization-isolation and authorization penetration tests;
 - implement data export, deletion, retention, and legal-hold workflows;
 - review audit-log immutability at the infrastructure level;

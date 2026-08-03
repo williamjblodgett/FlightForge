@@ -82,7 +82,7 @@ export function App() {
       </div>
       <header className="demo-header">
         <button className="brand-button" type="button" onClick={() => navigate("home")} aria-label={brand.logo.accessibleLabel}>
-          <span className="brand-symbol" aria-hidden="true">{brand.shortProductName.slice(0, 1)}</span>
+          <span className="brand-symbol" aria-hidden="true" style={{ backgroundImage: `url(${import.meta.env.BASE_URL}brand/flightforge-mark.png)` }} />
           <span>{brand.logo.wordmark.toUpperCase()}</span>
         </button>
         <nav className="demo-desktop-nav" aria-label="Primary">

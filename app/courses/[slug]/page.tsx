@@ -8,12 +8,13 @@ import {
   Check,
   Clock3,
   CloudSun,
+  Database,
   ExternalLink,
   Flag,
   Footprints,
   MapPin,
   ShieldCheck,
-  Sparkles,
+  TriangleAlert,
   Trees,
 } from "lucide-react";
 import { getCurrentUser } from "@/modules/auth/current-user";
@@ -40,11 +41,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!course) return {};
   return {
     title: course.name,
-    description: `${course.name} in ${course.city}, ${course.state}: ${course.holeCount} holes, ${course.terrain.join(", ").toLowerCase()} terrain, and source-attributed course facts.`,
+    description: `${course.name} in ${course.city}, ${course.state}: source-attributed location, availability evidence, access, and course facts.`,
     alternates: { canonical: `/courses/${course.slug}` },
     openGraph: {
       title: `${course.name} · ${brand.productName}`,
-      description: `Explore ${course.holeCount} holes in ${course.city}, Maine.`,
+      description: `Review source evidence for ${course.name} in ${course.city}, Maine.`,
     },
   };
 }
@@ -102,10 +103,17 @@ export default async function CourseDetailPage({ params }: Props) {
           <div className="detail-badges">
             {course.verifiedBadge ? (
               <span className="verified-badge"><BadgeCheck aria-hidden="true" /> Verified operator</span>
+            ) : course.verificationLevel === "OPERATOR_SOURCE_REVIEWED" ? (
+              <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Operator source reviewed</span>
+            ) : course.verificationLevel === "DIRECTORY_CROSS_CHECKED" ? (
+              <span className="source-badge"><Database aria-hidden="true" /> Two directories matched</span>
             ) : (
-              <span className="source-badge">Source reviewed · operator unverified</span>
+              <span className="source-badge"><Database aria-hidden="true" /> One directory source</span>
             )}
-            {course.fictionalDemo ? <span className="demo-badge">Fictional demo data</span> : null}
+            <span className={`status-chip status-${course.operationalStatus.toLowerCase()}`}>
+              {course.operationalStatus === "UNAVAILABLE_REPORTED" ? <TriangleAlert aria-hidden="true" /> : null}
+              {operationalLabel(course)}
+            </span>
           </div>
           <h1>{course.name}</h1>
           <p className="detail-location"><MapPin aria-hidden="true" /> {address}</p>
@@ -120,7 +128,7 @@ export default async function CourseDetailPage({ params }: Props) {
             />
             <ShareCourseButton courseName={course.name} />
             <a className="button button-tertiary" href={course.sourceUrl} target="_blank" rel="noreferrer">
-              Official source <ExternalLink aria-hidden="true" />
+              View primary source <ExternalLink aria-hidden="true" />
             </a>
           </div>
         </div>
@@ -128,11 +136,6 @@ export default async function CourseDetailPage({ params }: Props) {
 
       {course.claimStatus !== "VERIFIED" ? (
         <div className="page-shell detail-notice"><UnclaimedNotice courseSlug={course.slug} /></div>
-      ) : course.fictionalDemo ? (
-        <div className="page-shell detail-notice demo-data-notice">
-          <Sparkles aria-hidden="true" />
-          <div><strong>This is fictional demonstration data.</strong><p>Availability, condition, and verification states exist only to show the intended product behavior.</p></div>
-        </div>
       ) : null}
 
       <div className="detail-layout page-shell">
@@ -143,10 +146,10 @@ export default async function CourseDetailPage({ params }: Props) {
               <h2 id="course-overview-heading">Plan the right kind of round</h2>
             </div>
             <div className="facts-grid">
-              <article><Flag aria-hidden="true" /><span>Course size</span><strong>{course.holeCount} holes</strong><small>{course.layoutCount} {course.layoutCount === 1 ? "layout" : "layouts"}</small></article>
-              <article><Trees aria-hidden="true" /><span>Difficulty</span><strong>{titleCase(course.difficulty)}</strong><small>{course.terrain.join(" · ")}</small></article>
-              <article><Footprints aria-hidden="true" /><span>Estimated pace</span><strong>{course.holeCount > 18 ? "Half or full day" : course.holeCount === 9 ? "45–75 min" : "1.5–2.5 hr"}</strong><small>Self-paced estimate</small></article>
-              <article><CloudSun aria-hidden="true" /><span>Course condition</span><strong>{course.currentCondition ?? "Not reported"}</strong><small>{course.conditionSource === "DEMO" ? "Fictional demo status" : "Awaiting operator update"}</small></article>
+              <article><Flag aria-hidden="true" /><span>Course size</span><strong>{course.holeCount > 0 ? `${course.holeCount} holes` : "Not confirmed"}</strong><small>Directory factual field</small></article>
+              <article><Trees aria-hidden="true" /><span>Difficulty</span><strong>{course.difficulty === "UNRATED" ? "Not source-verified" : titleCase(course.difficulty)}</strong><small>No rating inferred from reviews</small></article>
+              <article><Footprints aria-hidden="true" /><span>Access</span><strong>{course.access ?? "Not confirmed"}</strong><small>{course.availabilityType ?? "Schedule not confirmed"}</small></article>
+              <article><CloudSun aria-hidden="true" /><span>Same-day condition</span><strong>Check before travel</strong><small>Availability evidence is not live weather or closure data</small></article>
             </div>
           </section>
 
@@ -155,10 +158,13 @@ export default async function CourseDetailPage({ params }: Props) {
               <span className="eyebrow">Know before you go</span>
               <h2 id="amenities-heading">Amenities</h2>
             </div>
-            <div className="amenity-grid">
-              {course.amenities.map((amenity) => <span key={amenity}><Check aria-hidden="true" />{amenity}</span>)}
-            </div>
-            {!course.verifiedBadge ? <p className="data-caveat">Amenities are source-reviewed but have not been confirmed by the operator in {brand.productName}.</p> : null}
+            {course.amenities.length ? (
+              <div className="amenity-grid">
+                {course.amenities.map((amenity) => <span key={amenity}><Check aria-hidden="true" />{amenity}</span>)}
+              </div>
+            ) : (
+              <div className="inline-empty-state"><Database aria-hidden="true" /><div><strong>Amenities not imported</strong><p>FlightForge does not infer amenities from reviews. An operator can add and verify them after claiming this listing.</p></div></div>
+            )}
           </section>
 
           <section className="detail-section" aria-labelledby="layouts-heading">
@@ -167,12 +173,10 @@ export default async function CourseDetailPage({ params }: Props) {
               <h2 id="layouts-heading">Layouts</h2>
             </div>
             <div className="layout-list">
-              {Array.from({ length: course.layoutCount }, (_, index) => (
-                <article key={index}>
-                  <div><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{course.fictionalDemo ? ["North Loop", "Granite Longs", "Short Forge"][index] : `Source layout ${index + 1}`}</strong><p>{course.fictionalDemo ? `${course.holeCount === 18 ? 18 : Math.round(course.holeCount / course.layoutCount)} holes · mapped for demonstration` : "Hole-level facts require operator verification."}</p></div></div>
-                  <span className="layout-status">{course.fictionalDemo ? "Demo map ready" : "Awaiting map"}</span>
-                </article>
-              ))}
+              <article>
+                <div><span>01</span><div><strong>Directory course record</strong><p>{course.holeCount > 0 ? `${course.holeCount} holes reported` : "Hole count not confirmed"} · hole-level maps require operator verification.</p></div></div>
+                <span className="layout-status">Awaiting operator map</span>
+              </article>
             </div>
           </section>
 
@@ -188,11 +192,20 @@ export default async function CourseDetailPage({ params }: Props) {
             <ShieldCheck aria-hidden="true" />
             <div>
               <h2 id="source-heading">Source and data status</h2>
-              <p>{brand.productName} stores factual seed fields and a source link. It does not copy third-party reviews, photographs, maps, or protected descriptions.</p>
+              <p>{brand.productName} stores factual fields and source links. It does not copy third-party reviews, photographs, maps, ratings, or protected descriptions.</p>
+              <div className="source-evidence-list">
+                {course.sources.map((source) => (
+                  <article key={`${source.type}-${source.url}`}>
+                    <div><strong>{source.name}</strong><span>{source.authoritative ? "Operator / facility source" : source.type === "PDGA_DIRECTORY" ? "Independent directory cross-check" : "Current directory record"}</span></div>
+                    <p>{source.observation ?? "Factual listing fields reviewed."}</p>
+                    <a href={source.url} target="_blank" rel="noreferrer">Inspect source <ExternalLink aria-hidden="true" /></a>
+                  </article>
+                ))}
+              </div>
               <dl>
-                <div><dt>Source</dt><dd><a href={course.sourceUrl} target="_blank" rel="noreferrer">{course.sourceName} <ExternalLink aria-hidden="true" /></a></dd></div>
-                <div><dt>Reviewed</dt><dd>{new Date(course.lastReviewedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</dd></div>
-                <div><dt>Status</dt><dd>{course.dataVerificationStatus === "FICTIONAL_DEMO" ? "Fictional demonstration" : "Source reviewed only"}</dd></div>
+                <div><dt>Last reviewed</dt><dd>{new Date(course.lastReviewedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</dd></div>
+                <div><dt>Evidence level</dt><dd>{verificationLabel(course)}</dd></div>
+                <div><dt>Availability</dt><dd>{operationalLabel(course)}; same-day status not guaranteed</dd></div>
               </dl>
             </div>
           </section>
@@ -200,7 +213,7 @@ export default async function CourseDetailPage({ params }: Props) {
 
         <aside className="booking-panel" aria-label="Availability and primary actions">
           <span className="eyebrow">Tee time</span>
-          <div className="booking-price"><strong>{formatCoursePrice(course)}</strong><span>{course.priceFromCents ? "per player demo price" : "operator pricing unavailable"}</span></div>
+          <div className="booking-price"><strong>{formatCoursePrice(course)}</strong><span>source note; confirm before travel</span></div>
           {course.nextAvailableAt ? (
             <div className="next-time"><CalendarClock aria-hidden="true" /><div><span>Next availability</span><strong>{course.nextAvailableAt}</strong></div></div>
           ) : (
@@ -212,7 +225,7 @@ export default async function CourseDetailPage({ params }: Props) {
           {course.claimStatus !== "VERIFIED" ? (
             <Link className="button button-secondary button-wide" href={`/courses/${course.slug}/claim`}>Claim this course</Link>
           ) : null}
-          <p className="booking-fineprint">Final totals, policies, and capacity checks will appear before checkout when booking launches.</p>
+          <p className="booking-fineprint">FlightForge reservations are not connected to this operator. Availability evidence above is informational, not a reservation.</p>
         </aside>
       </div>
     </main>
@@ -221,4 +234,21 @@ export default async function CourseDetailPage({ params }: Props) {
 
 function titleCase(value: string): string {
   return value[0] + value.slice(1).toLowerCase();
+}
+
+function operationalLabel(course: NonNullable<ReturnType<typeof getCourseBySlug>>): string {
+  switch (course.operationalStatus) {
+    case "OPERATOR_CONFIRMED_AVAILABLE": return "Operator source reports available";
+    case "OPERATOR_CONFIRMED_SEASONAL": return "Operator source reports seasonally available";
+    case "AVAILABLE_REPORTED": return "Directory reports available";
+    case "SEASONAL_AVAILABLE": return "Directory reports seasonally available";
+    case "UNAVAILABLE_REPORTED": return "Directory reports unavailable";
+    default: return "Current status not confirmed";
+  }
+}
+
+function verificationLabel(course: NonNullable<ReturnType<typeof getCourseBySlug>>): string {
+  if (course.verificationLevel === "OPERATOR_SOURCE_REVIEWED") return "Operator or facility source plus directory review";
+  if (course.verificationLevel === "DIRECTORY_CROSS_CHECKED") return "Two independent directory records matched";
+  return "One current directory record; manual review still required";
 }

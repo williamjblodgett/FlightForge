@@ -1,0 +1,62 @@
+{
+  "reviewed_at": "2026-08-03T21:30:00.000Z",
+  "policy": "Operator or facility-owner pages only. An available status is not an open-now guarantee; weather and same-day closures still require direct confirmation.",
+  "records": [
+    {
+      "slugs": ["sabattus-disc-golf-eagle", "sabattus-disc-golf-falcon", "sabattus-disc-golf-hawk", "sabattus-disc-golf-owl"],
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "source_name": "Sabattus Disc Golf",
+      "source_url": "https://sabattusdiscgolf.com/pages/sabattus-disc-golf-hours-and-course-rates",
+      "observation": "Operator publishes current course hours and rates."
+    },
+    {
+      "slugs": ["pineland-farms-the-commander", "pineland-farms-the-minuteman", "pineland-farms-the-patriot"],
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "source_name": "Pineland Farms",
+      "source_url": "https://pinelandfarms.org/recreation/recreation/",
+      "observation": "Facility recreation page currently lists disc golf and operating hours."
+    },
+    {
+      "slugs": ["pleasant-hill"],
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "source_name": "Pleasant Hill Disc Golf",
+      "source_url": "https://philldiscgolf.com/",
+      "observation": "Operator offers tee-time scheduling and publishes daily weather-permitting hours."
+    },
+    {
+      "slugs": ["devils-grove-disc-golf-devil", "devil-s-grove-disc-golf-demon"],
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "source_name": "Devil's Grove Disc Golf",
+      "source_url": "https://devilsgrovediscgolf.com/",
+      "observation": "Operator lists both courses, current pricing, and year-round operation."
+    },
+    {
+      "slugs": ["woodland-valley-black-bear", "woodland-valley-the-grizzly", "woodland-valley-kodiak"],
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "source_name": "Woodland Valley Disc Golf",
+      "source_url": "https://www.woodlandvalley.com/contact",
+      "observation": "Operator publishes current course, pro-shop, contact, and hours information."
+    },
+    {
+      "slugs": ["fort-kent-outdoor-center"],
+      "operational_status": "OPERATOR_CONFIRMED_SEASONAL",
+      "source_name": "Fort Kent Outdoor Center",
+      "source_url": "https://www.fortkentoc.org/",
+      "observation": "Facility identifies the 18-hole course as open May through October, dawn to dusk."
+    },
+    {
+      "slugs": ["smiling-hill-farm-the-cow"],
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "source_name": "Smiling Hill Farm",
+      "source_url": "https://smilinghill.com/disc-golf/",
+      "observation": "Facility page currently states that disc golf is open and publishes tee hours."
+    },
+    {
+      "slugs": ["sugarloaf"],
+      "operational_status": "OPERATOR_CONFIRMED_SEASONAL",
+      "source_name": "Sugarloaf",
+      "source_url": "https://www.sugarloaf.com/summer-activities",
+      "observation": "Operator's Summer 2026 page marks the 18-hole disc golf course open for the season."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Database coverage
+
+`drizzle/0003_domain_foundation.sql` provides the D1 schema foundation for every product domain in the master specification: identity and organizations, player privacy/social data, course operations and GPS geometry payloads, bookings, waitlists, pricing, payments and ledgers, rounds and scoring, statistics and versioned ratings, discs and bags, tournaments, leagues, AI/media consent and job records, tutorials, reviews, notifications, commerce, weather, imports, feature flags, audit logs, and analytics events.
+
+The migration uses globally unique text identifiers, timestamps, soft-delete/version fields where workflows need them, uniqueness constraints for idempotency, and indexes for common ownership/status/time queries. Card details and private media bytes are intentionally absent; payment providers and private object storage hold those values.
+
+Only the repositories needed by the deployed slice are active: credentials/sessions, roles, player profile/preferences/privacy, consent, favorites, course claims, sources/status evidence, rate limits, imports, and audit events. Schema presence is not a claim that every future UI is operational. Booking, payment, scoring, AI, media, league, tournament, and commerce repositories remain behind disabled feature flags until their transaction, authorization, queue, provider, and integration tests are complete.
+
+PostgreSQL/PostGIS remains the conventional production target and currently has the strongly typed Phase 0/1 model. The domain-complete D1 migration is the deployed schema baseline; PostgreSQL parity migrations should be generated domain-by-domain as each disabled module becomes active.

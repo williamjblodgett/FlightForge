@@ -51,9 +51,10 @@ export async function SiteHeader() {
               <div className="profile-popover">
                 <strong>{user.displayName}</strong>
                 <span>{user.email}</span>
+                {!user.onboardingComplete ? <Link href="/onboarding">Finish profile setup</Link> : <Link href="/profile">Profile & privacy</Link>}
                 <Link href="/favorites">Saved courses</Link>
                 {can(user, "viewAdmin") ? <Link href="/admin/claims">Admin review</Link> : null}
-                {user.source === "demo" ? <SignOutButton /> : null}
+                <SignOutButton />
               </div>
             </details>
           ) : (

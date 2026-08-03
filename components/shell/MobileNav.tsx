@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { CalendarDays, Compass, Home, Play, UserRound } from "lucide-react";
+import { getCurrentUser } from "@/modules/auth/current-user";
 
-export function MobileNav() {
+export async function MobileNav() {
+  const user = await getCurrentUser();
   return (
     <nav className="mobile-nav" aria-label="Mobile navigation">
       <Link href="/"><Home aria-hidden="true" /><span>Home</span></Link>
@@ -11,7 +13,7 @@ export function MobileNav() {
         <span>Play</span>
       </Link>
       <Link href="/roadmap#events"><CalendarDays aria-hidden="true" /><span>Events</span></Link>
-      <Link href="/sign-in"><UserRound aria-hidden="true" /><span>Profile</span></Link>
+      <Link href={user ? (user.onboardingComplete ? "/profile" : "/onboarding") : "/sign-in"}><UserRound aria-hidden="true" /><span>Profile</span></Link>
     </nav>
   );
 }

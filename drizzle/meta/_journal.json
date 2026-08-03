@@ -15,6 +15,20 @@
       "when": 1785776163683,
       "tag": "0001_warm_pestilence",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785792432242,
+      "tag": "0002_real_wild_pack",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1785795600000,
+      "tag": "0003_domain_foundation",
+      "breakpoints": true
     }
   ]
 }

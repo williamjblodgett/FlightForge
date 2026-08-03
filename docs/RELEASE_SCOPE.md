@@ -2,7 +2,7 @@
 
 ## What is implemented
 
-The server-backed slice provides hosted identity integration, gated demo sessions, RBAC, source-attributed Maine discovery, course detail pages, persistent favorites, private claim evidence, immutable claim review, administrator import review, D1/R2 persistence, and a PostgreSQL/PostGIS production model for those domains.
+The server-backed slice provides free password signup/login, salted PBKDF2 credentials, revocable hashed sessions, first-run profile/privacy setup, a player-only JPhillips test account, hosted identity integration, RBAC, 120 source-attributed Maine listings, course details, favorites, claims, administrator review, D1/R2 persistence, and domain-complete D1 schema foundations.
 
 The GitHub Pages edition extends the product into an interactive, installable demonstration. Search, favorites, current-location sorting, map/list discovery, capacity-safe booking, quote explanations, waitlist previews, social groups, offline scoring, basic statistics, digital bags, bag intelligence, deterministic caddie recommendations, fictional events and leagues, operator conditions, pricing simulation, CSV import preview/rollback, structured learning, media-safety validation, privacy controls, export, and deletion work in-browser.
 
@@ -14,7 +14,7 @@ The following are launch gates rather than coding placeholders:
 
 | Gate | Why it cannot be represented as live on GitHub Pages | Required completion evidence |
 | --- | --- | --- |
-| Public identity and cross-device sync | Static hosting has no trusted server session or private database | Chosen provider, threat model, session tests, PostgreSQL adapter |
+| Email ownership and account recovery | Password accounts work, but email verification, password reset, MFA/passkeys, and transactional delivery are not configured | Delivery provider, token lifecycle tests, abuse controls, recovery runbook |
 | Payments and payouts | Marketplace identity, tax, disputes, and webhook secrets require a secured backend | Provider sandbox, ledger reconciliation, idempotent webhook tests, launch approval |
 | Shared inventory and notifications | Real capacity needs transactional writes and delivery providers | Database transaction tests, queue, email/push credentials, retry and audit evidence |
 | Photo/video coaching | Identifiable media needs private storage, scanning, transcoding, consent, retention, and an approved model | Security pipeline tests, consent records, provider evaluation, deletion verification |
@@ -25,4 +25,4 @@ The interface labels these gates as **provider required** or **external review**
 
 ## Recommended next production slice
 
-Persist the already-tested booking and scoring engines in PostgreSQL, then add authenticated APIs and transaction-level integration tests for shared inventory, waitlists, group membership, offline synchronization, owner calendars, and notifications. Keep payments disabled until this foundation passes staging load, security, and reconciliation checks.
+Activate booking and scoring repositories on the new schema, then add authenticated APIs and transaction-level integration tests for shared inventory, waitlists, group membership, offline synchronization, owner calendars, and notifications. Keep payments disabled until this foundation passes staging load, security, and reconciliation checks.

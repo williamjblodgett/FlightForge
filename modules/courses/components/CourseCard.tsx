@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BadgeCheck, Clock3, Flag, MapPin, Trees } from "lucide-react";
+import { BadgeCheck, CalendarRange, Clock3, Database, Flag, MapPin, Trees, TriangleAlert } from "lucide-react";
 import type { Course } from "../types";
 import { formatCoursePrice } from "../demo-courses";
 import { CourseHeroArt } from "./CourseHeroArt";
@@ -40,14 +40,23 @@ export function CourseCard({ course, favorite, signedIn, selected, onSelect }: P
         <div className="course-trust-row">
           {course.verifiedBadge ? (
             <span className="verified-badge"><BadgeCheck aria-hidden="true" /> Verified operator</span>
+          ) : course.verificationLevel === "OPERATOR_SOURCE_REVIEWED" ? (
+            <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Operator source reviewed</span>
+          ) : course.verificationLevel === "DIRECTORY_CROSS_CHECKED" ? (
+            <span className="source-badge"><Database aria-hidden="true" /> 2 sources matched</span>
           ) : (
-            <span className="source-badge">Source reviewed</span>
+            <span className="source-badge"><Database aria-hidden="true" /> 1 directory source</span>
           )}
           <span>{approximateMilesFromPortland(course.latitude, course.longitude)} mi from Portland</span>
         </div>
 
+        <div className={`evidence-status status-${course.operationalStatus.toLowerCase()}`}>
+          {course.operationalStatus === "UNAVAILABLE_REPORTED" ? <TriangleAlert aria-hidden="true" /> : <CalendarRange aria-hidden="true" />}
+          {operationalLabel(course)}
+        </div>
+
         <div className="course-meta-grid">
-          <span><Flag aria-hidden="true" /><strong>{course.holeCount}</strong> holes</span>
+          <span><Flag aria-hidden="true" />{course.holeCount > 0 ? <><strong>{course.holeCount}</strong> holes</> : "Hole count unconfirmed"}</span>
           <span><Trees aria-hidden="true" />{friendlyDifficulty(course.difficulty)}</span>
           <span className="course-price">{formatCoursePrice(course)}</span>
         </div>
@@ -66,7 +75,19 @@ export function CourseCard({ course, favorite, signedIn, selected, onSelect }: P
 }
 
 function friendlyDifficulty(value: Course["difficulty"]): string {
+  if (value === "UNRATED") return "Difficulty unverified";
   return value[0] + value.slice(1).toLowerCase();
+}
+
+function operationalLabel(course: Course): string {
+  switch (course.operationalStatus) {
+    case "OPERATOR_CONFIRMED_AVAILABLE": return "Operator source reports available";
+    case "OPERATOR_CONFIRMED_SEASONAL": return "Seasonal · operator source reports available";
+    case "AVAILABLE_REPORTED": return "Directory reports available";
+    case "SEASONAL_AVAILABLE": return "Seasonal · directory reports available";
+    case "UNAVAILABLE_REPORTED": return "Directory reports unavailable";
+    default: return "Current status not confirmed";
+  }
 }
 
 function approximateMilesFromPortland(latitude: number, longitude: number): number {

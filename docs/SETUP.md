@@ -15,7 +15,7 @@
 5. Run `npm run dev`.
 6. Open the exact local URL printed by the server.
 
-The Vinext local runtime owns D1/R2 emulator state under ignored project directories. Favorites, claim applications, evidence, audit events, and rate limits survive page reloads.
+The Vinext local runtime owns D1/R2 emulator state under ignored project directories. Accounts, sessions, profiles, privacy choices, favorites, claim applications, evidence, audit events, and rate limits survive page reloads.
 
 ## GitHub Pages edition
 
@@ -33,7 +33,7 @@ The first migration enables PostGIS before creating geographic columns and index
 
 ## Import validation
 
-`npm run seed:validate` validates the reviewed JSON batch, previews intended changes, and reports duplicate candidates. The standalone script accepts either the versioned JSON format or the provided CSV columns.
+`npm run seed:validate` validates the small reviewed import contract. `npm run seed:validate:statewide` validates all 120 statewide rows, unique slugs, coordinate bounds, source URLs, and open-status semantics.
 
 ## Required environment variables
 
@@ -47,3 +47,7 @@ The first migration enables PostGIS before creating geographic columns and index
 | `NEXT_PUBLIC_APP_URL` | Deployment metadata | Public application origin |
 
 Mapbox, Stripe, and AI variables are placeholders for disabled feature modules. Never place server secrets in a `NEXT_PUBLIC_*` variable.
+
+## Built-in player tester
+
+Sign in with `jphillips@demo.flightforge.app` / `FlightForge-JPhillips-2026!`. The account is created lazily in D1, has only the `PLAYER` role, begins with private visibility, and enters first-run profile/privacy setup. It is a shared test account; use fictional information only.

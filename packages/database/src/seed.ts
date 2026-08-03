@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { demoUsers } from "../../../modules/auth/demo-users";
 import { courses as seedCourses } from "../../../modules/courses/demo-courses";
 import { brand } from "../../../config/brand";
@@ -42,7 +43,7 @@ await database
   .insert(courses)
   .values(
     seedCourses.map((course) => ({
-      id: course.id,
+      id: deterministicUuid(`course:${course.slug}`),
       slug: course.slug,
       name: course.name,
       description: course.shortDescription,
@@ -62,7 +63,7 @@ await database
   .values(
     seedCourses.map((course, index) => ({
       id: `80000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
-      courseId: course.id,
+      courseId: deterministicUuid(`course:${course.slug}`),
       addressLine1: course.addressLine1,
       city: course.city,
       regionCode: course.state,
@@ -81,7 +82,7 @@ await database
   .values(
     seedCourses.map((course, index) => ({
       id: `90000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
-      courseId: course.id,
+      courseId: deterministicUuid(`course:${course.slug}`),
       sourceName: course.sourceName,
       sourceUrl: course.sourceUrl,
       sourceType: course.sourceType,
@@ -119,4 +120,11 @@ function role(
 
 function flag(key: string, enabled: boolean, description: string) {
   return { key, enabled, description };
+}
+
+function deterministicUuid(value: string): string {
+  const hex = createHash("sha256").update(value).digest("hex").slice(0, 32).split("");
+  hex[12] = "4";
+  hex[16] = ((Number.parseInt(hex[16], 16) & 0x3) | 0x8).toString(16);
+  return `${hex.slice(0, 8).join("")}-${hex.slice(8, 12).join("")}-${hex.slice(12, 16).join("")}-${hex.slice(16, 20).join("")}-${hex.slice(20).join("")}`;
 }

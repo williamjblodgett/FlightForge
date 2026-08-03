@@ -10,31 +10,37 @@ type Props = {
 };
 
 export function CourseMap({ courses, selectedCourseId, onSelect }: Props) {
+  const clusters = clusterCourses(courses);
   return (
     <section className="course-map" aria-label="Map of course results">
       <div className="map-toolbar">
         <span><MapPin aria-hidden="true" /> Maine course overview</span>
-        <button type="button" disabled title="Location permission is not enabled in this demonstration">
+        <button type="button" disabled title="Location permission is not enabled in this release">
           <LocateFixed aria-hidden="true" /> Use my location
         </button>
       </div>
       <div className="map-canvas">
-        <span className="map-region-label map-region-west">Lakes</span>
+        <span className="map-region-label map-region-west">Western lakes</span>
         <span className="map-region-label map-region-coast">Coast</span>
-        <span className="map-region-label map-region-north">North</span>
-        {courses.map((course, index) => {
-          const position = project(course);
+        <span className="map-region-label map-region-north">Aroostook</span>
+        {clusters.map((cluster, index) => {
+          const selected = cluster.courses.some((course) => course.id === selectedCourseId);
+          const target = selected
+            ? cluster.courses.find((course) => course.id === selectedCourseId) ?? cluster.courses[0]
+            : cluster.courses[0];
           return (
             <button
-              key={course.id}
+              key={cluster.key}
               type="button"
-              className={`map-pin${course.id === selectedCourseId ? " is-selected" : ""}`}
-              style={{ left: `${position.x}%`, top: `${position.y}%` }}
-              aria-label={`Select ${course.name} in ${course.city}`}
-              aria-pressed={course.id === selectedCourseId}
-              onClick={() => onSelect(course.id)}
+              className={`map-pin${selected ? " is-selected" : ""}${cluster.courses.length > 1 ? " is-cluster" : ""}`}
+              style={{ left: `${cluster.x}%`, top: `${cluster.y}%` }}
+              aria-label={cluster.courses.length > 1
+                ? `Select one of ${cluster.courses.length} nearby course listings`
+                : `Select ${target.name} in ${target.city}`}
+              aria-pressed={selected}
+              onClick={() => onSelect(target.id)}
             >
-              <span>{index + 1}</span>
+              <span>{cluster.courses.length > 1 ? cluster.courses.length : index + 1}</span>
             </button>
           );
         })}
@@ -43,7 +49,7 @@ export function CourseMap({ courses, selectedCourseId, onSelect }: Props) {
         ) : null}
       </div>
       <div className="map-caption">
-        <span>Approximate seed coordinates</span>
+        <span>Directory-sourced course centers · clustered for readability</span>
         <span>Provider-neutral map adapter · GPS is not used for emergency navigation</span>
       </div>
     </section>
@@ -51,14 +57,32 @@ export function CourseMap({ courses, selectedCourseId, onSelect }: Props) {
 }
 
 function project(course: Course): { x: number; y: number } {
-  const west = -70.9;
-  const east = -68.45;
-  const south = 43.45;
-  const north = 45.0;
+  const west = -71.15;
+  const east = -66.85;
+  const south = 42.95;
+  const north = 47.48;
   const x = ((course.longitude - west) / (east - west)) * 82 + 9;
   const y = ((north - course.latitude) / (north - south)) * 78 + 9;
   return {
     x: Math.min(92, Math.max(8, x)),
     y: Math.min(90, Math.max(8, y)),
   };
+}
+
+function clusterCourses(courses: Course[]) {
+  const cells = new Map<string, { courses: Course[]; x: number; y: number }>();
+  for (const course of courses) {
+    const position = project(course);
+    const key = `${Math.round(position.x / 5)}:${Math.round(position.y / 5)}`;
+    const existing = cells.get(key);
+    if (existing) {
+      const count = existing.courses.length;
+      existing.x = (existing.x * count + position.x) / (count + 1);
+      existing.y = (existing.y * count + position.y) / (count + 1);
+      existing.courses.push(course);
+    } else {
+      cells.set(key, { courses: [course], x: position.x, y: position.y });
+    }
+  }
+  return Array.from(cells, ([key, value]) => ({ key, ...value }));
 }

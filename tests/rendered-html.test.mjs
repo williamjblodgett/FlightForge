@@ -39,7 +39,7 @@ test("server-renders FlightForge discovery without starter metadata", async () =
 });
 
 test("server-renders a canonical course detail with its unclaimed notice", async () => {
-  const response = await render("/courses/sabattus-disc-golf");
+  const response = await render("/courses/sabattus-disc-golf-eagle");
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Sabattus Disc Golf/);
@@ -53,4 +53,48 @@ test("keeps administrator claims protected", async () => {
   const html = await response.text();
   assert.match(html, /Platform administrator access required/);
   assert.match(html, /noindex|index:false/i);
+});
+
+test("creates a free player account and persists first-run privacy settings", async () => {
+  const email = `player-${Date.now()}@example.test`;
+  const signup = await fetch(`${baseUrl}/api/auth/signup`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ displayName: "Trail Tester", email, password: "TrailBasket2026!", acceptTerms: true }),
+  });
+  assert.equal(signup.status, 201);
+  const cookie = signup.headers.get("set-cookie")?.split(";")[0];
+  assert.ok(cookie, "signup must issue a secure session cookie");
+  const signupBody = await signup.json();
+  assert.equal(signupBody.next, "/onboarding");
+
+  const settings = await fetch(`${baseUrl}/api/account/onboarding`, {
+    method: "PUT",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie },
+    body: JSON.stringify({
+      displayName: "Trail Tester", homeCity: "Portland", homeRegionCode: "ME", postalCode: "04101",
+      experienceLevel: "RECREATIONAL", throwingHand: "RIGHT", controlledDistanceFeet: 275,
+      playStyle: "CASUAL", socialMatchmaking: false, aiRecommendations: true,
+      tournamentNotifications: false, profileVisibility: "PRIVATE", showHomeCity: false,
+      showRoundHistory: false, showBag: false, allowMessages: "CONNECTIONS",
+      allowGameInvites: true, analyticsOptIn: false, aiTrainingOptIn: false,
+    }),
+  });
+  assert.equal(settings.status, 200);
+  const profile = await fetch(`${baseUrl}/profile`, { headers: { accept: "text/html", cookie } });
+  assert.equal(profile.status, 200);
+  assert.match(await profile.text(), /Player profile & privacy|Player profile and privacy/i);
+});
+
+test("seeds the player-only JPhillips tester on first successful login", async () => {
+  const login = await fetch(`${baseUrl}/api/auth/login`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ email: "jphillips@demo.flightforge.app", password: "FlightForge-JPhillips-2026!" }),
+  });
+  assert.equal(login.status, 200);
+  const body = await login.json();
+  assert.deepEqual(body.user.roles, ["PLAYER"]);
+  assert.equal(body.user.onboardingComplete, false);
+  assert.equal(body.next, "/onboarding");
 });

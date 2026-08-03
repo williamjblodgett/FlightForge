@@ -2,14 +2,15 @@
 
 FlightForge is a responsive disc golf platform beginning with source-attributed Maine course discovery and designed to scale beyond the seed market. The repository contains both a server-backed application slice and a self-contained GitHub Pages edition that makes broader player and operator journeys usable without pretending static hosting is a production backend.
 
-The server-backed application delivers a complete discovery-to-course-claim slice:
+The server-backed application delivers a complete account-to-discovery-to-course-claim slice:
 
 - replaceable global brand configuration;
-- hosted identity plus explicitly gated local demo sessions;
+- free password signup/login, first-run player setup, and granular privacy preferences;
+- a player-only JPhillips shared tester plus hosted identity and gated local demo sessions;
 - centralized roles and server-side authorization;
 - PostgreSQL/PostGIS production schema and migrations;
 - durable Sites D1/R2 adapter for the deployed first slice;
-- Maine CSV and JSON import contracts with duplicate detection;
+- a 120-record Maine evidence ledger, operator-source overrides, and import contracts with duplicate detection;
 - responsive course search and provider-neutral map/list views;
 - source-attributed course details and exact unclaimed notices;
 - persistent favorites;
@@ -68,6 +69,16 @@ Set a strong local-only `POSTGRES_PASSWORD`, update `DATABASE_URL`, and never co
 
 ## Demo sign-in
 
+The public server-backed build includes a player-only shared test account:
+
+| Player | Email | Password |
+| --- | --- | --- |
+| JPhillips | `jphillips@demo.flightforge.app` | `FlightForge-JPhillips-2026!` |
+
+It begins private and opens profile/privacy setup on first login. Use fictional details only.
+
+For local role testing, set the demo variables below.
+
 Set `DEMO_AUTH_ENABLED=true` and a random `DEMO_AUTH_SECRET` of at least 32 characters. Every fictional demo account uses the local-only password `ForgeDemo2026!`.
 
 | Persona | Email |
@@ -99,6 +110,7 @@ Validate the reviewed seed or another JSON/CSV file:
 
 ```powershell
 npm run seed:validate
+npm run seed:validate:statewide
 npx tsx scripts/validate-course-import.ts data/import/maine-courses.sample.csv
 ```
 
@@ -106,6 +118,8 @@ npx tsx scripts/validate-course-import.ts data/import/maine-courses.sample.csv
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Data model](docs/DATA_MODEL.md)
+- [Database coverage](docs/DATABASE_COVERAGE.md)
+- [Maine course research](docs/MAINE_COURSE_RESEARCH.md)
 - [Local setup](docs/SETUP.md)
 - [Deployment](docs/DEPLOYMENT.md)
 - [API contracts](docs/API.md)

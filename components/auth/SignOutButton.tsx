@@ -8,7 +8,7 @@ export function SignOutButton() {
   async function signOut() {
     setBusy(true);
     try {
-      await fetch("/api/auth/demo", { method: "DELETE" });
+      await fetch("/api/auth/logout", { method: "DELETE" });
       window.location.assign("/");
     } finally {
       setBusy(false);

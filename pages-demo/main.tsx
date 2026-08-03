@@ -4,6 +4,7 @@ import { App } from "./App";
 import { DemoStoreProvider } from "./demo-store";
 import { brand } from "@/config/brand";
 import "./styles.css";
+import "./field-atlas.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error(`${brand.productName} demo root was not found`);

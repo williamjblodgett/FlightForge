@@ -10,12 +10,30 @@ export const claimStatusValues = [
 export type ClaimStatus = (typeof claimStatusValues)[number];
 
 export type CourseDifficulty =
+  | "UNRATED"
   | "BEGINNER"
   | "RECREATIONAL"
   | "INTERMEDIATE"
   | "ADVANCED";
 
 export type CoursePriceType = "FREE" | "PAID" | "MIXED";
+
+export type CourseOperationalStatus =
+  | "OPERATOR_CONFIRMED_AVAILABLE"
+  | "OPERATOR_CONFIRMED_SEASONAL"
+  | "AVAILABLE_REPORTED"
+  | "SEASONAL_AVAILABLE"
+  | "UNAVAILABLE_REPORTED"
+  | "STATUS_UNVERIFIED";
+
+export type CourseSource = {
+  name: string;
+  url: string;
+  type: "COURSE_OWNER" | "PUBLIC_AGENCY" | "PDGA_DIRECTORY" | "PUBLIC_DIRECTORY";
+  observation: string | null;
+  checkedAt: string;
+  authoritative: boolean;
+};
 
 export type Course = {
   id: string;
@@ -37,11 +55,24 @@ export type Course = {
   priceType: CoursePriceType;
   priceFromCents: number | null;
   claimStatus: ClaimStatus;
-  dataVerificationStatus: "REVIEWED_SOURCE_ONLY" | "FICTIONAL_DEMO";
+  dataVerificationStatus:
+    | "SOURCE_REVIEW_REQUIRED"
+    | "DIRECTORY_CROSS_CHECKED"
+    | "OPERATOR_SOURCE_REVIEWED"
+    | "FICTIONAL_DEMO";
   lastReviewedAt: string;
   sourceName: string;
   sourceUrl: string;
-  sourceType: "COURSE_OWNER" | "PUBLIC_AGENCY" | "PDGA_DIRECTORY";
+  sourceType: CourseSource["type"];
+  sources: CourseSource[];
+  operationalStatus: CourseOperationalStatus;
+  availabilityType: string | null;
+  verificationLevel:
+    | "DIRECTORY_SINGLE_SOURCE"
+    | "DIRECTORY_CROSS_CHECKED"
+    | "OPERATOR_SOURCE_REVIEWED";
+  access: string | null;
+  costNote: string | null;
   verifiedBadge: boolean;
   fictionalDemo: boolean;
   currentCondition: string | null;

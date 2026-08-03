@@ -43,10 +43,13 @@ Claim state uses the six required states. Review mutations require a reason, use
 
 Import records retain original normalized payloads, validation errors, possible matches, batch status, apply timestamps, and rollback targeting.
 
-## Hosted first-slice persistence
+## Hosted persistence
 
-D1 contains only the operational records needed by this release:
+D1 contains active repositories for:
 
+- password credentials and revocable hashed sessions;
+- user roles, player profiles, preferences, privacy settings, and consent records;
+- course sources and status observations;
 - favorites;
 - course claims;
 - immutable claim audit events at the application layer;
@@ -55,6 +58,8 @@ D1 contains only the operational records needed by this release:
 
 Private evidence bytes live in R2. Public course facts remain version-controlled seed data until PostgreSQL becomes the active runtime adapter.
 
-## Future entities
+`drizzle/0003_domain_foundation.sql` also establishes schema-ready tables for all remaining bounded domains. See [database coverage](DATABASE_COVERAGE.md). These tables are disabled foundations, not claims of live feature behavior.
 
-Booking, pricing, payments, groups, rounds, statistics, ratings, bags, events, leagues, AI, learning, notifications, moderation, and commerce are not yet migrated into PostgreSQL. Pure domain engines and versioned device-local demonstration records now exercise booking, group, round, bag, event, caddie, and import behaviors, but those records are not a substitute for server persistence. The next migration should accompany the cross-device booking/scoring vertical slice and its authorization, transaction, and integration tests.
+## Future repositories
+
+Booking, pricing, payments, groups, rounds, statistics, ratings, bags, events, leagues, AI, learning, notifications, moderation, and commerce have D1 tables but do not yet have complete server repositories or provider integrations. The next activation should be cross-device booking/scoring with transaction-level authorization and integration tests.

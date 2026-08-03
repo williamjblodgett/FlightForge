@@ -6,25 +6,7 @@ export const contentType = "image/png";
 
 export default function Icon() {
   return new ImageResponse(
-    (
-      <div
-        style={{
-          alignItems: "center",
-          background: brand.colors.primary[950],
-          color: brand.colors.secondary[300],
-          display: "flex",
-          fontFamily: "sans-serif",
-          fontSize: 42,
-          fontWeight: 900,
-          height: "100%",
-          justifyContent: "center",
-          letterSpacing: "-0.12em",
-          width: "100%",
-        }}
-      >
-        {brand.shortProductName.slice(0, 1)}<span style={{ color: brand.colors.accent, fontSize: 18 }}>●</span>
-      </div>
-    ),
+    <div style={{ alignItems: "center", background: brand.colors.primary[950], color: brand.colors.secondary[500], display: "flex", fontFamily: "sans-serif", fontSize: 43, fontWeight: 950, height: "100%", justifyContent: "center", width: "100%" }}>F</div>,
     size,
   );
 }

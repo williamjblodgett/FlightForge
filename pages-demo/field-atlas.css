@@ -1,0 +1,23 @@
+body {
+  color: #10273b;
+  background-color: #eeeadd;
+  background-image: linear-gradient(rgb(7 31 57 / 2.5%) 1px, transparent 1px), linear-gradient(90deg, rgb(7 31 57 / 2.5%) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.brand-symbol { width: 42px; height: 42px; border-radius: 0; background-color: transparent; background-position: center; background-repeat: no-repeat; background-size: contain; }
+.brand-button > span:last-child { font-family: Georgia, serif; font-size: 1.08rem; letter-spacing: -.03em; }
+.demo-header { border-bottom: 2px solid #071f39; background: rgb(255 253 245 / 96%); }
+.demo-environment { background: #ff7417; color: #071f39; }
+.demo-button { border-radius: 5px; }
+.demo-button.primary { border: 1px solid #071f39; background: #ff7417; color: #071f39; box-shadow: 4px 4px 0 #071f39; }
+.demo-button.primary:hover:not(:disabled) { background: #ff9a4c; }
+.home-hero { border: 2px solid #071f39; border-radius: 10px; background: #071f39; box-shadow: 12px 12px 0 #ff7417; }
+.home-hero h1, .screen-title h1, .section-heading h2, .card-heading h2 { font-family: Georgia, serif; letter-spacing: -.045em; }
+.home-hero h1 span { color: #ff7417; }
+.hero-command-card { border-radius: 5px; background: #12304e; }
+.quick-grid > button, .panel-card, .demo-course-card, .live-map-panel, .group-card, .learning-card, .owner-metrics article { border-color: #b9b1a1; border-radius: 7px; background: #fffdf5; box-shadow: 4px 4px 0 rgb(7 31 57 / 12%); }
+.demo-course-card:hover { box-shadow: 6px 6px 0 #ff7417; }
+.course-art { background: #12304e; }
+.course-art.lake { background: #1a5367; }.course-art.meadow { background: #526331; }.course-art.sunrise { background: #a94618; }.course-art.granite { background: #4d5660; }
+.demo-footer { background: #071f39; }

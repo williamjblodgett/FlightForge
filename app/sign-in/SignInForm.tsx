@@ -1,20 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ShieldCheck } from "lucide-react";
-import type { DemoUser } from "@/modules/auth/demo-users";
+import Link from "next/link";
+import { ArrowRight, KeyRound, ShieldCheck, UserRoundPlus } from "lucide-react";
 import { brand } from "@/config/brand";
+import { jPhillipsTestAccount } from "@/modules/auth/test-account";
 
 type Props = {
-  demoEnabled: boolean;
-  users: DemoUser[];
   returnTo: string;
   hostedSignInPath: string;
 };
 
-export function SignInForm({ demoEnabled, users, returnTo, hostedSignInPath }: Props) {
-  const [email, setEmail] = useState(users[0]?.email ?? "");
-  const [password, setPassword] = useState(users[0]?.password ?? "");
+export function SignInForm({ returnTo, hostedSignInPath }: Props) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -23,17 +22,24 @@ export function SignInForm({ demoEnabled, users, returnTo, hostedSignInPath }: P
     setSubmitting(true);
     setError(null);
     try {
-      const response = await fetch("/api/auth/demo", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      const body = (await response.json()) as {
+        error?: { message?: string };
+        next?: string;
+        user?: { onboardingComplete?: boolean };
+      };
       if (!response.ok) {
-        const body = (await response.json()) as { error?: { message?: string } };
         setError(body.error?.message ?? "Sign-in failed. Try again.");
         return;
       }
-      window.location.assign(returnTo);
+      const destination = body.user?.onboardingComplete && returnTo !== "/"
+        ? returnTo
+        : body.next ?? returnTo;
+      window.location.assign(destination);
     } catch {
       setError(`${brand.productName} could not reach the sign-in service.`);
     } finally {
@@ -41,65 +47,64 @@ export function SignInForm({ demoEnabled, users, returnTo, hostedSignInPath }: P
     }
   }
 
-  if (!demoEnabled) {
-    return (
-      <div className="auth-card">
-        <div className="auth-icon"><ShieldCheck aria-hidden="true" /></div>
-        <h2>Continue securely</h2>
-        <p>Sign in through the hosted identity service to save courses and manage claims.</p>
-        <a className="button button-primary button-wide" href={hostedSignInPath}>
-          Sign in with ChatGPT <ArrowRight size={18} aria-hidden="true" />
-        </a>
-      </div>
-    );
+  function useTesterAccount() {
+    setEmail(jPhillipsTestAccount.email);
+    setPassword(jPhillipsTestAccount.password);
+    setError(null);
   }
 
   return (
-    <div className="auth-grid">
-      <form className="auth-card" onSubmit={submit}>
-        <span className="eyebrow">Local demonstration</span>
-        <h2>Choose a {brand.productName} role</h2>
-        <p>These accounts contain fictional data and are disabled in production by default.</p>
+    <div className="account-entry-grid">
+      <form className="auth-card account-form" onSubmit={submit}>
+        <span className="eyebrow"><KeyRound aria-hidden="true" /> Player access</span>
+        <h2>Sign in to your field book</h2>
 
-        <label className="field-label" htmlFor="demo-user">Demo account</label>
-        <select
-          id="demo-user"
-          value={email}
-          onChange={(event) => {
-            const user = users.find((candidate) => candidate.email === event.target.value);
-            setEmail(event.target.value);
-            if (user) setPassword(user.password);
-          }}
-        >
-          {users.map((user) => (
-            <option key={user.id} value={user.email}>
-              {user.label} — {user.displayName}
-            </option>
-          ))}
-        </select>
-
-        <label className="field-label" htmlFor="demo-password">Password</label>
+        <label className="field-label" htmlFor="account-email">Email</label>
         <input
-          id="demo-password"
+          id="account-email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+        />
+
+        <label className="field-label" htmlFor="account-password">Password</label>
+        <input
+          id="account-password"
           type="password"
           autoComplete="current-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
+          required
         />
 
         {error ? <div className="form-error" role="alert">{error}</div> : null}
         <button className="button button-primary button-wide" type="submit" disabled={submitting}>
-          {submitting ? "Signing in…" : `Enter ${brand.productName}`}
+          {submitting ? "Signing in…" : "Sign in"}
           {!submitting ? <ArrowRight size={18} aria-hidden="true" /> : null}
         </button>
+        <p className="auth-switch">New here? <Link href="/sign-up">Create a free account</Link></p>
+        <div className="hosted-auth-divider"><span>or</span></div>
+        <a className="button button-secondary button-wide" href={hostedSignInPath}>
+          <ShieldCheck size={18} aria-hidden="true" /> Continue with hosted identity
+        </a>
       </form>
 
-      <aside className="auth-note">
-        <ShieldCheck size={22} aria-hidden="true" />
-        <div>
-          <strong>Production identity stays separate.</strong>
-          <p>Hosted sessions use server-provided identity headers. Demo cookies are signed, HTTP-only, short-lived, and available only when explicitly enabled.</p>
-        </div>
+      <aside className="tester-pass">
+        <div className="tester-pass-number">TEST PASS · 01</div>
+        <UserRoundPlus aria-hidden="true" />
+        <span className="eyebrow">Built for JPhillips</span>
+        <h2>A ready-to-use player account.</h2>
+        <p>This non-privileged test account starts private and opens the profile setup on first sign-in.</p>
+        <dl>
+          <div><dt>Email</dt><dd>{jPhillipsTestAccount.email}</dd></div>
+          <div><dt>Password</dt><dd>{jPhillipsTestAccount.password}</dd></div>
+        </dl>
+        <button className="button button-ink button-wide" type="button" onClick={useTesterAccount}>
+          Fill JPhillips credentials
+        </button>
+        <small>Shared test credentials; do not store personal or sensitive information in this account.</small>
       </aside>
     </div>
   );

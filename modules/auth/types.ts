@@ -15,5 +15,7 @@ export type AuthenticatedUser = {
   email: string;
   displayName: string;
   roles: Role[];
-  source: "chatgpt" | "demo";
+  source: "chatgpt" | "demo" | "password";
+  onboardingComplete: boolean;
+  isTestAccount: boolean;
 };
