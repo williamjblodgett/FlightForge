@@ -24,21 +24,36 @@ export function HomeScreen() {
             <button className="demo-button glass" type="button" onClick={() => navigateTo("play")}>{activeRound ? "Continue round" : "Start a round"}</button>
           </div>
           <div className="hero-proof" aria-label="Product summary">
-            <div><strong>9</strong><span>Maine demo listings</span></div>
+            <div><strong>{courses.length}</strong><span>Maine launch listings</span></div>
             <div><strong>Offline</strong><span>Round scoring</span></div>
             <div><strong>Explainable</strong><span>Caddie guidance</span></div>
           </div>
         </div>
-        <div className="hero-command-card">
-          <div className="hero-card-top"><span>Today at a glance</span><span className="live-dot">Device ready</span></div>
-          <div className="weather-row"><CloudSun aria-hidden="true" /><div><strong>72° · W 9 mph</strong><span>Good scoring window after 2 PM</span></div></div>
-          <div className="command-divider" />
-          <span className="mini-label">Suggested round</span>
-          <h2>{nextCourse?.name}</h2>
-          <p>{nextCourse?.city}, {nextCourse?.state} · {nextCourse?.holeCount} holes · {nextCourse?.difficulty.toLowerCase()}</p>
-          <button className="text-action" type="button" onClick={() => navigateTo("play")}><CalendarCheck aria-hidden="true" /> Review tee-time options</button>
-          <div className="command-divider" />
-          <div className="sync-row"><span><span className="sync-dot" />Local data saved</span><span>{state.lastSavedAt ? "Just now" : "Ready"}</span></div>
+        <div className="home-hero-visual">
+          <figure className="home-field-photo">
+            {/* The same component ships through Vite on GitHub Pages, so a direct optimized WebP is intentional. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`${import.meta.env.BASE_URL}brand/flightforge-maine-hero-v2.webp`}
+              alt="A disc golfer throwing across a pine and granite fairway toward a basket"
+              width="1672"
+              height="941"
+              decoding="async"
+              fetchPriority="high"
+            />
+            <figcaption>Illustrative field scene · Maine launch</figcaption>
+          </figure>
+          <div className="hero-command-card">
+            <div className="hero-card-top"><span>Today at a glance</span><span className="live-dot">Device ready</span></div>
+            <div className="weather-row"><CloudSun aria-hidden="true" /><div><strong>72° · W 9 mph</strong><span>Good scoring window after 2 PM</span></div></div>
+            <div className="command-divider" />
+            <span className="mini-label">Suggested round</span>
+            <h2>{nextCourse?.name}</h2>
+            <p>{nextCourse?.city}, {nextCourse?.state} · {nextCourse?.holeCount} holes · {nextCourse?.difficulty.toLowerCase()}</p>
+            <button className="text-action" type="button" onClick={() => navigateTo("play")}><CalendarCheck aria-hidden="true" /> Review tee-time options</button>
+            <div className="command-divider" />
+            <div className="sync-row"><span><span className="sync-dot" />Local data saved</span><span>{state.lastSavedAt ? "Just now" : "Ready"}</span></div>
+          </div>
         </div>
       </section>
 

@@ -4,6 +4,7 @@ import { courses } from "@/modules/courses/demo-courses";
 import { filterCourses } from "@/modules/courses/search";
 import type { Course, CourseDifficulty, CoursePriceType } from "@/modules/courses/types";
 import { courseClaimSchema } from "@/modules/courses/validation";
+import { CourseHeroArt } from "@/modules/courses/components/CourseHeroArt";
 import { useDemoStore } from "../demo-store";
 
 type Coordinates = { latitude: number; longitude: number };
@@ -71,7 +72,7 @@ export function DiscoverScreen() {
             return (
               <article key={course.id} className={`demo-course-card ${selected?.id === course.id ? "selected" : ""}`}>
                 <button className="course-card-select" type="button" onClick={() => { setSelectedId(course.id); setClaimOpen(false); }} aria-label={`Show ${course.name} details and map`} />
-                <div className={`course-art ${course.heroTone}`}><span>{course.terrain[0]}</span><b>{course.holeCount}</b><small>holes</small></div>
+                <CourseHeroArt course={course} compact />
                 <div className="course-card-body">
                   <div className="course-card-heading"><div>{course.verifiedBadge ? <span className="verified-pill"><ShieldCheck />Verified demo</span> : <span className="source-pill">Source reviewed</span>}<h2>{course.name}</h2><p>{course.city}, {course.state}{distance == null ? "" : ` · ${distance.toFixed(1)} mi`}</p></div><button className={favorite ? "favorite active" : "favorite"} type="button" onClick={() => toggleFavorite(course.id)} aria-label={`${favorite ? "Remove" : "Add"} ${course.name} ${favorite ? "from" : "to"} favorites`}><Heart fill={favorite ? "currentColor" : "none"} /></button></div>
                   <div className="course-facts"><span>{course.difficulty.toLowerCase()}</span><span>{course.layoutCount} layout{course.layoutCount === 1 ? "" : "s"}</span><span>{course.priceFromCents == null ? course.priceType.toLowerCase() : `from $${(course.priceFromCents / 100).toFixed(0)}`}</span></div>

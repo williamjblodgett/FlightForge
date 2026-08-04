@@ -5,6 +5,7 @@ FlightForge is a responsive disc golf platform beginning with source-attributed 
 The server-backed application delivers a complete account-to-discovery-to-course-claim slice:
 
 - replaceable global brand configuration;
+- original rights-safe hero and social imagery, with illustrative scenes labeled separately from real course records;
 - free password signup/login, first-run player setup, and granular privacy preferences;
 - visible sign-out in the desktop header and mobile profile/setup flows, with correct hosted-identity logout;
 - a player-only JPhillips shared tester plus hosted identity and gated local demo sessions;
@@ -28,7 +29,8 @@ The GitHub Pages edition adds working, device-local versions of previously defer
 - fictional tournament registration and league standings;
 - owner condition updates, pricing simulation, CSV preview, duplicate detection, and rollback;
 - structured learning, upload-safety validation, privacy preferences, explicit demo sign-out, data export, and local deletion;
-- an installable PWA shell, responsive map/list discovery, and mobile active-round navigation.
+- an installable PWA shell, responsive map/list discovery, and mobile active-round navigation;
+- a shared editorial field-atlas interface with photographic hero art and trustworthy topographic course placeholders.
 
 All mutable Pages data stays in that browser. No real reservation, payment, claim, registration, course publication, or AI media analysis occurs from the static edition.
 

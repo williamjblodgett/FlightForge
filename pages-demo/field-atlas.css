@@ -21,3 +21,604 @@ body {
 .course-art { background: #12304e; }
 .course-art.lake { background: #1a5367; }.course-art.meadow { background: #526331; }.course-art.sunrise { background: #a94618; }.course-art.granite { background: #4d5660; }
 .demo-footer { background: #071f39; }
+
+/* Editorial refinement: trail journal meets live field telemetry. */
+body {
+  background-color: #eeeadd;
+  background-image:
+    radial-gradient(circle at 92% 7%, rgb(255 116 23 / 8%), transparent 24rem),
+    linear-gradient(rgb(7 31 57 / 2.7%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(7 31 57 / 2.7%) 1px, transparent 1px);
+  background-size: auto, 30px 30px, 30px 30px;
+}
+
+.demo-environment {
+  min-height: 31px;
+  border-bottom: 1px solid rgb(255 253 245 / 18%);
+  background: #071f39;
+  color: #d9e2e7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.035em;
+}
+
+.demo-environment svg {
+  color: #ff7417;
+}
+
+.demo-environment strong {
+  color: #fffdf5;
+}
+
+.demo-header {
+  height: 70px;
+  border-bottom: 2px solid #071f39;
+  background: rgb(255 253 245 / 94%);
+  box-shadow: 0 9px 28px rgb(7 31 57 / 7%);
+  backdrop-filter: blur(15px);
+}
+
+.brand-symbol {
+  width: 44px;
+  height: 44px;
+  transform: rotate(-1.5deg);
+}
+
+.brand-button > span:last-child {
+  color: #071f39;
+  font-size: 1.2rem;
+}
+
+.demo-desktop-nav {
+  gap: 0;
+}
+
+.demo-desktop-nav button {
+  position: relative;
+  border-bottom: 0;
+  color: #53606a;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.demo-desktop-nav button::after {
+  position: absolute;
+  right: 50%;
+  bottom: 12px;
+  left: 50%;
+  height: 2px;
+  background: #ff7417;
+  content: "";
+  transition: right 160ms ease, left 160ms ease;
+}
+
+.demo-desktop-nav button:hover,
+.demo-desktop-nav button.active {
+  border-bottom-color: transparent;
+  color: #071f39;
+}
+
+.demo-desktop-nav button:hover::after,
+.demo-desktop-nav button.active::after {
+  right: 12px;
+  left: 12px;
+}
+
+.profile-chip,
+.icon-control,
+.demo-header-signout {
+  border-color: #9eaaae;
+  border-radius: 4px;
+  background: #fffdf5;
+}
+
+.screen {
+  width: min(1460px, calc(100% - 54px));
+  padding-top: 58px;
+}
+
+.screen-title {
+  position: relative;
+  padding-top: 18px;
+  border-top: 2px solid #071f39;
+}
+
+.screen-title::before {
+  position: absolute;
+  top: -12px;
+  left: 0;
+  padding: 4px 8px;
+  background: #ff7417;
+  color: #071f39;
+  font: 800 0.56rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  content: "FlightForge / field view";
+}
+
+.screen-title h1,
+.section-heading-row h2 {
+  color: #071f39;
+}
+
+.demo-button.primary {
+  border: 1px solid #071f39;
+  background: #ff7417;
+  color: #071f39;
+  box-shadow: 4px 4px 0 #071f39;
+}
+
+.demo-button.primary:hover:not(:disabled) {
+  background: #ff9a4c;
+  box-shadow: 2px 2px 0 #071f39;
+  transform: translate(2px, 2px);
+}
+
+.home-hero {
+  position: relative;
+  min-height: 680px;
+  grid-template-columns: minmax(380px, 0.86fr) minmax(520px, 1.14fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #071f39;
+  border-radius: 8px;
+  background: #071f39;
+  box-shadow: 12px 12px 0 #ff7417;
+}
+
+.home-hero::before {
+  position: absolute;
+  inset: 0 50% 0 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgb(255 253 245 / 12%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 253 245 / 12%) 1px, transparent 1px);
+  background-size: 48px 48px;
+  content: "";
+  pointer-events: none;
+}
+
+.home-hero-copy {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(42px, 5.6vw, 80px);
+}
+
+.home-hero h1 {
+  max-width: 690px;
+  font-size: clamp(3.9rem, 6.2vw, 6.8rem);
+  line-height: 0.84;
+}
+
+.home-hero-copy > p {
+  max-width: 590px;
+  padding-left: 16px;
+  border-left: 3px solid #ff7417;
+  color: #ccd7dd;
+}
+
+.home-hero-visual {
+  position: relative;
+  min-width: 0;
+  min-height: 676px;
+  border-left: 2px solid #fffdf5;
+  background: #122d43;
+}
+
+.home-field-photo {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+.home-field-photo::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(7 31 57 / 4%) 45%, rgb(7 31 57 / 62%) 100%);
+  content: "";
+  pointer-events: none;
+}
+
+.home-field-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 56% center;
+  filter: saturate(0.88) contrast(1.04);
+}
+
+.home-field-photo figcaption {
+  position: absolute;
+  z-index: 2;
+  top: 17px;
+  right: 17px;
+  padding: 6px 8px;
+  border: 1px solid rgb(255 253 245 / 52%);
+  background: rgb(7 31 57 / 72%);
+  color: #fffdf5;
+  font: 800 0.56rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+
+.hero-command-card {
+  position: absolute;
+  z-index: 3;
+  bottom: 25px;
+  left: 25px;
+  width: min(390px, calc(100% - 50px));
+  padding: 21px;
+  border: 1px solid rgb(255 253 245 / 55%);
+  border-radius: 4px;
+  background: rgb(7 31 57 / 88%);
+  box-shadow: 7px 7px 0 #ff7417;
+  backdrop-filter: blur(13px);
+}
+
+.hero-command-card h2 {
+  font-size: 1.28rem;
+}
+
+.hero-proof {
+  gap: clamp(17px, 2vw, 30px);
+}
+
+.hero-proof strong {
+  color: #ff8a35;
+}
+
+.home-section {
+  padding-top: 92px;
+}
+
+.quick-grid {
+  gap: 16px;
+}
+
+.quick-grid > button {
+  min-height: 230px;
+  border: 1px solid #8f887b;
+  border-radius: 7px;
+  background: #fffdf5;
+  box-shadow: 4px 4px 0 rgb(7 31 57 / 13%);
+}
+
+.quick-grid > button::before {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: #a94618;
+  font: 800 0.59rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+}
+
+.quick-grid > button:nth-child(1)::before { content: "01 / RESERVE"; }
+.quick-grid > button:nth-child(2)::before { content: "02 / SCORE"; }
+.quick-grid > button:nth-child(3)::before { content: "03 / CADDIE"; }
+.quick-grid > button:nth-child(4)::before { content: "04 / EVENTS"; }
+
+.quick-grid > button:hover {
+  border-color: #071f39;
+  box-shadow: 7px 7px 0 #ff7417;
+  transform: translate(-2px, -2px);
+}
+
+.quick-icon {
+  border: 1px solid #071f39;
+  border-radius: 50%;
+}
+
+.pulse-grid {
+  border-color: #071f39;
+  border-radius: 7px;
+  background: #071f39;
+}
+
+.pulse-grid article {
+  background: #fffdf5;
+}
+
+.workspace-card,
+.panel-card,
+.event-card,
+.learning-card,
+.standings-table,
+.announcement-card,
+.profile-hero,
+.readiness-table,
+.live-map-panel,
+.search-panel {
+  border-color: #a99f8c;
+  border-radius: 8px;
+  background-color: #fffdf5;
+  box-shadow: 4px 4px 0 rgb(7 31 57 / 11%);
+}
+
+.demo-course-card {
+  grid-template-columns: 190px minmax(0, 1fr);
+  min-height: 270px;
+  border-color: #9e9585;
+  border-radius: 7px;
+  background: #fffdf5;
+  box-shadow: 4px 4px 0 rgb(7 31 57 / 12%);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.demo-course-card.selected,
+.demo-course-card:hover {
+  border-color: #071f39;
+  box-shadow: 7px 7px 0 #ff7417;
+  transform: translate(-2px, -2px);
+}
+
+.demo-course-card .course-art {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  min-height: 100%;
+  overflow: hidden;
+  padding: 0;
+  border-right: 1px solid #071f39;
+  background: #12304e;
+}
+
+.course-art-pine { background: #184c3e !important; }
+.course-art-lake { background: #1a5367 !important; }
+.course-art-sunrise { background: #a94618 !important; }
+.course-art-granite { background: #4d5660 !important; }
+.course-art-meadow { background: #526331 !important; }
+
+.course-art::before {
+  display: none;
+}
+
+.course-art::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background:
+    linear-gradient(135deg, transparent 0 46%, rgb(255 255 255 / 8%) 46% 47%, transparent 47% 100%),
+    linear-gradient(90deg, rgb(7 31 57 / 9%) 1px, transparent 1px);
+  background-size: 72px 72px, 22px 22px;
+  content: "";
+}
+
+.course-contours {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.64;
+  fill: none;
+  stroke: #fff6df;
+  stroke-width: 2.4;
+}
+
+.course-art-coordinate,
+.course-art-route,
+.course-art-holes {
+  position: absolute;
+  z-index: 2;
+  margin: 0 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.course-art-coordinate {
+  top: 15px;
+  left: 15px;
+  padding: 5px 7px;
+  background: #fffdf5;
+  color: #071f39;
+  font-size: 0.55rem !important;
+  font-weight: 800;
+}
+
+.course-art-route {
+  bottom: 17px;
+  left: 15px;
+  color: rgb(255 253 245 / 73%);
+  font-size: 0.48rem !important;
+}
+
+.course-art-holes {
+  right: 15px;
+  bottom: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  color: #fffdf5;
+  font-size: 0.55rem !important;
+}
+
+.course-art-holes b {
+  color: #ff9a4c;
+  font: 800 1.75rem/1 Georgia, serif;
+}
+
+.course-art-pin {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 56%;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 2px solid #071f39;
+  border-radius: 50% 50% 50% 3px;
+  background: #ff7417;
+  color: #071f39;
+  box-shadow: 4px 4px 0 rgb(7 31 57 / 45%);
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.course-art-pin svg {
+  width: 18px;
+  height: 18px;
+  transform: rotate(45deg);
+}
+
+.course-card-body {
+  background: linear-gradient(135deg, #fffdf5 0%, #fffdf5 72%, #f4eee0 100%);
+}
+
+.live-map-panel iframe {
+  filter: saturate(0.72) contrast(1.05);
+}
+
+.event-banner,
+.practice-plan,
+.profile-hero,
+.simulator-result {
+  background-color: #071f39;
+}
+
+.demo-footer {
+  border-top: 3px solid #ff7417;
+  background: #071f39;
+}
+
+.demo-bottom-nav {
+  border-top: 2px solid #071f39;
+  background: rgb(255 253 245 / 96%);
+}
+
+.demo-bottom-nav .center-play > span {
+  border-radius: 7px;
+  background: #ff7417;
+  box-shadow: 4px 4px 0 #071f39;
+  transform: rotate(3deg);
+}
+
+@media (max-width: 1160px) {
+  .home-hero {
+    grid-template-columns: minmax(330px, 0.85fr) minmax(450px, 1.15fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .screen {
+    width: min(100% - 28px, 720px);
+  }
+
+  .home-hero {
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero-copy {
+    min-height: 570px;
+    padding: 48px 30px;
+  }
+
+  .home-hero-visual {
+    min-height: 560px;
+    border-top: 2px solid #fffdf5;
+    border-left: 0;
+  }
+
+  .demo-course-card {
+    grid-template-columns: 165px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
+  .demo-environment {
+    justify-content: flex-start;
+    padding-inline: 14px;
+  }
+
+  .demo-header {
+    height: 62px;
+  }
+
+  .brand-symbol {
+    width: 39px;
+    height: 39px;
+  }
+
+  .home-hero {
+    border-radius: 5px;
+    box-shadow: 7px 7px 0 #ff7417;
+  }
+
+  .home-hero-copy {
+    min-height: 530px;
+    padding: 42px 21px;
+  }
+
+  .home-hero h1 {
+    font-size: clamp(3.35rem, 17vw, 4.6rem);
+  }
+
+  .hero-proof {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .hero-proof span {
+    line-height: 1.35;
+  }
+
+  .home-hero-visual {
+    min-height: 500px;
+  }
+
+  .home-field-photo img {
+    object-position: 62% center;
+  }
+
+  .hero-command-card {
+    right: 16px;
+    bottom: 18px;
+    left: 16px;
+    width: auto;
+    padding: 18px;
+  }
+
+  .quick-grid > button::before {
+    right: 17px;
+  }
+
+  .demo-course-card {
+    grid-template-columns: 118px minmax(0, 1fr);
+  }
+
+  .demo-course-card .course-art {
+    min-height: 100%;
+  }
+
+  .course-art-coordinate {
+    right: 8px;
+    left: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .course-art-route {
+    display: none;
+  }
+
+  .course-art-pin {
+    width: 35px;
+    height: 35px;
+  }
+
+  .course-art-holes {
+    right: 9px;
+    bottom: 10px;
+  }
+}

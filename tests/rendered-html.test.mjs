@@ -35,6 +35,8 @@ test("server-renders FlightForge discovery without starter metadata", async () =
   assert.match(html, /Find your line/);
   assert.match(html, /Sabattus Disc Golf/);
   assert.match(html, /Maine is the first tee|Maine/);
+  assert.match(html, /flightforge-maine-hero-v2\.webp/u);
+  assert.match(html, /Illustrative field scene/u);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/);
 });
 

@@ -68,15 +68,33 @@ export function CourseExplorer({
                 <Link className="button button-ghost-on-dark" href="/sign-up">Create a free field book</Link>
               </div>
             </div>
-            <div className="hero-signal-card" aria-label={`${brand.productName} launch snapshot`}>
-              <div className="signal-orbit"><MapPinned aria-hidden="true" /></div>
-              <span className="signal-kicker">Field audit · Aug 3, 2026</span>
-              <strong>{courses.length} listings</strong>
-              <p>Public factual fields only. No copied descriptions, reviews, photos, or proprietary maps.</p>
-              <div className="signal-stats">
-                <div><b>{courses.filter((course) => course.verificationLevel === "DIRECTORY_CROSS_CHECKED").length}</b><span>double-sourced</span></div>
-                <div><b>{courses.filter((course) => course.verificationLevel === "OPERATOR_SOURCE_REVIEWED").length}</b><span>operator-sourced</span></div>
-                <div><b>{courses.filter((course) => course.operationalStatus === "UNAVAILABLE_REPORTED").length}</b><span>unavailable</span></div>
+            <div className="hero-visual-stack">
+              <figure className="hero-photo">
+                {/* This original artwork is intentionally not presented as a photograph of a listed course. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/brand/flightforge-maine-hero-v2.webp"
+                  alt="A disc golfer throwing across a pine and granite fairway toward a basket"
+                  width="1672"
+                  height="941"
+                  decoding="async"
+                  fetchPriority="high"
+                />
+                <figcaption>
+                  <span>Illustrative field scene</span>
+                  <strong>Pines, granite, and the line ahead.</strong>
+                </figcaption>
+              </figure>
+              <div className="hero-signal-card" aria-label={`${brand.productName} launch snapshot`}>
+                <div className="signal-orbit"><MapPinned aria-hidden="true" /></div>
+                <span className="signal-kicker">Field audit · Aug 4, 2026</span>
+                <strong>{courses.length} listings</strong>
+                <p>Public factual fields only. Every operational claim stays attached to its source.</p>
+                <div className="signal-stats">
+                  <div><b>{courses.filter((course) => course.verificationLevel === "DIRECTORY_CROSS_CHECKED").length}</b><span>double-sourced</span></div>
+                  <div><b>{courses.filter((course) => course.verificationLevel === "OPERATOR_SOURCE_REVIEWED").length}</b><span>operator-sourced</span></div>
+                  <div><b>{courses.filter((course) => course.operationalStatus === "UNAVAILABLE_REPORTED").length}</b><span>unavailable</span></div>
+                </div>
               </div>
             </div>
           </div>

@@ -80,12 +80,12 @@ export function App() {
       <a className="skip-link" href="#demo-main">Skip to content</a>
       <div className="demo-environment" role="status">
         <ShieldCheck aria-hidden="true" />
-        <span><strong>Interactive launch demo.</strong> Personal changes stay on this device; real listings remain unclaimed unless marked otherwise.</span>
+        <span><strong>Public interactive preview.</strong> Personal changes stay on this device; real listings remain unclaimed unless marked otherwise.</span>
       </div>
       <header className="demo-header">
         <button className="brand-button" type="button" onClick={() => navigate("home")} aria-label={brand.logo.accessibleLabel}>
           <span className="brand-symbol" aria-hidden="true" style={{ backgroundImage: `url(${import.meta.env.BASE_URL}brand/flightforge-mark.png)` }} />
-          <span>{brand.logo.wordmark.toUpperCase()}</span>
+          <span>{brand.logo.wordmark}</span>
         </button>
         {signedIn ? (
           <nav className="demo-desktop-nav" aria-label="Primary">

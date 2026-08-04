@@ -5,6 +5,7 @@
 - [x] New repository initialized with locked dependencies
 - [x] Replaceable brand configuration
 - [x] Responsive design system and mobile navigation
+- [x] Original optimized hero artwork, refreshed social preview, and non-deceptive course-map art
 - [x] Hosted identity abstraction and signed local demo sessions
 - [x] Central roles, permissions, and server-side authorization
 - [x] D1/R2 hosted first-slice persistence

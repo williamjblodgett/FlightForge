@@ -1,4 +1,4 @@
-const cacheName = "product-pages-v3";
+const cacheName = "product-pages-v4";
 
 async function cacheAppShell() {
   const scope = self.registration.scope;
@@ -9,7 +9,12 @@ async function cacheAppShell() {
   const assetUrls = [...html.matchAll(/(?:src|href)="([^"]+)"/gu)]
     .map((match) => new URL(match[1], scope).href)
     .filter((url) => new URL(url).origin === self.location.origin);
-  const fixedUrls = ["manifest.webmanifest", "icon.svg"].map((path) => new URL(path, scope).href);
+  const fixedUrls = [
+    "manifest.webmanifest",
+    "icon.svg",
+    "brand/flightforge-mark.png",
+    "brand/flightforge-maine-hero-v2.webp",
+  ].map((path) => new URL(path, scope).href);
   await Promise.allSettled([...new Set([...assetUrls, ...fixedUrls])].map((url) => cache.add(url)));
 }
 
