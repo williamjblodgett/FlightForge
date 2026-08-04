@@ -13,6 +13,9 @@
 - [x] Safe API errors, origin checks, and rate limits
 - [x] Unit, integration, type, lint, and build scripts
 - [x] CI workflow
+- [x] Dependency audit gate, CodeQL scan workflow, and Dependabot updates
+- [x] Provider-aware logout, visible desktop/mobile sign-out, and return-path hardening
+- [x] Production response security headers and authenticated no-store behavior
 
 ## Maine discovery vertical slice
 
@@ -46,6 +49,7 @@
 - [x] CSV change preview, duplicate blocking, batch history, and rollback
 - [x] Media upload-safety gate with consent and minor-user checks
 - [x] Personal data export, two-step deletion, privacy controls, and readiness disclosure
+- [x] Explicit device-demo sign-out and re-entry state
 - [x] GitHub Actions Pages deployment workflow and artifact tests
 
 ## Remaining production launch gates

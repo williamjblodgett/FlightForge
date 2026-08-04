@@ -59,7 +59,7 @@ export async function SiteHeader() {
                 {!user.mustChangePassword && user.source === "password" ? <Link href="/account/password">Change password</Link> : null}
                 <Link href="/favorites">Saved courses</Link>
                 {can(user, "viewAdmin") ? <Link href="/admin/claims">Admin review</Link> : null}
-                <SignOutButton />
+                <SignOutButton source={user.source} />
               </div>
             </details>
           ) : (
@@ -68,6 +68,7 @@ export async function SiteHeader() {
               <span>Sign in</span>
             </Link>
           )}
+          {user ? <SignOutButton source={user.source} variant="header" /> : null}
         </div>
       </div>
     </header>

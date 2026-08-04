@@ -38,6 +38,14 @@ test("server-renders FlightForge discovery without starter metadata", async () =
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/);
 });
 
+test("serves browser security headers", async () => {
+  const response = await render("/");
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
+  assert.match(response.headers.get("content-security-policy") ?? "", /object-src 'none'/u);
+  assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors/u);
+});
+
 test("server-renders a canonical course detail with its unclaimed notice", async () => {
   const response = await render("/courses/sabattus-disc-golf-eagle");
   assert.equal(response.status, 200);
@@ -108,6 +116,31 @@ test("creates a free player account and persists first-run privacy settings", as
     body: JSON.stringify({ email, password: "PrivateTrail2026!" }),
   });
   assert.equal(newLogin.status, 200);
+  const activeCookie = newLogin.headers.get("set-cookie")?.split(";")[0];
+  assert.ok(activeCookie, "sign-in must issue a session cookie");
+
+  const signedInProfile = await fetch(`${baseUrl}/profile`, {
+    headers: { accept: "text/html", cookie: activeCookie },
+  });
+  const signedInHtml = await signedInProfile.text();
+  assert.match(signedInHtml, /signout-header/u, "desktop header must expose sign out directly");
+  assert.match(signedInHtml, /Finished for now\?/u, "profile must expose a mobile-friendly sign-out section");
+
+  const logout = await fetch(`${baseUrl}/api/auth/logout`, {
+    method: "DELETE",
+    headers: { accept: "application/json", origin: baseUrl, cookie: activeCookie },
+  });
+  assert.equal(logout.status, 200);
+  assert.match(logout.headers.get("set-cookie") ?? "", /Max-Age=0/i);
+
+  const revokedProfile = await fetch(`${baseUrl}/profile`, {
+    redirect: "manual",
+    headers: { accept: "text/html", cookie: activeCookie },
+  });
+  assert.equal(revokedProfile.status, 307);
+  const redirectLocation = revokedProfile.headers.get("location");
+  assert.ok(redirectLocation);
+  assert.equal(new URL(redirectLocation, baseUrl).pathname, "/sign-in");
 });
 
 test("seeds the player-only JPhillips tester on first successful login", async () => {

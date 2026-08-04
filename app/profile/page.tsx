@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { ProfileSetupForm } from "@/components/profile/ProfileSetupForm";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { getAccountSettings } from "@/modules/auth/account-repository";
@@ -20,6 +21,14 @@ export default async function ProfilePage() {
         <p>Update playing context and privacy without exposing your precise home location.</p>
       </header>
       <ProfileSetupForm initial={settings} firstRun={false} />
+      <section className="account-actions-panel" aria-labelledby="account-actions-heading">
+        <div>
+          <span className="eyebrow">Account session</span>
+          <h2 id="account-actions-heading">Finished for now?</h2>
+          <p>Sign out on shared devices. Your saved profile and privacy choices remain in your account.</p>
+        </div>
+        <SignOutButton source={user.source} variant="standalone" />
+      </section>
     </main>
   );
 }

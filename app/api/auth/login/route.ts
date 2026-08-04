@@ -41,6 +41,24 @@ export async function POST(request: Request) {
   }
 
   try {
+    const accountLimit = await checkRateLimit(
+      "account-signin-email",
+      parsed.data.email,
+      12,
+      900,
+    );
+    if (!accountLimit.allowed) {
+      return apiError(
+        "RATE_LIMITED",
+        `Too many sign-in attempts. Try again in ${accountLimit.retryAfterSeconds} seconds.`,
+        429,
+      );
+    }
+  } catch {
+    return apiError("AUTH_GUARD_UNAVAILABLE", "The sign-in guard is temporarily unavailable.", 503);
+  }
+
+  try {
     const user = await authenticateAccount(parsed.data.email, parsed.data.password);
     if (!user) return apiError("INVALID_CREDENTIALS", "The email or password is incorrect.", 401);
     const session = await createAccountSession(user.id, request.headers.get("user-agent"));

@@ -2,11 +2,11 @@
 
 ## What is implemented
 
-The server-backed slice provides free password signup/login, salted PBKDF2 credentials, revocable hashed sessions, forced replacement of the JPhillips temporary password, first-run profile/privacy setup, hosted identity integration, RBAC, 120 source-attributed Maine listings, course details, favorites, claims, administrator review, D1/R2 persistence, and domain-complete D1 schema foundations.
+The server-backed slice provides free password signup/login, salted PBKDF2 credentials, revocable hashed sessions, visible provider-aware sign-out, forced replacement of the JPhillips temporary password, first-run profile/privacy setup, hosted identity integration, RBAC, 120 source-attributed Maine listings, course details, favorites, claims, administrator review, D1/R2 persistence, and domain-complete D1 schema foundations.
 
 The GitHub Pages edition extends the product into an interactive, installable demonstration. Search, favorites, current-location sorting, map/list discovery, capacity-safe booking, quote explanations, waitlist previews, social groups, offline scoring, basic statistics, digital bags, bag intelligence, deterministic caddie recommendations, fictional events and leagues, operator conditions, pricing simulation, CSV import preview/rollback, structured learning, media-safety validation, privacy controls, export, and deletion work in-browser.
 
-Device-local data is schema validated and versioned. It is not sent to FlightForge, does not affect a real course, and can be exported or erased by the user.
+Device-local data is schema validated and versioned. It is not sent to FlightForge, does not affect a real course, and can be exported or erased by the user. The Pages demo now has an explicit device-session sign-out state; signing out does not silently erase saved browser data.
 
 ## Why some boundaries remain
 

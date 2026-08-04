@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { chatGPTSignInPath } from "@/app/chatgpt-auth";
+import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
 import { SignInForm } from "./SignInForm";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ type Props = {
 
 export default async function SignInPage({ searchParams }: Props) {
   const query = await searchParams;
-  const returnTo = safeReturnTo(query.return_to);
+  const returnTo = safeRelativeReturnPath(query.return_to);
   return (
     <main className="auth-page page-shell">
       <div className="auth-heading">
@@ -29,9 +30,4 @@ export default async function SignInPage({ searchParams }: Props) {
       />
     </main>
   );
-}
-
-function safeReturnTo(value: string | undefined): string {
-  if (!value?.startsWith("/") || value.startsWith("//")) return "/";
-  return value;
 }

@@ -9,6 +9,8 @@ test("GitHub Pages build contains the branded offline app shell", async () => {
   const html = await readFile(path.join(output, "index.html"), "utf8");
   assert.match(html, /FlightForge/u);
   assert.match(html, /manifest\.webmanifest/u);
+  assert.match(html, /Content-Security-Policy/u);
+  assert.match(html, /object-src 'none'/u);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/u);
   await access(path.join(output, "sw.js"));
   await access(path.join(output, "og.png"));
@@ -22,6 +24,10 @@ test("GitHub Pages build emits JavaScript and CSS assets", async () => {
   const files = await readdir(path.join(output, "assets"));
   assert.ok(files.some((file) => file.endsWith(".js")), "expected a JavaScript bundle");
   assert.ok(files.some((file) => file.endsWith(".css")), "expected a CSS bundle");
+  const scripts = await Promise.all(
+    files.filter((file) => file.endsWith(".js")).map((file) => readFile(path.join(output, "assets", file), "utf8")),
+  );
+  assert.match(scripts.join("\n"), /Sign out of demo/u);
 });
 
 test("service worker precaches the hashed app shell", async () => {

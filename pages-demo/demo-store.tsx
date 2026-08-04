@@ -86,11 +86,15 @@ export type DemoState = {
 type DemoStoreValue = {
   state: DemoState;
   hydrated: boolean;
+  signedIn: boolean;
   update: (updater: (current: DemoState) => DemoState) => void;
   reset: () => void;
+  signOut: () => void;
+  startSession: () => void;
 };
 
 const storageKey = `${brand.shortProductName.toLowerCase()}-pages-demo-v2`;
+const sessionKey = `${brand.shortProductName.toLowerCase()}-pages-demo-session`;
 
 export const initialDiscs: PlayerDisc[] = [
   { id: "disc-1", manufacturer: "Latitude 64", mold: "River", speed: 7, glide: 7, turn: -1, fade: 1, stability: "UNDERSTABLE", inBag: true },
@@ -191,6 +195,10 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
 
     return initialState;
   });
+  const [signedIn, setSignedIn] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.sessionStorage.getItem(sessionKey) !== "signed-out";
+  });
   const hydrated = true;
 
   const update = useCallback((updater: (current: DemoState) => DemoState) => {
@@ -206,7 +214,20 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     setState(initialState);
   }, []);
 
-  const value = useMemo(() => ({ state, hydrated, update, reset }), [state, hydrated, update, reset]);
+  const signOut = useCallback(() => {
+    window.sessionStorage.setItem(sessionKey, "signed-out");
+    setSignedIn(false);
+  }, []);
+
+  const startSession = useCallback(() => {
+    window.sessionStorage.removeItem(sessionKey);
+    setSignedIn(true);
+  }, []);
+
+  const value = useMemo(
+    () => ({ state, hydrated, signedIn, update, reset, signOut, startSession }),
+    [state, hydrated, signedIn, update, reset, signOut, startSession],
+  );
   return <DemoStoreContext.Provider value={value}>{children}</DemoStoreContext.Provider>;
 }
 

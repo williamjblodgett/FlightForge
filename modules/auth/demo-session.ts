@@ -13,7 +13,7 @@ type DemoSessionPayload = {
 };
 
 export function isDemoAuthEnabled(): boolean {
-  return process.env.DEMO_AUTH_ENABLED === "true";
+  return process.env.NODE_ENV !== "production" && process.env.DEMO_AUTH_ENABLED === "true";
 }
 
 export function getDemoSessionSecret(): string | null {

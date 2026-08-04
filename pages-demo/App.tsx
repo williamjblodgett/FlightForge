@@ -7,6 +7,8 @@ import {
   Disc3,
   Gauge,
   Home,
+  LogIn,
+  LogOut,
   Menu,
   Play,
   ShieldCheck,
@@ -47,7 +49,7 @@ const screenComponents: Record<ScreenId, () => React.JSX.Element> = {
 };
 
 export function App() {
-  const { state } = useDemoStore();
+  const { state, signedIn, signOut, startSession } = useDemoStore();
   const [screen, setScreen] = useState<ScreenId>(() => screenFromHash());
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -85,28 +87,41 @@ export function App() {
           <span className="brand-symbol" aria-hidden="true" style={{ backgroundImage: `url(${import.meta.env.BASE_URL}brand/flightforge-mark.png)` }} />
           <span>{brand.logo.wordmark.toUpperCase()}</span>
         </button>
-        <nav className="demo-desktop-nav" aria-label="Primary">
-          {navigation.map((item) => (
-            <button key={item.id} type="button" className={screen === item.id ? "active" : ""} onClick={() => navigate(item.id)}>
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        {signedIn ? (
+          <nav className="demo-desktop-nav" aria-label="Primary">
+            {navigation.map((item) => (
+              <button key={item.id} type="button" className={screen === item.id ? "active" : ""} onClick={() => navigate(item.id)}>
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        ) : null}
         <div className="demo-header-actions">
-          <button className="icon-control notification-control" type="button" onClick={() => navigate("profile")} aria-label={`${state.notificationCount} notifications`}>
-            <Bell aria-hidden="true" />
-            <span>{state.notificationCount}</span>
-          </button>
-          <button className="profile-chip" type="button" onClick={() => navigate("profile")}>
-            <span className="avatar">RP</span>
-            <span>{state.displayName}</span>
-          </button>
-          <button className="icon-control menu-control" type="button" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Toggle navigation">
-            {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
-          </button>
+          {signedIn ? (
+            <>
+              <button className="icon-control notification-control" type="button" onClick={() => navigate("profile")} aria-label={`${state.notificationCount} notifications`}>
+                <Bell aria-hidden="true" />
+                <span>{state.notificationCount}</span>
+              </button>
+              <button className="demo-header-signout" type="button" onClick={signOut} aria-label="Sign out of the interactive demo">
+                <LogOut aria-hidden="true" /><span>Sign out</span>
+              </button>
+              <button className="profile-chip" type="button" onClick={() => navigate("profile")}>
+                <span className="avatar">RP</span>
+                <span>{state.displayName}</span>
+              </button>
+              <button className="icon-control menu-control" type="button" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Toggle navigation">
+                {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+              </button>
+            </>
+          ) : (
+            <button className="demo-header-signout" type="button" onClick={startSession}>
+              <LogIn aria-hidden="true" /><span>Enter demo</span>
+            </button>
+          )}
         </div>
       </header>
-      {menuOpen ? (
+      {signedIn && menuOpen ? (
         <nav className="demo-mobile-menu" aria-label="Expanded navigation">
           {navigation.map((item) => (
             <button key={item.id} type="button" onClick={() => navigate(item.id)}><item.icon aria-hidden="true" />{item.label}</button>
@@ -114,20 +129,35 @@ export function App() {
           <button type="button" onClick={() => navigate("profile")}><UserRound aria-hidden="true" />Profile & privacy</button>
         </nav>
       ) : null}
-      <main id="demo-main"><Screen /></main>
+      <main id="demo-main">
+        {signedIn ? <Screen /> : <DemoSignedOutScreen onEnter={startSession} />}
+      </main>
       <footer className="demo-footer">
         <div><strong>{brand.productName}</strong><span>Find your line. Forge your game.</span></div>
         <p>Working-title product demo · Maine seed market · No affiliation with PDGA, course directories, manufacturers, or retailers.</p>
-        <button type="button" onClick={() => navigate("profile")}>Privacy & readiness</button>
+        <button type="button" onClick={() => { if (!signedIn) startSession(); navigate("profile"); }}>Privacy & readiness</button>
       </footer>
-      <nav className="demo-bottom-nav" aria-label="Mobile quick navigation">
+      {signedIn ? <nav className="demo-bottom-nav" aria-label="Mobile quick navigation">
         <button type="button" className={screen === "home" ? "active" : ""} onClick={() => navigate("home")}><Home aria-hidden="true" /><span>Home</span></button>
         <button type="button" className={screen === "discover" ? "active" : ""} onClick={() => navigate("discover")}><Compass aria-hidden="true" /><span>Explore</span></button>
         <button type="button" className={`center-play ${screen === "play" ? "active" : ""}`} onClick={() => navigate("play")}><span><Play aria-hidden="true" /></span><b>Play</b></button>
         <button type="button" className={screen === "events" ? "active" : ""} onClick={() => navigate("events")}><CalendarDays aria-hidden="true" /><span>Events</span></button>
         <button type="button" className={screen === "profile" ? "active" : ""} onClick={() => navigate("profile")}><UserRound aria-hidden="true" /><span>Profile</span></button>
-      </nav>
+      </nav> : null}
     </div>
+  );
+}
+
+function DemoSignedOutScreen({ onEnter }: { onEnter: () => void }) {
+  return (
+    <section className="screen demo-signed-out" aria-labelledby="demo-signed-out-heading">
+      <span className="demo-eyebrow"><ShieldCheck aria-hidden="true" /> Device-local demo</span>
+      <h1 id="demo-signed-out-heading">You’re signed out.</h1>
+      <p>No server account was used on this GitHub Pages edition. Your device-local demonstration data remains in this browser unless you delete it from Profile &amp; privacy.</p>
+      <button className="demo-button primary" type="button" onClick={onEnter}>
+        <LogIn aria-hidden="true" /> Enter the interactive demo
+      </button>
+    </section>
   );
 }
 

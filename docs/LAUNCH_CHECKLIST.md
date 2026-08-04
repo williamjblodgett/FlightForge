@@ -11,18 +11,20 @@
 
 ## Security and privacy
 
-- [ ] Demo auth disabled
+- [x] Hard-coded role demo auth disabled in production code
 - [ ] Administrator and owner allowlists reviewed
 - [ ] Access policy tested with guest, player, owner, and administrator accounts
 - [ ] Upload malware scanning enabled
-- [ ] CSP, cookies, security headers, rate limits, and audit alerts verified
+- [x] CSP, cookies, security headers, and request rate limits covered by automated checks
+- [ ] Operational audit alerts and incident escalation configured
 - [ ] Data retention, deletion, export, and incident response approved
 - [ ] Attorney review completed for privacy, terms, claims, location, and liability
 
 ## Reliability
 
-- [ ] Type checking, linting, unit tests, rendered tests, and build green
-- [ ] GitHub Pages artifact tests and deployment workflow green
+- [x] Type checking, linting, unit tests, rendered tests, and both local builds green
+- [x] GitHub Pages artifact tests green
+- [ ] Current GitHub CI, Pages deployment, and CodeQL workflows green
 - [ ] D1 and PostgreSQL migrations inspected and tested on clean databases
 - [ ] Backups and version rollback rehearsed
 - [ ] Error tracking, structured logs, health checks, and on-call alerts configured

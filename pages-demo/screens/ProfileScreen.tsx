@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Check, CloudOff, Download, Eye, FileCheck2, LockKeyhole, RotateCcw, ShieldCheck, Trash2, UserRound } from "lucide-react";
+import { AlertTriangle, Check, CloudOff, Download, Eye, FileCheck2, LockKeyhole, LogOut, RotateCcw, ShieldCheck, Trash2, UserRound } from "lucide-react";
 import { downloadDemoData, useDemoStore } from "../demo-store";
 import { brand } from "@/config/brand";
 
@@ -18,7 +18,7 @@ const readinessItems = [
 ] as const;
 
 export function ProfileScreen() {
-  const { state, reset, hydrated } = useDemoStore();
+  const { state, reset, signOut, hydrated } = useDemoStore();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [status, setStatus] = useState("");
 
@@ -34,7 +34,7 @@ export function ProfileScreen() {
 
       <section className="profile-grid">
         <div className="workspace-card privacy-card"><div className="card-heading plain"><div><span className="demo-eyebrow"><Eye /> Privacy controls</span><h2>Choose what leaves your device</h2></div><ShieldCheck /></div><label className="preference-row"><span><strong>Profile visibility</strong><small>Who may see your city, experience, and public achievements</small></span><select defaultValue="FRIENDS"><option value="PRIVATE">Only me</option><option value="FRIENDS">Connections</option><option value="PUBLIC">Public</option></select></label><label className="preference-row"><span><strong>Social matchmaking</strong><small>Allow compatible public game suggestions</small></span><input type="checkbox" defaultChecked /></label><label className="preference-row"><span><strong>Nonessential analytics</strong><small>Static demo ships with this disabled</small></span><input type="checkbox" /></label><label className="preference-row"><span><strong>AI recommendations</strong><small>Use local profile inputs in the heuristic caddie</small></span><input type="checkbox" defaultChecked /></label><div className="privacy-note"><LockKeyhole />Precise home address is never requested. Browser data is not transmitted by this Pages edition.</div></div>
-        <div className="workspace-card data-rights-card"><div className="card-heading plain"><div><span className="demo-eyebrow"><FileCheck2 /> Data rights</span><h2>Export or erase your data</h2></div><Download /></div><p>Download the complete local profile, bag, reservations, groups, scorecards, registrations, claims, conditions, and import history as JSON.</p><button className="demo-button secondary wide" type="button" onClick={() => { downloadDemoData(state); setStatus("Personal data export downloaded."); }} disabled={!hydrated}><Download />Download my data</button><button className={`demo-button wide ${confirmDelete ? "danger-button" : "tertiary"}`} type="button" onClick={deleteData}><Trash2 />{confirmDelete ? "Confirm delete all local data" : "Delete local data"}</button><button className="text-action reset-action" type="button" onClick={() => { reset(); setStatus("Fictional demonstration data restored."); }}><RotateCcw />Restore fictional demo data</button>{status ? <p className="inline-status" role="status">{status}</p> : null}</div>
+        <div className="workspace-card data-rights-card"><div className="card-heading plain"><div><span className="demo-eyebrow"><FileCheck2 /> Data rights &amp; session</span><h2>Export, erase, or sign out</h2></div><Download /></div><p>Download the complete local profile, bag, reservations, groups, scorecards, registrations, claims, conditions, and import history as JSON.</p><button className="demo-button secondary wide" type="button" onClick={() => { downloadDemoData(state); setStatus("Personal data export downloaded."); }} disabled={!hydrated}><Download />Download my data</button><button className={`demo-button wide ${confirmDelete ? "danger-button" : "tertiary"}`} type="button" onClick={deleteData}><Trash2 />{confirmDelete ? "Confirm delete all local data" : "Delete local data"}</button><button className="demo-button tertiary wide demo-signout-action" type="button" onClick={signOut}><LogOut />Sign out of demo</button><small className="session-note">Signing out hides this device-local workspace. It does not delete browser data.</small><button className="text-action reset-action" type="button" onClick={() => { reset(); setStatus("Fictional demonstration data restored."); }}><RotateCcw />Restore fictional demo data</button>{status ? <p className="inline-status" role="status">{status}</p> : null}</div>
       </section>
 
       <section className="readiness-section">

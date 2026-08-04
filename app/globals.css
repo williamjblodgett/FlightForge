@@ -405,6 +405,63 @@ svg {
   background: var(--surface-soft);
 }
 
+.signout-control {
+  display: grid;
+  gap: 6px;
+}
+
+.signout-header {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid #b9c5bc;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.signout-header:hover {
+  border-color: var(--forest);
+  background: #edf3ee;
+}
+
+.signout-standalone {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #071f39;
+  border-radius: 4px;
+  background: #fffdf5;
+  color: #071f39;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.signout-standalone:hover {
+  background: #f3eee2;
+}
+
+.signout-error {
+  max-width: 260px;
+  color: #9a2e22;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 1480px) {
+  .header-actions .icon-button:disabled {
+    display: none;
+  }
+}
+
 .mobile-nav {
   display: none;
 }
@@ -3078,6 +3135,15 @@ td a svg {
     padding: 0;
   }
 
+  .signout-header {
+    width: 42px;
+    padding: 0;
+  }
+
+  .signout-header > span {
+    display: none;
+  }
+
   .mobile-nav {
     position: fixed;
     z-index: 90;
@@ -3856,6 +3922,11 @@ h3,
 .tester-account-warning p { margin: 3px 0 0; font-size: 0.82rem; }
 .profile-submit-bar { position: sticky; z-index: 20; bottom: 82px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 2px solid #071f39; background: #fffdf5; padding: 15px 18px; box-shadow: 7px 7px 0 #ff7a1a; }
 .profile-submit-bar p { margin: 0; color: var(--ink-muted); font-size: 0.82rem; }
+.account-actions-panel { display: flex; max-width: 1120px; align-items: center; justify-content: space-between; gap: 28px; margin-top: 22px; border: 1px solid #071f39; border-left: 7px solid #ff7a1a; border-radius: 7px; background: #fffdf5; padding: 22px 24px; }
+.account-actions-panel h2 { margin: 4px 0 5px; }
+.account-actions-panel p,
+.auth-session-exit p { margin: 0; color: var(--ink-muted); }
+.auth-session-exit { display: flex; width: min(100%, 1040px); align-items: center; justify-content: space-between; gap: 22px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
 
 @media (max-width: 760px) {
   .account-entry-grid,
@@ -3866,4 +3937,8 @@ h3,
   .hero-copy h1 { font-size: clamp(4rem, 18vw, 6rem); }
   .profile-submit-bar { align-items: stretch; flex-direction: column; }
   .profile-submit-bar .button { width: 100%; }
+  .account-actions-panel,
+  .auth-session-exit { align-items: stretch; flex-direction: column; }
+  .signout-control-standalone,
+  .signout-standalone { width: 100%; }
 }

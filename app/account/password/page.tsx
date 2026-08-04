@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { PasswordSetupForm } from "@/components/auth/PasswordSetupForm";
 import { getCurrentUser } from "@/modules/auth/current-user";
 
@@ -18,6 +19,10 @@ export default async function PasswordPage() {
         <p>{user.mustChangePassword ? "The starter password is temporary. Replace it before setting up your player profile." : "Change your password and close every other active account session."}</p>
       </div>
       <PasswordSetupForm temporary={user.mustChangePassword} />
+      <div className="auth-session-exit">
+        <p>Not your account or using a shared device?</p>
+        <SignOutButton source={user.source} variant="standalone" />
+      </div>
     </main>
   );
 }

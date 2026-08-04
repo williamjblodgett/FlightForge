@@ -6,6 +6,7 @@ The server-backed application delivers a complete account-to-discovery-to-course
 
 - replaceable global brand configuration;
 - free password signup/login, first-run player setup, and granular privacy preferences;
+- visible sign-out in the desktop header and mobile profile/setup flows, with correct hosted-identity logout;
 - a player-only JPhillips shared tester plus hosted identity and gated local demo sessions;
 - centralized roles and server-side authorization;
 - PostgreSQL/PostGIS production schema and migrations;
@@ -26,7 +27,7 @@ The GitHub Pages edition adds working, device-local versions of previously defer
 - digital bag management, gap/overlap analysis, and an owned-disc-aware caddie;
 - fictional tournament registration and league standings;
 - owner condition updates, pricing simulation, CSV preview, duplicate detection, and rollback;
-- structured learning, upload-safety validation, privacy preferences, data export, and local deletion;
+- structured learning, upload-safety validation, privacy preferences, explicit demo sign-out, data export, and local deletion;
 - an installable PWA shell, responsive map/list discovery, and mobile active-round navigation.
 
 All mutable Pages data stays in that browser. No real reservation, payment, claim, registration, course publication, or AI media analysis occurs from the static edition.
@@ -92,7 +93,7 @@ Set `DEMO_AUTH_ENABLED=true` and a random `DEMO_AUTH_SECRET` of at least 32 char
 | League administrator | `league@demo.flightforge.app` |
 | Platform administrator | `admin@demo.flightforge.app` |
 
-Demo credentials are intentionally public test fixtures. Demo authentication is disabled in production unless explicitly enabled, and should remain disabled on public deployments.
+Demo credentials are intentionally public local test fixtures. The hard-coded role demo authenticator refuses to run in production even if `DEMO_AUTH_ENABLED` is set. The separate JPhillips player-only bootstrap flow remains available for the requested server test and forces immediate password replacement.
 
 ## Validation
 
