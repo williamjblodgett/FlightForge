@@ -14,7 +14,7 @@ export const tournaments = [
     id: "event-summer-scramble",
     name: "Summer Doubles Scramble",
     date: "September 6",
-    course: "Pineland Farms Disc Golf",
+    course: "Forge Ridge Disc Golf Club",
     format: "Best-shot doubles",
     divisions: ["Mixed", "Open"],
     capacity: 48,
@@ -32,7 +32,7 @@ export const leagueStandings = [
 ];
 
 export const learningTracks = [
-  { level: "Beginner", title: "Confident first round", progress: 72, next: "Wind basics · 8 min" },
-  { level: "Intermediate", title: "Shape the fairway", progress: 34, next: "Turnovers versus flex shots · 12 min" },
-  { level: "Practice", title: "Putting reset", progress: 50, next: "20-putt ladder · 15 min" },
+  { id: "confident-first-round", level: "Beginner", title: "Confident first round", progress: 72, next: "Wind basics · 8 min", summary: "Learn a simple wind read, choose a familiar disc, and aim for the widest safe landing zone.", drill: "Throw five flat releases at 60% power in calm air, then repeat while noting the wind direction." },
+  { id: "shape-the-fairway", level: "Intermediate", title: "Shape the fairway", progress: 34, next: "Turnovers versus flex shots · 12 min", summary: "Compare a turnover and flex line by their landing shape, miss pattern, and required stability.", drill: "Mark one landing zone and throw three controlled turnovers followed by three flex lines." },
+  { id: "putting-reset", level: "Practice", title: "Putting reset", progress: 50, next: "20-putt ladder · 15 min", summary: "Build a repeatable pre-putt cue while keeping the session short enough to preserve quality.", drill: "Make five putts at 10, 15, 20, and 25 feet. Reset your stance before every attempt." },
 ];

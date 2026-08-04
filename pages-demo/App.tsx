@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useState, type ComponentType, type CSSProperties } from "react";
 import {
   Bell,
   BookOpen,
@@ -15,16 +15,17 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { BagCaddieScreen } from "./screens/BagCaddieScreen";
-import { CoachScreen } from "./screens/CoachScreen";
-import { DiscoverScreen } from "./screens/DiscoverScreen";
-import { EventsScreen } from "./screens/EventsScreen";
-import { HomeScreen } from "./screens/HomeScreen";
-import { OwnerScreen } from "./screens/OwnerScreen";
-import { PlayScreen } from "./screens/PlayScreen";
-import { ProfileScreen } from "./screens/ProfileScreen";
 import { useDemoStore } from "./demo-store";
 import { brand } from "@/config/brand";
+
+const HomeScreen = lazy(() => import("./screens/HomeScreen").then((module) => ({ default: () => <RouteReady><module.HomeScreen /></RouteReady> })));
+const DiscoverScreen = lazy(() => import("./screens/DiscoverScreen").then((module) => ({ default: () => <RouteReady><module.DiscoverScreen /></RouteReady> })));
+const PlayScreen = lazy(() => import("./screens/PlayScreen").then((module) => ({ default: () => <RouteReady><module.PlayScreen /></RouteReady> })));
+const EventsScreen = lazy(() => import("./screens/EventsScreen").then((module) => ({ default: () => <RouteReady><module.EventsScreen /></RouteReady> })));
+const BagCaddieScreen = lazy(() => import("./screens/BagCaddieScreen").then((module) => ({ default: () => <RouteReady><module.BagCaddieScreen /></RouteReady> })));
+const CoachScreen = lazy(() => import("./screens/CoachScreen").then((module) => ({ default: () => <RouteReady><module.CoachScreen /></RouteReady> })));
+const OwnerScreen = lazy(() => import("./screens/OwnerScreen").then((module) => ({ default: () => <RouteReady><module.OwnerScreen /></RouteReady> })));
+const ProfileScreen = lazy(() => import("./screens/ProfileScreen").then((module) => ({ default: () => <RouteReady><module.ProfileScreen /></RouteReady> })));
 
 export type ScreenId = "home" | "discover" | "play" | "events" | "bag" | "coach" | "owner" | "profile";
 
@@ -37,7 +38,7 @@ const navigation = [
   { id: "owner", label: "Manage", icon: Gauge },
 ] satisfies Array<{ id: ScreenId; label: string; icon: typeof Compass }>;
 
-const screenComponents: Record<ScreenId, () => React.JSX.Element> = {
+const screenComponents: Record<ScreenId, ComponentType> = {
   home: HomeScreen,
   discover: DiscoverScreen,
   play: PlayScreen,
@@ -59,11 +60,18 @@ export function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
+  useLayoutEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.getElementById("demo-main")?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [screen]);
+
   const navigate = (next: ScreenId) => {
     window.location.hash = next;
     setScreen(next);
     setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const Screen = screenComponents[screen];
 
@@ -115,7 +123,7 @@ export function App() {
               </button>
             </>
           ) : (
-            <button className="demo-header-signout" type="button" onClick={startSession}>
+            <button className="demo-header-signout" type="button" onClick={startSession} aria-label="Enter the interactive demo">
               <LogIn aria-hidden="true" /><span>Enter demo</span>
             </button>
           )}
@@ -123,14 +131,14 @@ export function App() {
       </header>
       {signedIn && menuOpen ? (
         <nav className="demo-mobile-menu" aria-label="Expanded navigation">
+          <button type="button" onClick={() => navigate("profile")}><UserRound aria-hidden="true" />Profile &amp; privacy</button>
           {navigation.map((item) => (
             <button key={item.id} type="button" onClick={() => navigate(item.id)}><item.icon aria-hidden="true" />{item.label}</button>
           ))}
-          <button type="button" onClick={() => navigate("profile")}><UserRound aria-hidden="true" />Profile & privacy</button>
         </nav>
       ) : null}
-      <main id="demo-main">
-        {signedIn ? <Screen /> : <DemoSignedOutScreen onEnter={startSession} />}
+      <main id="demo-main" tabIndex={-1}>
+        {signedIn ? <Suspense fallback={<ScreenLoading />}><Screen /></Suspense> : <DemoSignedOutScreen onEnter={startSession} />}
       </main>
       <footer className="demo-footer">
         <div><strong>{brand.productName}</strong><span>Find your line. Forge your game.</span></div>
@@ -142,13 +150,29 @@ export function App() {
         <button type="button" className={screen === "discover" ? "active" : ""} onClick={() => navigate("discover")}><Compass aria-hidden="true" /><span>Explore</span></button>
         <button type="button" className={`center-play ${screen === "play" ? "active" : ""}`} onClick={() => navigate("play")}><span><Play aria-hidden="true" /></span><b>Play</b></button>
         <button type="button" className={screen === "events" ? "active" : ""} onClick={() => navigate("events")}><CalendarDays aria-hidden="true" /><span>Events</span></button>
-        <button type="button" className={screen === "profile" ? "active" : ""} onClick={() => navigate("profile")}><UserRound aria-hidden="true" /><span>Profile</span></button>
+        <button type="button" className={["bag", "coach", "owner", "profile"].includes(screen) || menuOpen ? "active" : ""} onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen}><Menu aria-hidden="true" /><span>More</span></button>
       </nav> : null}
     </div>
   );
 }
 
+function ScreenLoading() {
+  return <section className="screen screen-loading" role="status" aria-live="polite"><span className="demo-eyebrow">Opening field view</span><div /><div /><div /></section>;
+}
+
+function RouteReady({ children }: { children: React.ReactNode }) {
+  useLayoutEffect(() => {
+    const reset = () => window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    reset();
+    const frame = window.requestAnimationFrame(reset);
+    document.getElementById("demo-main")?.focus({ preventScroll: true });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+  return children;
+}
+
 function DemoSignedOutScreen({ onEnter }: { onEnter: () => void }) {
+  const accountAppUrl = import.meta.env.VITE_ACCOUNT_APP_URL ?? "https://flightforge-maine-launch.williamjblodgett.chatgpt.site";
   return (
     <section className="screen demo-signed-out" aria-labelledby="demo-signed-out-heading">
       <span className="demo-eyebrow"><ShieldCheck aria-hidden="true" /> Device-local demo</span>
@@ -157,6 +181,7 @@ function DemoSignedOutScreen({ onEnter }: { onEnter: () => void }) {
       <button className="demo-button primary" type="button" onClick={onEnter}>
         <LogIn aria-hidden="true" /> Enter the interactive demo
       </button>
+      <a className="demo-button secondary" href={accountAppUrl}>Create a real free account</a>
     </section>
   );
 }

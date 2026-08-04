@@ -4,6 +4,10 @@ export type PlayerDisc = {
   id: string;
   manufacturer: string;
   mold: string;
+  plastic?: string;
+  weightGrams?: number;
+  color?: string;
+  nickname?: string;
   speed: number;
   glide: number;
   turn: number;

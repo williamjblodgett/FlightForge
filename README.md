@@ -23,16 +23,16 @@ The server-backed application delivers a complete account-to-discovery-to-course
 The GitHub Pages edition adds working, device-local versions of previously deferred flows:
 
 - capacity-safe booking with explainable, time-limited price quotes and idempotent confirmation;
-- public/private playing groups and join-state controls;
-- offline scorekeeping with versioned corrections and basic statistics;
-- digital bag management, gap/overlap analysis, and an owned-disc-aware caddie;
+- public/private playing groups with course, schedule, pace, skill, approval, and join-state controls;
+- offline scorekeeping with versioned corrections, per-hole disc/shot/landing/penalty notes, and basic statistics;
+- complete digital bag add/edit/remove management, gap/overlap analysis, and an owned-disc-aware caddie;
 - fictional tournament registration and league standings;
 - owner condition updates, pricing simulation, CSV preview, duplicate detection, and rollback;
-- structured learning, upload-safety validation, privacy preferences, explicit demo sign-out, data export, and local deletion;
-- an installable PWA shell, responsive map/list discovery, and mobile active-round navigation;
+- interactive lesson progress, upload-safety validation, editable profile/privacy preferences, explicit demo sign-out, data export, and local deletion;
+- an installable PWA shell, responsive collapsible map/list discovery, route-level code splitting, and complete mobile navigation;
 - a shared editorial field-atlas interface with photographic hero art and trustworthy topographic course placeholders.
 
-All mutable Pages data stays in that browser. No real reservation, payment, claim, registration, course publication, or AI media analysis occurs from the static edition.
+All fabricated booking, event, group, round, and operator records are pinned to the fictional Forge Ridge fixture and fail closed if a real course is supplied. All mutable Pages data stays in that browser. No real reservation, payment, registration, course publication, or AI media analysis occurs from the static edition; claim applications are clearly labeled device-local simulations.
 
 ## Quick start
 

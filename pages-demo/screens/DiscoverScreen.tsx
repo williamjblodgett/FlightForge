@@ -14,7 +14,8 @@ export function DiscoverScreen() {
   const [query, setQuery] = useState("");
   const [difficulty, setDifficulty] = useState<CourseDifficulty | "ALL">("ALL");
   const [priceType, setPriceType] = useState<CoursePriceType | "ALL">("ALL");
-  const [selectedId, setSelectedId] = useState(courses[8]?.id ?? courses[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState("");
+  const [mapOpen, setMapOpen] = useState(false);
   const [location, setLocation] = useState<Coordinates | null>(null);
   const [locationStatus, setLocationStatus] = useState<string>("");
   const [claimOpen, setClaimOpen] = useState(false);
@@ -74,7 +75,7 @@ export function DiscoverScreen() {
             const distance = location ? distanceMiles(location, course) : null;
             return (
               <article key={course.id} className={`demo-course-card ${selected?.id === course.id ? "selected" : ""}`}>
-                <button className="course-card-select" type="button" onClick={() => { setSelectedId(course.id); setClaimOpen(false); }} aria-label={`Show ${course.name} details and map`} />
+                <button className="course-card-select" type="button" onClick={() => { setSelectedId(course.id); setClaimOpen(false); }} aria-pressed={selected?.id === course.id} aria-label={`Show ${course.name} details and map`} />
                 <CourseHeroArt course={course} compact />
                 <div className="course-card-body">
                   <div className="course-card-heading"><div>{course.verifiedBadge ? <span className="verified-pill"><ShieldCheck />Verified demo</span> : <span className="source-pill">Source reviewed</span>}<h2>{course.name}</h2><p>{course.city}, {course.state}{distance == null ? "" : ` · ${distance.toFixed(1)} mi`}</p></div><button className={favorite ? "favorite active" : "favorite"} type="button" onClick={() => toggleFavorite(course.id)} aria-label={`${favorite ? "Remove" : "Add"} ${course.name} ${favorite ? "from" : "to"} favorites`}><Heart fill={favorite ? "currentColor" : "none"} /></button></div>
@@ -96,11 +97,16 @@ export function DiscoverScreen() {
             </button>
           ) : null}
         </div>
-        <aside className="live-map-panel">
+        <aside className={`live-map-panel ${mapOpen ? "mobile-map-open" : ""}`}>
+          <button className="map-mobile-toggle" type="button" onClick={() => setMapOpen((open) => !open)} aria-expanded={mapOpen}>
+            <span><Map aria-hidden="true" /><strong>{selected?.name ?? "Map preview"}</strong></span>
+            <span>{mapOpen ? "Hide map" : "Show map & details"}</span>
+          </button>
+          <div className="map-panel-content">
           {selected ? (
             <>
               <div className="map-panel-heading"><div><span className="demo-eyebrow">Live map</span><strong>{selected.name}</strong><small>Provider: OpenStreetMap · GPS is approximate</small></div><a href={`https://www.openstreetmap.org/?mlat=${selected.latitude}&mlon=${selected.longitude}#map=15/${selected.latitude}/${selected.longitude}`} target="_blank" rel="noreferrer" aria-label={`Open directions map for ${selected.name}`}><ExternalLink /></a></div>
-              <iframe title={`OpenStreetMap for ${selected.name}`} src={openStreetMapEmbed(selected.latitude, selected.longitude)} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" />
+              <iframe title={`OpenStreetMap for ${selected.name}`} src={openStreetMapEmbed(selected.latitude, selected.longitude)} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" tabIndex={-1} />
               <div className="map-legend"><span><i className="legend-course" />Selected course</span>{location ? <span><i className="legend-user" />Sorted from your location</span> : null}</div>
               <p className="map-warning">Map and GPS distances are estimates and must not be used for emergency navigation.</p>
               <div className="map-course-detail">
@@ -113,6 +119,7 @@ export function DiscoverScreen() {
               </div>
             </>
           ) : null}
+          </div>
         </aside>
       </section>
     </div>

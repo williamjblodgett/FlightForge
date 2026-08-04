@@ -1,6 +1,9 @@
 import type { Course } from "./types";
 import { statewideCourses } from "./statewide-courses";
 
+export { fictionalDemoCourse } from "./fictional-demo-course";
+
+/** Public, source-attributed listings only. Fictional fixtures live separately. */
 export const courses: Course[] = statewideCourses;
 
 export function getCourseBySlug(slug: string): Course | undefined {

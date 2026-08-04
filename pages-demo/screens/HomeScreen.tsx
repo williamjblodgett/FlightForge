@@ -1,5 +1,6 @@
 import { ArrowRight, CalendarCheck, CloudSun, Disc3, MapPinned, Sparkles, Trophy } from "lucide-react";
 import { courses } from "@/modules/courses/demo-courses";
+import { fictionalDemoCourse } from "@/modules/courses/fictional-demo-course";
 import { navigateTo } from "../App";
 import { useDemoStore } from "../demo-store";
 
@@ -9,7 +10,9 @@ export function HomeScreen() {
   const activeRound = state.rounds.find((round) => round.id === state.activeRoundId);
   const nextReservation = state.reservations[0];
   const nextCourse = nextReservation
-    ? courses.find((course) => course.id === nextReservation.courseId)
+    ? nextReservation.courseId === fictionalDemoCourse.id
+      ? fictionalDemoCourse
+      : courses.find((course) => course.id === nextReservation.courseId)
     : featured;
 
   return (

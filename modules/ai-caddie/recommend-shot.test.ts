@@ -22,6 +22,7 @@ describe("AI caddie recommendation schema", () => {
 
     expect(result.primaryDisc).toContain("Raptor");
     expect(result.reasoning).toHaveLength(3);
+    expect(result.reasoning).toContain("14 mph headwind conditions favor an overstable flight.");
     expect(result.confidence).toBeGreaterThan(0.8);
     expect(result.missingInformation).toEqual([]);
   });

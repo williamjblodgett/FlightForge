@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, BarChart3, CalendarRange, Check, CircleDollarSign, ClipboardCheck, CloudRain, FileSpreadsheet, History, MapPinned, RefreshCcw, Settings2, ShieldCheck, Store, Upload } from "lucide-react";
 import { createBookingQuote } from "@/modules/bookings/booking-engine";
 import { courses } from "@/modules/courses/demo-courses";
+import { fictionalDemoCourse, requireFictionalDemoCourse } from "@/modules/courses/fictional-demo-course";
 import { normalizeCourseIdentity } from "@/modules/imports/course-import";
 import { useDemoStore, type DemoClaim, type DemoClaimStatus } from "../demo-store";
 
@@ -9,7 +10,9 @@ type ImportPreview = { name: string; city: string; state: string; sourceUrl: str
 
 export function OwnerScreen() {
   const { state, update } = useDemoStore();
-  const course = courses.find((item) => item.fictionalDemo) ?? courses[0];
+  const course = requireFictionalDemoCourse(fictionalDemoCourse);
+  const [persona, setPersona] = useState<"OWNER" | "ADMIN">("OWNER");
+  const ownerReservations = state.reservations.filter((reservation) => reservation.courseId === course.id);
   const [condition, setCondition] = useState(state.conditions[course?.id ?? ""] ?? "Open · Dry fairways");
   const [basePrice, setBasePrice] = useState(1200);
   const [time, setTime] = useState("11:00");
@@ -50,8 +53,10 @@ export function OwnerScreen() {
 
   return (
     <div className="screen owner-screen">
-      <section className="screen-title compact-title"><div><span className="demo-eyebrow"><Settings2 /> Course operations</span><h1>Run the course without becoming software staff.</h1><p>These fictional operator tools make setup, conditions, safe pricing, and import review inspectable before anything is published.</p></div><span className="verified-pill"><Check />Managing fictional Forge Ridge</span></section>
-      <section className="owner-metrics"><article><span><CalendarRange />Today’s reservations</span><strong>{state.reservations.length}</strong><small>{state.reservations.reduce((sum, reservation) => sum + reservation.playerCount, 0)} players expected</small></article><article><span><BarChart3 />Demo occupancy</span><strong>{state.reservations.length ? "38%" : "24%"}</strong><small>Capacity-safe reservations only</small></article><article><span><CircleDollarSign />Booked value</span><strong>${(state.reservations.reduce((sum, reservation) => sum + reservation.totalCents, 0) / 100).toFixed(2)}</strong><small>No payment collected</small></article><article><span><MapPinned />Course condition</span><strong>{condition.split(" · ")[0]}</strong><small>Course-reported demo state</small></article></section>
+      <section className="screen-title compact-title"><div><span className="demo-eyebrow"><Settings2 /> Role-separated operations demo</span><h1>{persona === "OWNER" ? "Run the course without becoming software staff." : "Review claims without crossing operator boundaries."}</h1><p>Switching personas changes the available tools. Production authorization is always enforced on the server.</p></div><span className="verified-pill"><Check />{persona === "OWNER" ? "Managing fictional Forge Ridge" : "Platform admin simulation"}</span></section>
+      <div className="persona-switch" role="group" aria-label="Choose demonstration role"><button type="button" aria-pressed={persona === "OWNER"} onClick={() => setPersona("OWNER")}>Course owner</button><button type="button" aria-pressed={persona === "ADMIN"} onClick={() => setPersona("ADMIN")}>Platform administrator</button></div>
+      {persona === "OWNER" ? <>
+      <section className="owner-metrics"><article><span><CalendarRange />Today’s reservations</span><strong>{ownerReservations.length}</strong><small>{ownerReservations.reduce((sum, reservation) => sum + reservation.playerCount, 0)} players expected</small></article><article><span><BarChart3 />Demo occupancy</span><strong>{ownerReservations.length ? "38%" : "24%"}</strong><small>Capacity-safe reservations only</small></article><article><span><CircleDollarSign />Booked value</span><strong>${(ownerReservations.reduce((sum, reservation) => sum + reservation.totalCents, 0) / 100).toFixed(2)}</strong><small>No payment collected</small></article><article><span><MapPinned />Course condition</span><strong>{condition.split(" · ")[0]}</strong><small>Course-reported demo state</small></article></section>
       <section className="owner-grid">
         <div className="workspace-card condition-panel"><div className="card-heading plain"><div><span className="demo-eyebrow">Operating status</span><h2>Publish today’s condition</h2></div><CloudRain /></div><label><span>Course condition</span><select value={condition} onChange={(event) => setCondition(event.target.value)}><option>Open · Dry fairways</option><option>Open · Wet and muddy</option><option>Delayed opening · Maintenance</option><option>Closed · Severe weather</option><option>Open · Cart restrictions</option></select></label><p>Players see this as <strong>course-reported</strong>, separate from provider weather and user reports.</p><button className="demo-button primary" type="button" onClick={saveCondition}>Save condition locally</button></div>
         <div className="workspace-card pricing-simulator"><div className="card-heading plain"><div><span className="demo-eyebrow">Safe pricing preview</span><h2>Test before publishing</h2></div><CircleDollarSign /></div><div className="form-grid two"><label><span>Base price</span><input type="number" min="0" max="100" step="1" value={basePrice / 100} onChange={(event) => setBasePrice(Math.round(Number(event.target.value) * 100))} /></label><label><span>Tee time</span><select value={time} onChange={(event) => setTime(event.target.value)}><option value="08:00">8:00 AM</option><option value="11:00">11:00 AM</option><option value="15:00">3:00 PM</option></select></label></div><label className="check-row"><input type="checkbox" checked={member} onChange={(event) => setMember(event.target.checked)} /><span>Member pricing</span></label><label className="check-row"><input type="checkbox" checked={rain} onChange={(event) => setRain(event.target.checked)} /><span>Rain likely</span></label><div className="simulator-result"><span>Preview total</span><strong>${(quote.totalCents / 100).toFixed(2)}</strong><ul>{quote.explanation.map((reason) => <li key={reason}>{reason}</li>)}</ul></div><p className="demo-disclosure">No countdown timers, hidden fees, or unsupported scarcity claims.</p></div>
@@ -64,9 +69,8 @@ export function OwnerScreen() {
         {state.importBatches.length > 0 ? <div className="batch-history"><h3>Applied batch history</h3>{state.importBatches.map((batch) => <div key={batch.id}><span><strong>{batch.sourceName}</strong><small>{batch.recordCount} records · {new Date(batch.appliedAt).toLocaleString()}</small></span>{batch.rolledBackAt ? <span className="rolled-back"><RefreshCcw />Rolled back</span> : <button className="demo-button tertiary" type="button" onClick={() => rollback(batch.id)}>Rollback</button>}</div>)}</div> : null}
       </section>
 
-      <ClaimReviewQueue />
-
       <section className="readiness-grid"><article><Store /><div><strong>Commerce remains gated</strong><p>Merchandise, food, lessons, passes, and Stripe Connect require verified operator identity, tax configuration, and provider credentials.</p></div></article><article><AlertTriangle /><div><strong>Launch checks are explicit</strong><p>Malware scanning, legal review, monitoring, payout disputes, and abuse response must pass before their feature flags can be enabled.</p></div></article></section>
+      </> : <ClaimReviewQueue />}
     </div>
   );
 }
@@ -87,7 +91,7 @@ function ClaimReviewItem({ claim }: { claim: DemoClaim }) {
   const [decision, setDecision] = useState<Exclude<DemoClaimStatus, "CLAIM_SUBMITTED">>("ADDITIONAL_INFORMATION_REQUIRED");
   const [reason, setReason] = useState("");
   const [status, setStatus] = useState("");
-  const course = courses.find((item) => item.id === claim.courseId);
+  const course = claim.courseId === fictionalDemoCourse.id ? fictionalDemoCourse : courses.find((item) => item.id === claim.courseId);
 
   const review = () => {
     const normalizedReason = reason.trim();

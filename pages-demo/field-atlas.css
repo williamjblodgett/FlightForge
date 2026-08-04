@@ -681,3 +681,113 @@ body {
     bottom: 10px;
   }
 }
+
+/* Interaction repairs: clear mobile hierarchy, complete round controls, and role separation. */
+#demo-main:focus { outline: none; }
+.screen-loading { display: grid; align-content: start; gap: 14px; }
+.screen-loading > div { height: 90px; border: 1px solid #b9b1a1; background: linear-gradient(90deg, #e4ded1, #fffdf5, #e4ded1); background-size: 220% 100%; animation: field-loading 1.2s linear infinite; }
+.screen-loading > div:first-of-type { height: 210px; }
+@keyframes field-loading { to { background-position: -120% 0; } }
+
+.map-mobile-toggle { display: none; }
+.map-panel-content { display: block; }
+.reservation-reference { margin: 10px 0 0; color: #5f6c63; font: 700 .65rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+.create-group-form { display: grid; gap: 16px; margin-bottom: 18px; padding: 22px; }
+.group-approval { align-self: end; min-height: 44px; align-items: center; }
+.group-notes { min-height: 38px; padding: 9px; border-left: 3px solid #ff7417; background: #f4eee0; }
+
+.scorecard-shell { max-width: 1040px; }
+.score-course-context { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px 22px; border-bottom: 1px solid rgb(255 255 255 / 12%); }
+.score-course-context h2 { margin: 5px 0 2px; color: #fffdf5; font: 700 1.45rem Georgia, serif; }
+.score-course-context p { margin: 0; color: #aabcc2; font-size: .72rem; }
+.round-weather { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 4px; }
+.round-weather > span { display: grid; gap: 2px; }
+.round-weather small { color: #9fb0b7; }
+.round-ready-banner { display: flex; align-items: center; gap: 10px; padding: 13px 18px; background: #ff7417; color: #071f39; }
+.round-ready-banner > div { display: grid; gap: 2px; }
+.round-ready-banner span { font-size: .7rem; }
+.hole-play-grid { display: grid; grid-template-columns: .92fr 1.08fr; min-height: 370px; }
+.hole-map-card { position: relative; min-height: 370px; overflow: hidden; border-right: 1px solid rgb(255 255 255 / 14%); background: linear-gradient(145deg, #24593f, #0a2b20); }
+.hole-map-card::before { position: absolute; inset: 0; opacity: .25; background-image: repeating-radial-gradient(ellipse at 45% 50%, transparent 0 33px, #fff 34px 35px, transparent 36px 52px); content: ""; }
+.hole-map-card .tee-point, .hole-map-card .basket-point, .hole-map-card .landing-zone { position: absolute; z-index: 2; display: flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid #071f39; background: #fffdf5; color: #071f39; font: 800 .61rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.hole-map-card .tee-point { bottom: 28px; left: 28px; }
+.hole-map-card .basket-point { top: 25px; right: 30px; background: #ff7417; }
+.hole-map-card .landing-zone { top: 49%; left: 48%; transform: translate(-50%, -50%); }
+.fairway-line { position: absolute; z-index: 1; top: 62px; right: 72px; bottom: 66px; left: 66px; border: 3px dashed rgb(255 253 245 / 70%); border-width: 0 3px 0 0; border-radius: 50%; transform: rotate(21deg); }
+.hole-map-card > small { position: absolute; z-index: 2; right: 14px; bottom: 12px; color: #b7c9bf; font-size: .56rem; }
+.hole-score-card { display: grid; align-content: stretch; }
+.hole-score-card .hole-header { min-height: 165px; padding: 20px; }
+.hole-score-card .score-entry { min-height: 205px; }
+.round-context-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 18px; border-top: 1px solid rgb(255 255 255 / 12%); background: #0b2730; }
+.round-context-grid label > span { color: #b9c8cd; }
+.round-context-grid .hole-notes { grid-column: span 2; }
+.hole-strip { scrollbar-width: none; }
+.hole-strip::-webkit-scrollbar { display: none; }
+.scorecard-actions { display: flex; justify-content: space-between; gap: 10px; padding: 0 18px 18px; }
+.scorecard-actions .demo-button.secondary { border-color: rgb(255 255 255 / 28%); background: rgb(255 255 255 / 8%); color: #fff; }
+
+.disc-row { grid-template-columns: 1.35fr .68fr .62fr 52px 72px; }
+.disc-actions { display: flex; gap: 5px; }
+.disc-actions button, .add-disc-heading button { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid #a99f8c; border-radius: 4px; background: #fffdf5; cursor: pointer; }
+.disc-actions button.confirm-remove { border-color: #a63e3e; background: #fff0f0; color: #a63e3e; }
+.add-disc-panel.expanded { display: grid; grid-template-columns: 1fr; align-items: stretch; padding: 22px; }
+.add-disc-heading { display: flex; align-items: center; justify-content: space-between; }
+.add-disc-heading h2 { margin: 5px 0 0; font: 700 1.35rem Georgia, serif; }
+.disc-identity-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.flight-number-fieldset { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 16px; border: 1px solid #b9b1a1; border-radius: 5px; }
+.flight-number-fieldset legend { padding: 0 6px; }
+.add-disc-actions { display: flex; justify-content: flex-end; gap: 9px; }
+
+.learning-card.selected { border-color: #071f39; box-shadow: 5px 5px 0 #ff7417; }
+.learning-card.selected button svg { transform: rotate(90deg); }
+.lesson-reader { display: grid; gap: 12px; margin: 12px 0 18px; padding: 20px; border-left: 5px solid #ff7417; }
+.lesson-reader h3, .lesson-reader p { margin: 0; }
+.lesson-reader p, .lesson-drill span { color: #5d6b70; line-height: 1.55; }
+.lesson-drill { display: grid; gap: 5px; padding: 12px; background: #f4eee0; }
+.lesson-reader .demo-button { justify-self: start; }
+
+.persona-switch { display: inline-grid; grid-template-columns: 1fr 1fr; gap: 3px; margin: -10px 0 24px; padding: 4px; border: 1px solid #a99f8c; border-radius: 5px; background: #ded8ca; }
+.persona-switch button { min-height: 42px; padding: 0 15px; border: 0; border-radius: 3px; background: transparent; color: #52606a; font-weight: 800; cursor: pointer; }
+.persona-switch button[aria-pressed="true"] { background: #071f39; color: #fffdf5; }
+.profile-edit-card { display: grid; gap: 12px; }
+
+@media (max-width: 860px) {
+  .demo-mobile-menu { z-index: 130; max-height: calc(100vh - 190px); overflow-y: auto; }
+  .map-mobile-toggle { display: flex; width: 100%; min-height: 62px; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 15px; border: 0; background: #071f39; color: #fffdf5; cursor: pointer; text-align: left; }
+  .map-mobile-toggle > span { display: flex; align-items: center; gap: 8px; }
+  .map-mobile-toggle > span:last-child { color: #ff9a4c; font-size: .68rem; font-weight: 800; }
+  .live-map-panel { height: auto !important; min-height: 0; overflow: visible; }
+  .map-panel-content { display: none; }
+  .mobile-map-open .map-panel-content { display: block; }
+  .live-map-panel iframe { height: min(310px, 55vh); }
+  .hole-play-grid { grid-template-columns: 1fr; }
+  .hole-map-card { min-height: 290px; border-right: 0; border-bottom: 1px solid rgb(255 255 255 / 14%); }
+  .round-context-grid { grid-template-columns: 1fr 1fr; }
+  .disc-identity-grid { grid-template-columns: 1fr 1fr; }
+  .flight-number-fieldset { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 580px) {
+  .menu-control { display: grid; }
+  .demo-header-actions { gap: 5px; }
+  .demo-mobile-menu { inset: 93px 8px auto; }
+  .score-course-context { align-items: flex-start; flex-direction: column; }
+  .round-weather { width: 100%; }
+  .hole-map-card { min-height: 250px; }
+  .round-context-grid { grid-template-columns: 1fr; }
+  .round-context-grid .hole-notes { grid-column: auto; }
+  .scorecard-actions { flex-direction: column; }
+  .scorecard-actions .demo-button { width: 100%; }
+  .round-progress { grid-template-columns: 1fr; }
+  .round-progress div:last-child { display: grid; }
+  .disc-row { grid-template-columns: minmax(0, 1.3fr) 56px 70px; gap: 5px; }
+  .disc-row > span:nth-child(2), .disc-row.header > span:nth-child(2), .disc-row > span:nth-child(3), .disc-row.header > span:nth-child(3) { display: none; }
+  .disc-row > span:first-child small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .disc-identity-grid, .flight-number-fieldset { grid-template-columns: 1fr; }
+  .add-disc-actions { flex-direction: column-reverse; }
+  .add-disc-actions .demo-button { width: 100%; }
+  .preference-row { align-items: flex-start; flex-direction: column; padding: 10px 0; }
+  .preference-row select { width: 100%; }
+  .persona-switch { display: grid; width: 100%; }
+}

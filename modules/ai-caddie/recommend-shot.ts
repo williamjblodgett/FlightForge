@@ -90,5 +90,7 @@ function windReason(
   stability: DiscStability,
 ): string {
   if (direction === "CALM" || speed < 4) return "Calm conditions favor a neutral, familiar flight.";
-  return `${speed} mph ${direction.toLowerCase()} conditions favor a ${stability.toLowerCase()} flight.`;
+  const stabilityLabel = stability.toLowerCase();
+  const article = /^[aeiou]/u.test(stabilityLabel) ? "an" : "a";
+  return `${speed} mph ${direction.toLowerCase()} conditions favor ${article} ${stabilityLabel} flight.`;
 }
