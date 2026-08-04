@@ -36,6 +36,24 @@ export function filterCourses(
   });
 }
 
+export function rankCoursesForDiscovery(courses: Course[]): Course[] {
+  return [...courses].sort((left, right) => {
+    const rankDifference = discoveryRank(left) - discoveryRank(right);
+    if (rankDifference !== 0) return rankDifference;
+    return left.name.localeCompare(right.name, "en-US");
+  });
+}
+
+function discoveryRank(course: Course): number {
+  const unavailablePenalty = course.operationalStatus === "UNAVAILABLE_REPORTED" ? 10 : 0;
+  const verificationRank = course.verificationLevel === "OPERATOR_SOURCE_REVIEWED"
+    ? 0
+    : course.verificationLevel === "DIRECTORY_CROSS_CHECKED"
+      ? 1
+      : 2;
+  return unavailablePenalty + verificationRank;
+}
+
 export function normalizeSearchText(value: string): string {
   return value
     .normalize("NFKD")

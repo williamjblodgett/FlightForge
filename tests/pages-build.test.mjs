@@ -28,8 +28,11 @@ test("GitHub Pages build emits JavaScript and CSS assets", async () => {
   const scripts = await Promise.all(
     files.filter((file) => file.endsWith(".js")).map((file) => readFile(path.join(output, "assets", file), "utf8")),
   );
-  assert.match(scripts.join("\n"), /Sign out of demo/u);
-  assert.match(scripts.join("\n"), /Illustrative field scene/u);
+  const bundle = scripts.join("\n");
+  assert.match(bundle, /Sign out of demo/u);
+  assert.match(bundle, /Illustrative field scene/u);
+  assert.match(bundle, /Show 12 more/u);
+  assert.match(bundle, /sabattus-disc-golf-eagle/u);
 });
 
 test("service worker precaches the hashed app shell", async () => {

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, List, Map, MapPinned, Search, SlidersHorizontal } from "lucide-react";
 import type { Course, CourseDifficulty, CoursePriceType } from "../types";
-import { filterCourses } from "../search";
+import { filterCourses, rankCoursesForDiscovery } from "../search";
 import { CourseCard } from "./CourseCard";
 import { CourseMap } from "./CourseMap";
 import { brand } from "@/config/brand";
@@ -31,24 +31,32 @@ export function CourseExplorer({
   const [viewMode, setViewMode] = useState<ViewMode>("split");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id ?? null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const favoriteIds = useMemo(() => new Set(initialFavoriteIds), [initialFavoriteIds]);
   const filteredCourses = useMemo(
     () =>
-      filterCourses(courses, {
-        query,
-        difficulty,
-        priceType,
-        minimumHoles: holes === "ALL" ? null : Number(holes),
-      }),
+      rankCoursesForDiscovery(
+        filterCourses(courses, {
+          query,
+          difficulty,
+          priceType,
+          minimumHoles: holes === "ALL" ? null : Number(holes),
+        }),
+      ),
     [courses, difficulty, holes, priceType, query],
   );
+  const visibleCourses = filteredCourses.slice(0, visibleCount);
+  const effectiveSelectedCourseId = filteredCourses.some((course) => course.id === selectedCourseId)
+    ? selectedCourseId
+    : (filteredCourses[0]?.id ?? null);
 
   function clearFilters() {
     setQuery("");
     setDifficulty("ALL");
     setPriceType("ALL");
     setHoles("ALL");
+    setVisibleCount(12);
   }
 
   return (
@@ -120,7 +128,7 @@ export function CourseExplorer({
               type="search"
               placeholder="Course, city, ZIP, or amenity"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => { setQuery(event.target.value); setVisibleCount(12); }}
             />
             <span className="search-location">Maine</span>
           </div>
@@ -143,7 +151,7 @@ export function CourseExplorer({
         <div id="course-filters" className={`filter-row${filtersOpen ? " is-open" : ""}`}>
           <label>
             <span>Difficulty</span>
-            <select value={difficulty} onChange={(event) => setDifficulty(event.target.value as CourseDifficulty | "ALL")}>
+            <select value={difficulty} onChange={(event) => { setDifficulty(event.target.value as CourseDifficulty | "ALL"); setVisibleCount(12); }}>
               <option value="ALL">Any level</option>
               <option value="UNRATED">Not yet rated</option>
               <option value="BEGINNER">Beginner</option>
@@ -154,7 +162,7 @@ export function CourseExplorer({
           </label>
           <label>
             <span>Price</span>
-            <select value={priceType} onChange={(event) => setPriceType(event.target.value as CoursePriceType | "ALL")}>
+            <select value={priceType} onChange={(event) => { setPriceType(event.target.value as CoursePriceType | "ALL"); setVisibleCount(12); }}>
               <option value="ALL">Free or paid</option>
               <option value="FREE">Free</option>
               <option value="PAID">Pay to play</option>
@@ -163,7 +171,7 @@ export function CourseExplorer({
           </label>
           <label>
             <span>Holes</span>
-            <select value={holes} onChange={(event) => setHoles(event.target.value as typeof holes)}>
+            <select value={holes} onChange={(event) => { setHoles(event.target.value as typeof holes); setVisibleCount(12); }}>
               <option value="ALL">Any count</option>
               <option value="9">9+</option>
               <option value="18">18+</option>
@@ -183,16 +191,27 @@ export function CourseExplorer({
 
         <div className={`explorer-layout view-${viewMode}`}>
           <div className="course-results-list" aria-live="polite">
-            {filteredCourses.map((course) => (
+            {visibleCourses.map((course) => (
               <CourseCard
                 key={course.id}
                 course={course}
                 favorite={favoriteIds.has(course.id)}
                 signedIn={signedIn}
-                selected={selectedCourseId === course.id}
+                selected={effectiveSelectedCourseId === course.id}
                 onSelect={setSelectedCourseId}
               />
             ))}
+            {visibleCount < filteredCourses.length ? (
+              <div className="course-list-more">
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  onClick={() => setVisibleCount((current) => Math.min(current + 12, filteredCourses.length))}
+                >
+                  Show 12 more <span>{filteredCourses.length - visibleCount} remaining</span>
+                </button>
+              </div>
+            ) : null}
             {filteredCourses.length === 0 ? (
               <div className="empty-state">
                 <MapPinned aria-hidden="true" />
@@ -203,7 +222,7 @@ export function CourseExplorer({
             ) : null}
           </div>
           <div className="map-panel">
-            <CourseMap courses={filteredCourses} selectedCourseId={selectedCourseId} onSelect={setSelectedCourseId} />
+            <CourseMap courses={filteredCourses} selectedCourseId={effectiveSelectedCourseId} onSelect={setSelectedCourseId} />
           </div>
         </div>
       </section>

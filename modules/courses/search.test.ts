@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { courses } from "./demo-courses";
-import { filterCourses, normalizeSearchText } from "./search";
+import { filterCourses, normalizeSearchText, rankCoursesForDiscovery } from "./search";
 
 describe("course search", () => {
   it("matches course, city, access, and cost fields without case sensitivity", () => {
@@ -18,5 +18,15 @@ describe("course search", () => {
 
   it("normalizes curly punctuation and accents", () => {
     expect(normalizeSearchText("  Acker’s   Ácres ")).toBe("acker’s acres");
+  });
+
+  it("places stronger current source evidence ahead of single-directory listings", () => {
+    const ranked = rankCoursesForDiscovery(courses);
+    const sabattusIndex = ranked.findIndex((course) => course.slug === "sabattus-disc-golf-eagle");
+    const singleDirectoryIndex = ranked.findIndex((course) => course.slug === "101-arw");
+
+    expect(ranked[0]?.verificationLevel).toBe("OPERATOR_SOURCE_REVIEWED");
+    expect(sabattusIndex).toBeGreaterThanOrEqual(0);
+    expect(singleDirectoryIndex).toBeGreaterThan(sabattusIndex);
   });
 });

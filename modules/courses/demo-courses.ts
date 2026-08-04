@@ -13,8 +13,8 @@ export function getCourseById(id: string): Course | undefined {
 
 export function formatCoursePrice(course: Course): string {
   if (course.operationalStatus === "UNAVAILABLE_REPORTED") return "Reported unavailable";
-  if (course.costNote) return course.costNote.replace(/^Pay\s*-\s*/iu, "");
+  if (course.priceFromCents != null) return `From $${(course.priceFromCents / 100).toFixed(0)}`;
   if (course.priceType === "FREE") return "Free";
-  if (course.priceFromCents == null) return "Confirm pricing";
-  return `From $${(course.priceFromCents / 100).toFixed(0)}`;
+  if (course.priceType === "PAID") return "Pay to play";
+  return "Confirm pricing";
 }

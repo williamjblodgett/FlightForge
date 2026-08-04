@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Building2, ExternalLink, FileCheck2, Heart, LocateFixed, Map, Search, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { courses } from "@/modules/courses/demo-courses";
-import { filterCourses } from "@/modules/courses/search";
+import { filterCourses, rankCoursesForDiscovery } from "@/modules/courses/search";
 import type { Course, CourseDifficulty, CoursePriceType } from "@/modules/courses/types";
 import { courseClaimSchema } from "@/modules/courses/validation";
 import { CourseHeroArt } from "@/modules/courses/components/CourseHeroArt";
@@ -18,13 +18,15 @@ export function DiscoverScreen() {
   const [location, setLocation] = useState<Coordinates | null>(null);
   const [locationStatus, setLocationStatus] = useState<string>("");
   const [claimOpen, setClaimOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const filtered = useMemo(() => {
     const result = filterCourses(courses, { query, difficulty, priceType, minimumHoles: null });
-    if (!location) return result;
+    if (!location) return rankCoursesForDiscovery(result);
     return [...result].sort((left, right) => distanceMiles(location, left) - distanceMiles(location, right));
   }, [difficulty, location, priceType, query]);
-  const selected = courses.find((course) => course.id === selectedId) ?? filtered[0] ?? courses[0];
+  const selected = filtered.find((course) => course.id === selectedId) ?? filtered[0] ?? courses[0];
+  const visibleCourses = filtered.slice(0, visibleCount);
 
   const requestLocation = () => {
     if (!("geolocation" in navigator)) {
@@ -35,6 +37,7 @@ export function DiscoverScreen() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+        setVisibleCount(12);
         setLocationStatus("Sorted nearest to your approximate current location.");
       },
       () => setLocationStatus("Location was not shared. Search still works by city, ZIP, and course name."),
@@ -57,16 +60,16 @@ export function DiscoverScreen() {
       </section>
       {locationStatus ? <p className="inline-status" role="status">{locationStatus}</p> : null}
       <section className="search-panel" aria-label="Course filters">
-        <label className="search-input"><Search aria-hidden="true" /><span className="sr-only">Search courses</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Course, city, ZIP, terrain, or amenity" /></label>
-        <label><span>Difficulty</span><select value={difficulty} onChange={(event) => setDifficulty(event.target.value as CourseDifficulty | "ALL")}><option value="ALL">Any difficulty</option><option value="BEGINNER">Beginner</option><option value="RECREATIONAL">Recreational</option><option value="INTERMEDIATE">Intermediate</option><option value="ADVANCED">Advanced</option></select></label>
-        <label><span>Price</span><select value={priceType} onChange={(event) => setPriceType(event.target.value as CoursePriceType | "ALL")}><option value="ALL">Any price</option><option value="FREE">Free</option><option value="PAID">Pay to play</option><option value="MIXED">Mixed</option></select></label>
+        <label className="search-input"><Search aria-hidden="true" /><span className="sr-only">Search courses</span><input value={query} onChange={(event) => { setQuery(event.target.value); setVisibleCount(12); }} placeholder="Course, city, ZIP, terrain, or amenity" /></label>
+        <label><span>Difficulty</span><select value={difficulty} onChange={(event) => { setDifficulty(event.target.value as CourseDifficulty | "ALL"); setVisibleCount(12); }}><option value="ALL">Any difficulty</option><option value="BEGINNER">Beginner</option><option value="RECREATIONAL">Recreational</option><option value="INTERMEDIATE">Intermediate</option><option value="ADVANCED">Advanced</option></select></label>
+        <label><span>Price</span><select value={priceType} onChange={(event) => { setPriceType(event.target.value as CoursePriceType | "ALL"); setVisibleCount(12); }}><option value="ALL">Any price</option><option value="FREE">Free</option><option value="PAID">Pay to play</option><option value="MIXED">Mixed</option></select></label>
         <div className="filter-count"><SlidersHorizontal aria-hidden="true" /><strong>{filtered.length}</strong><span>matches</span></div>
       </section>
 
       <section className="discovery-layout">
         <div className="course-results" aria-live="polite">
           {filtered.length === 0 ? <div className="empty-panel"><Search /><h2>No courses match yet</h2><p>Try clearing a filter or searching a nearby Maine city.</p></div> : null}
-          {filtered.map((course) => {
+          {visibleCourses.map((course) => {
             const favorite = state.favorites.includes(course.id);
             const distance = location ? distanceMiles(location, course) : null;
             return (
@@ -83,6 +86,15 @@ export function DiscoverScreen() {
               </article>
             );
           })}
+          {visibleCount < filtered.length ? (
+            <button
+              className="demo-button secondary course-load-more"
+              type="button"
+              onClick={() => setVisibleCount((current) => Math.min(current + 12, filtered.length))}
+            >
+              Show 12 more <span>{filtered.length - visibleCount} remaining</span>
+            </button>
+          ) : null}
         </div>
         <aside className="live-map-panel">
           {selected ? (

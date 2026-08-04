@@ -114,6 +114,61 @@ body {
   background: #fffdf5;
 }
 
+.brand-button,
+.demo-header-signout,
+.demo-footer button {
+  min-height: 44px;
+}
+
+.demo-footer button {
+  display: inline-flex;
+  align-items: center;
+}
+
+.text-action,
+.text-link,
+.source-row a,
+.reset-action {
+  min-height: 44px;
+  align-items: center;
+}
+
+.favorite,
+.learning-card button,
+.map-panel-heading a {
+  width: 44px;
+  height: 44px;
+}
+
+.favorite {
+  flex: 0 0 44px;
+}
+
+.segmented-control button {
+  min-height: 44px;
+}
+
+.upload-drop input[type="file"] {
+  position: absolute;
+  width: 1px !important;
+  min-height: 1px !important;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.course-load-more {
+  width: 100%;
+  min-height: 52px;
+  border-style: dashed;
+}
+
+.course-load-more span {
+  color: #6d766f;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .screen {
   width: min(1460px, calc(100% - 54px));
   padding-top: 58px;
@@ -508,6 +563,10 @@ body {
 }
 
 @media (max-width: 860px) {
+  .demo-header-signout {
+    width: 44px;
+  }
+
   .screen {
     width: min(100% - 28px, 720px);
   }

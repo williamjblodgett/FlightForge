@@ -106,7 +106,7 @@ export function App() {
               <button className="demo-header-signout" type="button" onClick={signOut} aria-label="Sign out of the interactive demo">
                 <LogOut aria-hidden="true" /><span>Sign out</span>
               </button>
-              <button className="profile-chip" type="button" onClick={() => navigate("profile")}>
+              <button className="profile-chip" type="button" onClick={() => navigate("profile")} aria-label="Open profile and privacy">
                 <span className="avatar">RP</span>
                 <span>{state.displayName}</span>
               </button>

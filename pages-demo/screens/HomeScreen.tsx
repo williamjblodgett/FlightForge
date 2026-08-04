@@ -5,7 +5,7 @@ import { useDemoStore } from "../demo-store";
 
 export function HomeScreen() {
   const { state } = useDemoStore();
-  const featured = courses.find((course) => course.fictionalDemo) ?? courses[0];
+  const featured = courses.find((course) => course.slug === "sabattus-disc-golf-eagle") ?? courses[0];
   const activeRound = state.rounds.find((round) => round.id === state.activeRoundId);
   const nextReservation = state.reservations[0];
   const nextCourse = nextReservation
