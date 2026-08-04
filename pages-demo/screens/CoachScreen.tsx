@@ -3,8 +3,10 @@ import { BookOpen, Camera, Check, ChevronRight, FileVideo, LockKeyhole, ShieldAl
 import { evaluateMediaUpload } from "@/modules/media-analysis/upload-safety";
 import { brand } from "@/config/brand";
 import { learningTracks } from "../data";
+import { useDemoStore } from "../demo-store";
 
 export function CoachScreen() {
+  const { state, update } = useDemoStore();
   const [file, setFile] = useState<File | null>(null);
   const [duration, setDuration] = useState(15);
   const [throwType, setThrowType] = useState("Backhand drive");
@@ -12,6 +14,8 @@ export function CoachScreen() {
   const [goal, setGoal] = useState("Find one high-priority timing issue");
   const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState<{ accepted: boolean; messages: string[] } | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const selectedLesson = learningTracks.find((track) => track.id === selectedLessonId) ?? null;
 
   const validate = (event: FormEvent) => {
     event.preventDefault();
@@ -34,7 +38,8 @@ export function CoachScreen() {
       <section className="learning-layout">
         <div className="learning-tracks">
           <div className="section-heading-row"><div><span className="demo-eyebrow">Your learning plan</span><h2>Three focused tracks</h2></div></div>
-          {learningTracks.map((track) => <article key={track.title} className="learning-card"><span className="learning-level">{track.level}</span><div><h3>{track.title}</h3><p>Next: {track.next}</p><div className="lesson-progress"><i style={{ width: `${track.progress}%` }} /></div><small>{track.progress}% complete · App-recorded demo</small></div><button type="button" aria-label={`Open ${track.title}`}><ChevronRight /></button></article>)}
+          {learningTracks.map((track) => { const progress = state.lessonProgress[track.id] ?? track.progress; return <article key={track.id} className={`learning-card ${selectedLessonId === track.id ? "selected" : ""}`}><span className="learning-level">{track.level}</span><div><h3>{track.title}</h3><p>Next: {track.next}</p><div className="lesson-progress"><i style={{ width: `${progress}%` }} /></div><small>{progress}% complete · App-recorded demo</small></div><button type="button" aria-expanded={selectedLessonId === track.id} aria-label={`Open ${track.title}`} onClick={() => setSelectedLessonId((current) => current === track.id ? null : track.id)}><ChevronRight /></button></article>; })}
+          {selectedLesson ? <article className="workspace-card lesson-reader" aria-live="polite"><span className="demo-eyebrow">Open lesson · {selectedLesson.level}</span><h3>{selectedLesson.next}</h3><p>{selectedLesson.summary}</p><div className="lesson-drill"><strong>Practice drill</strong><span>{selectedLesson.drill}</span></div><button className="demo-button primary" type="button" onClick={() => update((current) => ({ ...current, lessonProgress: { ...current.lessonProgress, [selectedLesson.id]: Math.min(100, (current.lessonProgress[selectedLesson.id] ?? selectedLesson.progress) + 10) } }))}>Mark lesson step complete</button></article> : null}
           <article className="practice-plan"><span className="spark-icon"><Sparkles /></span><div><span className="demo-eyebrow">Recommended today</span><h3>20-minute wind-control session</h3><p>Five neutral releases, five nose-down headwind shots, and ten landing-zone reps. Stop if you feel pain or unusual strain.</p></div></article>
         </div>
         <form className="workspace-card upload-lab" onSubmit={validate}>

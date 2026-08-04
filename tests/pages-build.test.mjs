@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
+import { access, readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
@@ -33,6 +33,11 @@ test("GitHub Pages build emits JavaScript and CSS assets", async () => {
   assert.match(bundle, /Illustrative field scene/u);
   assert.match(bundle, /Show 12 more/u);
   assert.match(bundle, /sabattus-disc-golf-eagle/u);
+  assert.match(bundle, /demo-course-forge-ridge/u);
+  assert.match(bundle, /Save profile and privacy/u);
+  assert.match(bundle, /Mark lesson step complete/u);
+  const scriptStats = await Promise.all(files.filter((file) => file.endsWith(".js")).map((file) => stat(path.join(output, "assets", file))));
+  assert.ok(Math.max(...scriptStats.map((fileStat) => fileStat.size)) < 400_000, "expected route-level code splitting to keep every JavaScript chunk below 400 kB");
 });
 
 test("service worker precaches the hashed app shell", async () => {

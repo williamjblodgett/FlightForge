@@ -42,14 +42,19 @@
 - [x] PWA manifest, service worker, and local-first state restoration
 - [x] Searchable course map/list, current-location sorting, favorites, and attribution
 - [x] Capacity-safe booking, locked quotes, idempotent confirmation, and waitlist preview
+- [x] Fail-closed fictional fixture isolation; real Maine listings cannot inherit demo inventory or verification
 - [x] Public/private group creation and local join-state controls
-- [x] Offline nine-hole scorekeeping, versioned corrections, and basic statistics
+- [x] Offline nine-hole scorekeeping, versioned corrections, per-hole context, explicit finish flow, and basic statistics
 - [x] Digital bag CRUD, coverage/overlap intelligence, and owned-disc-aware caddie
 - [x] Tournament registration and league standings with fictional data labels
 - [x] Owner condition controls and transparent dynamic-pricing simulator
 - [x] CSV change preview, duplicate blocking, batch history, and rollback
 - [x] Media upload-safety gate with consent and minor-user checks
 - [x] Personal data export, two-step deletion, privacy controls, and readiness disclosure
+- [x] Editable player basics and persisted device-local privacy settings with version-two migration
+- [x] Interactive lesson reader and persisted progress
+- [x] Mobile overflow navigation, post-route scroll restoration, collapsible map, and labeled form controls
+- [x] Course-owner and platform-administrator simulation boundaries
 - [x] Explicit device-demo sign-out and re-entry state
 - [x] GitHub Actions Pages deployment workflow and artifact tests
 

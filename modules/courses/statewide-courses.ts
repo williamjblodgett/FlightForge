@@ -81,13 +81,14 @@ export const statewideCourses: Course[] = records.map((record) => {
   }
 
   const primarySource = sources[0];
+  const displayName = normalizedDisplayName(record.slug, record.name);
   return {
     id: `course-${record.slug}`,
     slug: record.slug,
-    name: record.name,
+    name: displayName,
     shortDescription: authoritative
-      ? `Current factual listing for ${record.name}, reviewed against an operator or facility-owner page.`
-      : `Source-attributed ${record.city} listing. Course details remain concise until the operator claims and verifies them.`,
+      ? `Current factual listing for ${displayName}, reviewed against an operator or facility-owner page.`
+      : sharedVenueDescription(record.slug, record.city),
     city: record.city,
     state: record.state,
     countryCode: record.country_code,
@@ -126,6 +127,22 @@ export const statewideCourses: Course[] = records.map((record) => {
     heroTone: heroTones[stableIndex(record.slug, heroTones.length)],
   };
 });
+
+function normalizedDisplayName(slug: string, fallback: string): string {
+  if (slug === "devils-grove-disc-golf-devil") return "Devil’s Grove — Devil Course";
+  if (slug === "devil-s-grove-disc-golf-demon") return "Devil’s Grove — Demon Course";
+  return fallback;
+}
+
+function sharedVenueDescription(slug: string, city: string): string {
+  if (slug === "devils-grove-disc-golf-devil") {
+    return "One of two separately listed 18-hole courses at the Devil’s Grove property. This record represents the Devil course.";
+  }
+  if (slug === "devil-s-grove-disc-golf-demon") {
+    return "One of two separately listed 18-hole courses at the Devil’s Grove property. This record represents the Demon course.";
+  }
+  return `Source-attributed ${city} listing. Course details remain concise until the operator claims and verifies them.`;
+}
 
 function priceType(costNote: string | null): CoursePriceType {
   if (!costNote) return "MIXED";

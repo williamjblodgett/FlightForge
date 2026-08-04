@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { Reservation } from "@/modules/bookings/booking-engine";
 import type { PlayerDisc } from "@/modules/bags/bag-intelligence";
 import type { RoundSnapshot } from "@/modules/rounds/round-engine";
+import { fictionalDemoCourse } from "@/modules/courses/fictional-demo-course";
 import { brand } from "@/config/brand";
 
 export type DemoGame = {
@@ -22,7 +23,31 @@ export type DemoGame = {
   pace: "RELAXED" | "STEADY" | "FAST";
   skill: string;
   approvalRequired: boolean;
+  visibility: "PUBLIC" | "PRIVATE";
+  notes: string;
   joined: boolean;
+};
+
+export type DemoProfile = {
+  homeCity: string;
+  homeRegionCode: string;
+  experienceLevel: "NEW" | "BEGINNER" | "RECREATIONAL" | "INTERMEDIATE" | "ADVANCED";
+  throwingHand: "RIGHT" | "LEFT" | "AMBIDEXTROUS" | "PREFER_NOT_TO_SAY";
+};
+
+export type DemoPrivacySettings = {
+  profileVisibility: "PRIVATE" | "FRIENDS" | "PUBLIC";
+  socialMatchmaking: boolean;
+  analyticsOptIn: boolean;
+  aiRecommendations: boolean;
+};
+
+export type DemoHoleDetail = {
+  discId: string | null;
+  shotType: string;
+  landingResult: string;
+  penaltyStrokes: number;
+  notes: string;
 };
 
 export type DemoImportBatch = {
@@ -67,14 +92,18 @@ export type DemoClaim = {
 };
 
 export type DemoState = {
-  schemaVersion: 2;
+  schemaVersion: 3;
   displayName: string;
+  profile: DemoProfile;
+  privacy: DemoPrivacySettings;
   favorites: string[];
   reservations: Reservation[];
   games: DemoGame[];
   rounds: RoundSnapshot[];
   activeRoundId: string | null;
+  roundDetails: Record<string, Record<string, DemoHoleDetail>>;
   discs: PlayerDisc[];
+  lessonProgress: Record<string, number>;
   eventRegistrations: string[];
   conditions: Record<string, string>;
   importBatches: DemoImportBatch[];
@@ -93,7 +122,8 @@ type DemoStoreValue = {
   startSession: () => void;
 };
 
-const storageKey = `${brand.shortProductName.toLowerCase()}-pages-demo-v2`;
+const storageKey = `${brand.shortProductName.toLowerCase()}-pages-demo-v3`;
+const legacyStorageKey = `${brand.shortProductName.toLowerCase()}-pages-demo-v2`;
 const sessionKey = `${brand.shortProductName.toLowerCase()}-pages-demo-session`;
 
 export const initialDiscs: PlayerDisc[] = [
@@ -105,26 +135,40 @@ export const initialDiscs: PlayerDisc[] = [
 ];
 
 const initialGames: DemoGame[] = [
-  { id: "game-1", courseId: "20000000-0000-4000-8000-000000000009", startsAt: "2026-08-08T14:20:00.000Z", seatsOpen: 2, pace: "STEADY", skill: "Any skill", approvalRequired: false, joined: false },
-  { id: "game-2", courseId: "20000000-0000-4000-8000-000000000002", startsAt: "2026-08-09T13:00:00.000Z", seatsOpen: 1, pace: "RELAXED", skill: "Beginner-friendly", approvalRequired: true, joined: false },
+  { id: "game-1", courseId: fictionalDemoCourse.id, startsAt: "2026-08-08T14:20:00.000Z", seatsOpen: 2, pace: "STEADY", skill: "Any skill", approvalRequired: false, visibility: "PUBLIC", notes: "Fictional open card for product testing.", joined: false },
+  { id: "game-2", courseId: fictionalDemoCourse.id, startsAt: "2026-08-09T13:00:00.000Z", seatsOpen: 1, pace: "RELAXED", skill: "Beginner-friendly", approvalRequired: true, visibility: "PUBLIC", notes: "Beginners welcome. Fictional demonstration only.", joined: false },
 ];
 
-const initialState: DemoState = {
-  schemaVersion: 2,
+export const initialDemoState: DemoState = {
+  schemaVersion: 3,
   displayName: "Recreational Player",
-  favorites: ["20000000-0000-4000-8000-000000000002"],
+  profile: {
+    homeCity: "Portland",
+    homeRegionCode: "ME",
+    experienceLevel: "RECREATIONAL",
+    throwingHand: "RIGHT",
+  },
+  privacy: {
+    profileVisibility: "FRIENDS",
+    socialMatchmaking: true,
+    analyticsOptIn: false,
+    aiRecommendations: true,
+  },
+  favorites: ["course-sabattus-disc-golf-eagle"],
   reservations: [],
   games: initialGames,
   rounds: [],
   activeRoundId: null,
+  roundDetails: {},
   discs: initialDiscs,
+  lessonProgress: { "confident-first-round": 72, "shape-the-fairway": 34, "putting-reset": 50 },
   eventRegistrations: [],
-  conditions: { "20000000-0000-4000-8000-000000000009": "Open · Dry fairways" },
+  conditions: { [fictionalDemoCourse.id]: "Open · Fictional dry fairways" },
   importBatches: [],
   claims: [
     {
       id: "61000000-0000-4000-8000-000000000001",
-      courseId: "20000000-0000-4000-8000-000000000002",
+      courseId: fictionalDemoCourse.id,
       applicantName: "Fictional Operations Manager",
       applicantRole: "Course manager",
       businessEmail: "manager@example.invalid",
@@ -159,20 +203,25 @@ const reservationSchema = z.object({
   status: z.literal("CONFIRMED"), createdAt: z.string(),
 });
 const discSchema = z.object({
-  id: z.string(), manufacturer: z.string(), mold: z.string(), speed: z.number(), glide: z.number(),
+  id: z.string(), manufacturer: z.string(), mold: z.string(), plastic: z.string().optional(),
+  weightGrams: z.number().optional(), color: z.string().optional(), nickname: z.string().optional(),
+  speed: z.number(), glide: z.number(),
   turn: z.number(), fade: z.number(), stability: z.enum(["UNDERSTABLE", "STABLE", "OVERSTABLE"]), inBag: z.boolean(),
 });
 const holeSchema = z.object({ hole: z.number().int(), par: z.number().int(), score: z.number().int().nullable(), updatedAt: z.string().nullable() });
 const roundSchema = z.object({ id: z.string(), courseId: z.string(), status: z.enum(["IN_PROGRESS", "COMPLETED"]), version: z.number().int(), holes: z.array(holeSchema) });
-const gameSchema = z.object({ id: z.string(), courseId: z.string(), startsAt: z.string(), seatsOpen: z.number().int(), pace: z.enum(["RELAXED", "STEADY", "FAST"]), skill: z.string(), approvalRequired: z.boolean(), joined: z.boolean() });
+const gameSchema = z.object({ id: z.string(), courseId: z.string(), startsAt: z.string(), seatsOpen: z.number().int(), pace: z.enum(["RELAXED", "STEADY", "FAST"]), skill: z.string(), approvalRequired: z.boolean(), visibility: z.enum(["PUBLIC", "PRIVATE"]), notes: z.string(), joined: z.boolean() });
+const profileSchema = z.object({ homeCity: z.string(), homeRegionCode: z.string(), experienceLevel: z.enum(["NEW", "BEGINNER", "RECREATIONAL", "INTERMEDIATE", "ADVANCED"]), throwingHand: z.enum(["RIGHT", "LEFT", "AMBIDEXTROUS", "PREFER_NOT_TO_SAY"]) });
+const privacySchema = z.object({ profileVisibility: z.enum(["PRIVATE", "FRIENDS", "PUBLIC"]), socialMatchmaking: z.boolean(), analyticsOptIn: z.boolean(), aiRecommendations: z.boolean() });
+const holeDetailSchema = z.object({ discId: z.string().nullable(), shotType: z.string(), landingResult: z.string(), penaltyStrokes: z.number().int().min(0).max(10), notes: z.string() });
 const importBatchSchema = z.object({ id: z.string(), sourceName: z.string(), recordCount: z.number().int(), appliedAt: z.string(), rolledBackAt: z.string().nullable() });
 const claimStatusSchema = z.enum(["CLAIM_SUBMITTED", "ADDITIONAL_INFORMATION_REQUIRED", "VERIFIED", "REJECTED", "SUSPENDED"]);
 const claimAuditSchema = z.object({ id: z.string(), action: z.enum(["SUBMITTED", "REVIEWED"]), fromStatus: claimStatusSchema.nullable(), toStatus: claimStatusSchema, reason: z.string(), actor: z.string(), createdAt: z.string() });
 const claimSchema = z.object({ id: z.string(), courseId: z.string(), applicantName: z.string(), applicantRole: z.string(), businessEmail: z.string(), businessPhone: z.string(), website: z.string().nullable(), explanation: z.string(), evidenceValidated: z.boolean(), status: claimStatusSchema, version: z.number().int().positive(), createdAt: z.string(), audit: z.array(claimAuditSchema) });
 const stateSchema = z.object({
-  schemaVersion: z.literal(2), displayName: z.string(), favorites: z.array(z.string()),
+  schemaVersion: z.literal(3), displayName: z.string(), profile: profileSchema, privacy: privacySchema, favorites: z.array(z.string()),
   reservations: z.array(reservationSchema), games: z.array(gameSchema), rounds: z.array(roundSchema),
-  activeRoundId: z.string().nullable(), discs: z.array(discSchema), eventRegistrations: z.array(z.string()),
+  activeRoundId: z.string().nullable(), roundDetails: z.record(z.string(), z.record(z.string(), holeDetailSchema)), discs: z.array(discSchema), lessonProgress: z.record(z.string(), z.number().int().min(0).max(100)), eventRegistrations: z.array(z.string()),
   conditions: z.record(z.string(), z.string()), importBatches: z.array(importBatchSchema), claims: z.array(claimSchema),
   notificationCount: z.number().int().nonnegative(), lastSavedAt: z.string().nullable(),
 });
@@ -181,19 +230,24 @@ const DemoStoreContext = createContext<DemoStoreValue | null>(null);
 
 export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DemoState>(() => {
-    if (typeof window === "undefined") return initialState;
+    if (typeof window === "undefined") return initialDemoState;
 
     try {
-      const saved = window.localStorage.getItem(storageKey);
+      const saved = window.localStorage.getItem(storageKey) ?? window.localStorage.getItem(legacyStorageKey);
       if (saved) {
-        const result = stateSchema.safeParse(JSON.parse(saved) as unknown);
-        if (result.success) return result.data;
+        const restored = restoreDemoState(JSON.parse(saved) as unknown);
+        if (restored) {
+          window.localStorage.setItem(storageKey, JSON.stringify(restored));
+          window.localStorage.removeItem(legacyStorageKey);
+          return restored;
+        }
       }
     } catch {
       window.localStorage.removeItem(storageKey);
+      window.localStorage.removeItem(legacyStorageKey);
     }
 
-    return initialState;
+    return initialDemoState;
   });
   const [signedIn, setSignedIn] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -211,7 +265,8 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(() => {
     window.localStorage.removeItem(storageKey);
-    setState(initialState);
+    window.localStorage.removeItem(legacyStorageKey);
+    setState(initialDemoState);
   }, []);
 
   const signOut = useCallback(() => {
@@ -235,6 +290,42 @@ export function useDemoStore(): DemoStoreValue {
   const value = useContext(DemoStoreContext);
   if (!value) throw new Error("useDemoStore must be used inside DemoStoreProvider");
   return value;
+}
+
+export function restoreDemoState(value: unknown): DemoState | null {
+  const direct = stateSchema.safeParse(value);
+  if (direct.success) return direct.data;
+  if (!value || typeof value !== "object" || (value as { schemaVersion?: unknown }).schemaVersion !== 2) return null;
+
+  const legacy = value as Record<string, unknown>;
+  const migrated = {
+    ...legacy,
+    schemaVersion: 3,
+    profile: initialDemoState.profile,
+    privacy: initialDemoState.privacy,
+    reservations: Array.isArray(legacy.reservations)
+      ? legacy.reservations.map((reservation) => ({ ...(reservation as object), courseId: fictionalDemoCourse.id }))
+      : [],
+    games: Array.isArray(legacy.games)
+      ? legacy.games.map((game) => ({ ...(game as object), courseId: fictionalDemoCourse.id, visibility: "PUBLIC", notes: "Migrated fictional demonstration group." }))
+      : initialGames,
+    rounds: Array.isArray(legacy.rounds)
+      ? legacy.rounds.map((round) => ({ ...(round as object), courseId: fictionalDemoCourse.id }))
+      : [],
+    roundDetails: {},
+    lessonProgress: { "confident-first-round": 72, "shape-the-fairway": 34, "putting-reset": 50 },
+    conditions: { [fictionalDemoCourse.id]: "Open · Fictional dry fairways" },
+    claims: Array.isArray(legacy.claims)
+      ? legacy.claims.map((claim) => {
+          const record = claim as { courseId?: unknown } & Record<string, unknown>;
+          return /^20000000-/u.test(String(record.courseId ?? ""))
+            ? { ...record, courseId: fictionalDemoCourse.id }
+            : record;
+        })
+      : initialDemoState.claims,
+  };
+  const result = stateSchema.safeParse(migrated);
+  return result.success ? result.data : null;
 }
 
 export function downloadDemoData(state: DemoState): void {
