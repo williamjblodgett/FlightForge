@@ -24,5 +24,5 @@ jobs:
       - run: npm run lint
       - run: npm run test:unit
       - run: npm run build
-      - run: node --test tests/rendered-html.test.mjs
+      - run: npm run test:server
       - run: npm run test:pages
