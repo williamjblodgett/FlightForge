@@ -19,14 +19,15 @@ The workflow derives the project-site base path from `GITHUB_REPOSITORY`. Do not
 Before publishing:
 
 1. Keep demo authentication disabled.
-2. Configure `PLATFORM_ADMIN_EMAILS` and `COURSE_OWNER_EMAILS` through hosted environment settings.
-3. Run type checking, linting, unit tests, the production build, and rendered integration tests.
-4. Inspect generated D1 and PostgreSQL migrations.
-5. Confirm access policy before exposing administrator routes.
+2. Configure `PLATFORM_ADMIN_EMAILS`, `COURSE_OWNER_EMAILS`, `EVENT_COORDINATOR_EMAILS`, and `LEAGUE_ADMIN_EMAILS` through hosted environment settings.
+3. Run type checking, linting, unit tests, the production build, rendered integration tests, `npm run db:validate`, and `npm run catalog:validate`.
+4. Inspect generated D1 and PostgreSQL migrations. Confirm the `digital_bag`, `ai_caddie`, and `event_publishing` records are enabled only in intended environments.
+5. Confirm access policy before exposing administrator or coordinator routes.
+6. Smoke-test event draft/publish/unpublish, physical-disc add/edit/remove, caddie failure fallback, and JPhillips forced password replacement after deployment.
 
 ## Standalone production target
 
-For a conventional Next.js deployment, connect the course/favorite/claim repository to `packages/database/src/client.ts`, apply the PostgreSQL migration, use private S3-compatible storage, and replace dispatch-owned sign-in with an established public identity provider. Do not ship the D1 demo adapter as the only production source of truth outside Sites.
+For a conventional Next.js deployment, port the active course/favorite/claim/event/bag/caddie repositories to `packages/database/src/client.ts`, apply PostgreSQL parity migrations, use private S3-compatible storage, and replace dispatch-owned sign-in with an established public identity provider. The D1 adapter is production-backed for Sites but is not the standalone Postgres adapter.
 
 ## Environments
 

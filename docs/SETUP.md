@@ -15,7 +15,7 @@
 5. Run `npm run dev`.
 6. Open the exact local URL printed by the server.
 
-The Vinext local runtime owns D1/R2 emulator state under ignored project directories. Accounts, sessions, profiles, privacy choices, favorites, claim applications, evidence, audit events, and rate limits survive page reloads.
+The Vinext local runtime owns D1/R2 emulator state under ignored project directories. Accounts, sessions, profiles, privacy choices, favorites, claim applications, evidence, coordinator events, physical bags, disc profiles, caddie recommendations, audit events, and rate limits survive page reloads.
 
 ## GitHub Pages edition
 
@@ -33,7 +33,7 @@ The first migration enables PostGIS before creating geographic columns and index
 
 ## Import validation
 
-`npm run seed:validate` validates the small reviewed import contract. `npm run seed:validate:statewide` validates all 120 statewide rows, unique slugs, coordinate bounds, source URLs, and open-status semantics.
+`npm run seed:validate` validates the small reviewed course import contract. `npm run seed:validate:statewide` validates all 120 statewide rows, unique slugs, coordinate bounds, source URLs, and open-status semantics. `npm run catalog:validate` validates the reviewed disc source ledger. `npm run db:validate` applies every D1 migration in memory and asserts the active event, bag, caddie tables, columns, and flags.
 
 ## Required environment variables
 
@@ -44,6 +44,8 @@ The first migration enables PostGIS before creating geographic columns and index
 | `DEMO_AUTH_SECRET` | When demo auth is enabled | HMAC signing key, 32+ characters |
 | `PLATFORM_ADMIN_EMAILS` | Hosted admin access | Comma-separated exact emails |
 | `COURSE_OWNER_EMAILS` | Hosted owner access | Comma-separated exact emails |
+| `EVENT_COORDINATOR_EMAILS` | Hosted tournament-director access | Comma-separated exact emails authorized to manage events |
+| `LEAGUE_ADMIN_EMAILS` | Hosted league-administrator access | Comma-separated exact emails authorized to manage events/leagues |
 | `NEXT_PUBLIC_APP_URL` | Deployment metadata | Public application origin |
 
 Mapbox, Stripe, and AI variables are placeholders for disabled feature modules. Never place server secrets in a `NEXT_PUBLIC_*` variable.

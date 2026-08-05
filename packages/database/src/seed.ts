@@ -102,7 +102,9 @@ await database
     flag("course_claims", true, "Course claim submission and administrator review"),
     flag("tee_time_booking", false, "Availability, quote, and reservation workflow"),
     flag("offline_scoring", false, "Local-first scorecards and sync"),
-    flag("ai_caddie", false, "Structured, explainable shot recommendations"),
+    flag("digital_bag", true, "Persistent physical disc inventory and sourced catalog"),
+    flag("ai_caddie", true, "Structured, explainable owned-disc recommendations"),
+    flag("event_publishing", true, "Coordinator-owned event drafts and live publication"),
     flag("media_coaching", false, "Consent-gated private media analysis"),
     flag("platform_fees", false, "Future marketplace platform fees"),
   ])

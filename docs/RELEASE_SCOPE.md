@@ -2,7 +2,9 @@
 
 ## What is implemented
 
-The server-backed slice provides free password signup/login, salted PBKDF2 credentials, revocable hashed sessions, visible provider-aware sign-out, forced replacement of the JPhillips temporary password, first-run profile/privacy setup, hosted identity integration, RBAC, 120 source-attributed Maine listings, course details, favorites, claims, administrator review, D1/R2 persistence, and domain-complete D1 schema foundations.
+The server-backed slice provides free password signup/login, salted PBKDF2 credentials, revocable hashed sessions, visible provider-aware sign-out, forced replacement of the JPhillips temporary password, first-run profile/privacy setup, hosted identity integration, RBAC, 120 source-attributed Maine listings, course details, favorites, claims, administrator review, and D1/R2 persistence.
+
+Three formerly demonstration-only product areas are now production-backed. Authorized course owners, tournament directors, league administrators, and platform administrators can create private event drafts, publish them to the public event board, edit, unpublish, and cancel them with ownership checks, optimistic versions, rate limits, idempotent creation, and immutable actor-aware audit records. Signed-in users can persist individual physical discs, including catalog match, weight, wear, plastic, run, condition, status, and notes. The caddie uses active owned discs, sourced versioned baseline ratings, physical-disc inputs, representative throw observations, calibrated confidence, alternatives, and explicit missing information. These modules have database migrations, runtime feature controls, validation, authorization, error/empty/loading states, responsive interfaces, and tests.
 
 The GitHub Pages edition extends the product into an interactive, installable demonstration. Search, favorites, current-location sorting, collapsible map/list discovery, capacity-safe booking, quote explanations, waitlist previews, configurable social groups, offline scoring with per-hole context, basic statistics, complete digital-bag CRUD, bag intelligence, deterministic caddie recommendations, fictional events and leagues, role-separated operator/admin simulations, pricing simulation, CSV import preview/rollback, interactive learning progress, media-safety validation, editable profile/privacy controls, export, and deletion work in-browser.
 
@@ -16,7 +18,7 @@ The following are launch gates rather than coding placeholders:
 | --- | --- | --- |
 | Email ownership and account recovery | Password accounts work, but email verification, password reset, MFA/passkeys, and transactional delivery are not configured | Delivery provider, token lifecycle tests, abuse controls, recovery runbook |
 | Payments and payouts | Marketplace identity, tax, disputes, and webhook secrets require a secured backend | Provider sandbox, ledger reconciliation, idempotent webhook tests, launch approval |
-| Shared inventory and notifications | Real capacity needs transactional writes and delivery providers | Database transaction tests, queue, email/push credentials, retry and audit evidence |
+| Booking inventory and notifications | Shared tee-time capacity and delivery still need transactional repositories and providers | Database transaction tests, queue, email/push credentials, retry and audit evidence |
 | Photo/video coaching | Identifiable media needs private storage, scanning, transcoding, consent, retention, and an approved model | Security pipeline tests, consent records, provider evaluation, deletion verification |
 | Legal approval | Templates cannot establish compliance or allocate liability | Attorney approval for the jurisdictions and features actually launched |
 | Security operations | A source-code claim cannot replace independent verification or an incident team | Penetration test, monitoring, alerting, backups, rotation, incident runbook |
@@ -25,4 +27,4 @@ The interface labels these gates as **provider required** or **external review**
 
 ## Recommended next production slice
 
-Activate booking and scoring repositories on the new schema, then add authenticated APIs and transaction-level integration tests for shared inventory, waitlists, group membership, offline synchronization, owner calendars, and notifications. Keep payments disabled until this foundation passes staging load, security, and reconciliation checks.
+Activate booking and scoring repositories on the existing schema, then add authenticated APIs and transaction-level integration tests for shared tee-time inventory, waitlists, group membership, offline synchronization, owner calendars, and notifications. Keep payments disabled until this foundation passes staging load, security, and reconciliation checks.

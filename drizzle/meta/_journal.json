@@ -36,6 +36,20 @@
       "when": 1785802800000,
       "tag": "0004_jphillips_password_setup",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1785893684499,
+      "tag": "0005_redundant_iceman",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1785893895091,
+      "tag": "0006_quick_silver_sable",
+      "breakpoints": true
     }
   ]
 }

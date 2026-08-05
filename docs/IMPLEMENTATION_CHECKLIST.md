@@ -58,11 +58,26 @@
 - [x] Explicit device-demo sign-out and re-entry state
 - [x] GitHub Actions Pages deployment workflow and artifact tests
 
+## Production event, bag, and caddie activation
+
+- [x] Coordinator-only event create button and private draft workflow
+- [x] Public live event board and indexable event detail pages
+- [x] Organizer ownership isolation, administrator override, optimistic locking, and audit reasons
+- [x] Idempotent event creation and publish/unpublish/cancel lifecycle
+- [x] Persistent per-user physical disc CRUD and primary-bag membership
+- [x] Reviewed manufacturer-sourced starter catalog with import validation and attribution
+- [x] Immutable rating versions plus plastic, weight, wear, condition, dome, and run metadata
+- [x] Explainable owned-disc caddie with calibrated confidence, risks, and alternatives
+- [x] Representative throw feedback and private per-disc learning profiles
+- [x] Runtime feature controls for event publishing, digital bags, and caddie
+- [x] Responsive event publisher, event board, inventory workspace, and caddie UI
+- [x] D1 migrations, schema verification, authorization/validation tests, lint, typecheck, and production build
+
 ## Remaining production launch gates
 
 - [ ] Wire public application workflows to PostgreSQL repository adapter
 - [ ] Public account creation and social OAuth outside Sites
-- [ ] Persist booking, group, round, bag, event, and import workflows across devices
+- [ ] Persist booking, group, round, and full import-review apply/rollback workflows across devices
 - [ ] Connect verified course inventory, email/push delivery, and operator calendars
 - [ ] Add Stripe Connect sandbox, marketplace ledger, payouts, tax, refunds, and disputes
 - [ ] Add private object storage, malware scanner, isolated transcoding, and retention jobs

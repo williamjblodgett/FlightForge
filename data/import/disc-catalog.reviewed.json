@@ -1,0 +1,116 @@
+{
+  "format_version": "1.0",
+  "batch_id": "91000000-0000-4000-8000-000000000001",
+  "source_label": "Reviewed manufacturer flight-rating starter catalog — 2026-08-04",
+  "reviewed_at": "2026-08-04T12:00:00.000Z",
+  "records": [
+    {
+      "id": "91100000-0000-4000-8000-000000000001",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000001", "name": "Innova Champion Discs", "slug": "innova", "website": "https://www.innovadiscs.com/" },
+      "mold": "Aviar", "slug": "aviar", "category": "PUTTER",
+      "ratings": { "speed": 2, "glide": 3, "turn": 0, "fade": 1, "system": "INNOVA_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["DX", "Champion", "Star", "GStar"],
+      "source": { "id": "91300000-0000-4000-8000-000000000001", "name": "Innova disc catalog", "url": "https://www.innovadiscs.com/disc-golf-discs/", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000002",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000001", "name": "Innova Champion Discs", "slug": "innova", "website": "https://www.innovadiscs.com/" },
+      "mold": "Mako3", "slug": "mako3", "category": "MIDRANGE",
+      "ratings": { "speed": 5, "glide": 5, "turn": 0, "fade": 0, "system": "INNOVA_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["DX", "Champion", "Star", "Halo Star"],
+      "source": { "id": "91300000-0000-4000-8000-000000000001", "name": "Innova disc catalog", "url": "https://www.innovadiscs.com/disc-golf-discs/", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000003",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000001", "name": "Innova Champion Discs", "slug": "innova", "website": "https://www.innovadiscs.com/" },
+      "mold": "TeeBird", "slug": "teebird", "category": "FAIRWAY_DRIVER",
+      "ratings": { "speed": 7, "glide": 5, "turn": 0, "fade": 2, "system": "INNOVA_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["DX", "Champion", "Star", "Halo Star"],
+      "source": { "id": "91300000-0000-4000-8000-000000000001", "name": "Innova disc catalog", "url": "https://www.innovadiscs.com/disc-golf-discs/", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000004",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000001", "name": "Innova Champion Discs", "slug": "innova", "website": "https://www.innovadiscs.com/" },
+      "mold": "Firebird", "slug": "firebird", "category": "FAIRWAY_DRIVER",
+      "ratings": { "speed": 9, "glide": 3, "turn": 0, "fade": 4, "system": "INNOVA_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["Champion", "Star", "Halo Star", "Color Glow"],
+      "source": { "id": "91300000-0000-4000-8000-000000000001", "name": "Innova disc catalog", "url": "https://www.innovadiscs.com/disc-golf-discs/", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000005",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000001", "name": "Innova Champion Discs", "slug": "innova", "website": "https://www.innovadiscs.com/" },
+      "mold": "Wraith", "slug": "wraith", "category": "DISTANCE_DRIVER",
+      "ratings": { "speed": 11, "glide": 5, "turn": -1, "fade": 3, "system": "INNOVA_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["DX", "Champion", "Star", "Halo Star"],
+      "source": { "id": "91300000-0000-4000-8000-000000000001", "name": "Innova disc catalog", "url": "https://www.innovadiscs.com/disc-golf-discs/", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000006",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000001", "name": "Innova Champion Discs", "slug": "innova", "website": "https://www.innovadiscs.com/" },
+      "mold": "Destroyer", "slug": "destroyer", "category": "DISTANCE_DRIVER",
+      "ratings": { "speed": 12, "glide": 5, "turn": -1, "fade": 3, "system": "INNOVA_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["DX", "Champion", "Star", "Halo Star"],
+      "source": { "id": "91300000-0000-4000-8000-000000000001", "name": "Innova disc catalog", "url": "https://www.innovadiscs.com/disc-golf-discs/", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000007",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000002", "name": "Discraft", "slug": "discraft", "website": "https://www.team.discraft.com/" },
+      "mold": "Zone", "slug": "zone", "category": "APPROACH",
+      "ratings": { "speed": 4, "glide": 3, "turn": 0, "fade": 3, "system": "DISCRAFT_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["Z", "ESP", "Titanium", "Jawbreaker"],
+      "source": { "id": "91300000-0000-4000-8000-000000000002", "name": "Discraft Disc Finder", "url": "https://www.team.discraft.com/the-discs", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000008",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000002", "name": "Discraft", "slug": "discraft", "website": "https://www.team.discraft.com/" },
+      "mold": "Buzzz", "slug": "buzzz", "category": "MIDRANGE",
+      "ratings": { "speed": 5, "glide": 4, "turn": -1, "fade": 1, "system": "DISCRAFT_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["Z", "ESP", "Titanium", "X"],
+      "source": { "id": "91300000-0000-4000-8000-000000000002", "name": "Discraft Disc Finder", "url": "https://www.team.discraft.com/the-discs", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000009",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000002", "name": "Discraft", "slug": "discraft", "website": "https://www.team.discraft.com/" },
+      "mold": "Cicada", "slug": "cicada", "category": "FAIRWAY_DRIVER",
+      "ratings": { "speed": 7, "glide": 6, "turn": -1, "fade": 1, "system": "DISCRAFT_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["Z", "ESP", "Z Lite"],
+      "source": { "id": "91300000-0000-4000-8000-000000000002", "name": "Discraft Disc Finder", "url": "https://www.team.discraft.com/the-discs", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000010",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000002", "name": "Discraft", "slug": "discraft", "website": "https://www.team.discraft.com/" },
+      "mold": "Heat", "slug": "heat", "category": "DISTANCE_DRIVER",
+      "ratings": { "speed": 9, "glide": 6, "turn": -3, "fade": 1, "system": "DISCRAFT_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["Z", "ESP", "Titanium", "Z Lite"],
+      "source": { "id": "91300000-0000-4000-8000-000000000002", "name": "Discraft Disc Finder", "url": "https://www.team.discraft.com/the-discs", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000011",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000003", "name": "MVP Disc Sports", "slug": "mvp", "website": "https://mvpdiscsports.com/" },
+      "mold": "Tesla", "slug": "tesla", "category": "DISTANCE_DRIVER",
+      "ratings": { "speed": 9, "glide": 5, "turn": -1, "fade": 2, "system": "MVP_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["Neutron", "Proton", "Plasma", "Fission"],
+      "source": { "id": "91300000-0000-4000-8000-000000000003", "name": "MVP Tesla catalog page", "url": "https://mvpdiscsports.com/discs/tesla/", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    },
+    {
+      "id": "91100000-0000-4000-8000-000000000012",
+      "manufacturer": { "id": "91200000-0000-4000-8000-000000000003", "name": "MVP Disc Sports", "slug": "mvp", "website": "https://mvpdiscsports.com/" },
+      "mold": "Wave", "slug": "wave", "category": "DISTANCE_DRIVER",
+      "ratings": { "speed": 11, "glide": 5, "turn": -2, "fade": 2, "system": "MVP_MANUFACTURER", "effective_from": "2026-08-04" },
+      "plastics": ["Neutron", "Proton", "Plasma", "Fission", "Eclipse"],
+      "source": { "id": "91300000-0000-4000-8000-000000000004", "name": "MVP Wave catalog page", "url": "https://mvpdiscsports.com/discs/wave/", "checked_at": "2026-08-04T12:00:00.000Z", "license_note": "Factual ratings transcribed with attribution; no manufacturer images or descriptions copied." },
+      "approved_reference": "https://www.pdga.com/technical-standards/equipment-certification/discs"
+    }
+  ]
+}

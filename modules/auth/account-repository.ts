@@ -588,6 +588,11 @@ async function ensureExternalAccount(user: AuthenticatedUser): Promise<string> {
   return (await findUserRowByEmail(user.email))?.id ?? user.id;
 }
 
+export async function ensurePersistedUserId(user: AuthenticatedUser): Promise<string> {
+  await ensureAccountSchema();
+  return ensureExternalAccount(user);
+}
+
 async function findUserRowByEmail(email: string): Promise<UserRow | null> {
   return getD1Database()
     .prepare(

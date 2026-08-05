@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable(
   "users",
@@ -280,3 +280,363 @@ export const rateLimits = sqliteTable("rate_limits", {
   count: integer("count").notNull(),
   expiresAt: integer("expires_at").notNull(),
 });
+
+export const catalogSources = sqliteTable(
+  "catalog_sources",
+  {
+    id: text("id").primaryKey(),
+    sourceType: text("source_type").notNull(),
+    sourceName: text("source_name").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    licenseNote: text("license_note"),
+    checkedAt: text("checked_at").notNull(),
+    isAuthoritative: integer("is_authoritative", { mode: "boolean" }).default(false).notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("catalog_sources_url_unique").on(table.sourceUrl),
+    index("catalog_sources_type_idx").on(table.sourceType),
+  ],
+);
+
+export const manufacturers = sqliteTable(
+  "manufacturers",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    website: text("website"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [uniqueIndex("manufacturers_slug_unique").on(table.slug)],
+);
+
+export const discMolds = sqliteTable(
+  "disc_molds",
+  {
+    id: text("id").primaryKey(),
+    manufacturerId: text("manufacturer_id").notNull(),
+    name: text("name").notNull(),
+    slug: text("slug"),
+    category: text("category").notNull(),
+    speed: text("speed"),
+    glide: text("glide"),
+    turn: text("turn"),
+    fade: text("fade"),
+    approvedReference: text("approved_reference"),
+    pdgaCertificationNumber: text("pdga_certification_number"),
+    approvedAt: text("approved_at"),
+    maxWeightGrams: real("max_weight_grams"),
+    diameterCm: real("diameter_cm"),
+    heightCm: real("height_cm"),
+    rimDepthCm: real("rim_depth_cm"),
+    rimThicknessCm: real("rim_thickness_cm"),
+    isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    version: integer("version").default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex("disc_molds_manufacturer_name_unique").on(table.manufacturerId, table.name),
+    index("disc_molds_category_idx").on(table.category),
+  ],
+);
+
+export const discRatingVersions = sqliteTable(
+  "disc_rating_versions",
+  {
+    id: text("id").primaryKey(),
+    discMoldId: text("disc_mold_id").notNull(),
+    discVariantId: text("disc_variant_id"),
+    sourceId: text("source_id").notNull(),
+    ratingSystem: text("rating_system").notNull(),
+    speed: real("speed").notNull(),
+    glide: real("glide").notNull(),
+    turn: real("turn").notNull(),
+    fade: real("fade").notNull(),
+    effectiveFrom: text("effective_from").notNull(),
+    effectiveTo: text("effective_to"),
+    isCurrent: integer("is_current", { mode: "boolean" }).default(true).notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("disc_rating_versions_identity_unique").on(
+      table.discMoldId,
+      table.sourceId,
+      table.effectiveFrom,
+    ),
+    index("disc_rating_versions_current_idx").on(table.discMoldId, table.isCurrent),
+  ],
+);
+
+export const plasticFamilies = sqliteTable(
+  "plastic_families",
+  {
+    id: text("id").primaryKey(),
+    manufacturerId: text("manufacturer_id").notNull(),
+    sourceId: text("source_id").notNull(),
+    name: text("name").notNull(),
+    durabilityClass: text("durability_class"),
+    gripClass: text("grip_class"),
+    stabilityNote: text("stability_note"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("plastic_families_manufacturer_name_unique").on(table.manufacturerId, table.name),
+  ],
+);
+
+export const discVariants = sqliteTable(
+  "disc_variants",
+  {
+    id: text("id").primaryKey(),
+    discMoldId: text("disc_mold_id").notNull(),
+    plastic: text("plastic"),
+    plasticFamilyId: text("plastic_family_id"),
+    runName: text("run_name"),
+    weightGrams: integer("weight_grams"),
+    color: text("color"),
+    stability: text("stability"),
+    sourceId: text("source_id"),
+    catalogMetadataJson: text("catalog_metadata_json"),
+    isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    version: integer("version").default(1).notNull(),
+  },
+  (table) => [index("disc_variants_mold_idx").on(table.discMoldId)],
+);
+
+export const playerDiscs = sqliteTable(
+  "player_discs",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    discMoldId: text("disc_mold_id"),
+    discVariantId: text("disc_variant_id"),
+    ratingVersionId: text("rating_version_id"),
+    manufacturerName: text("manufacturer_name"),
+    moldName: text("mold_name").notNull(),
+    manualSpeed: real("manual_speed"),
+    manualGlide: real("manual_glide"),
+    manualTurn: real("manual_turn"),
+    manualFade: real("manual_fade"),
+    plastic: text("plastic"),
+    weightGrams: integer("weight_grams"),
+    color: text("color"),
+    nickname: text("nickname"),
+    condition: text("condition"),
+    wearRating: integer("wear_rating").default(0).notNull(),
+    domeProfile: text("dome_profile"),
+    runName: text("run_name"),
+    status: text("status").default("IN_BAG").notNull(),
+    purchaseDate: text("purchase_date"),
+    purchasePriceCents: integer("purchase_price_cents"),
+    photoKey: text("photo_key"),
+    notes: text("notes"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    deletedAt: text("deleted_at"),
+    version: integer("version").default(1).notNull(),
+  },
+  (table) => [
+    index("player_discs_user_status_idx").on(table.userId, table.status),
+    index("player_discs_mold_idx").on(table.discMoldId),
+    index("player_discs_variant_idx").on(table.discVariantId),
+  ],
+);
+
+export const bags = sqliteTable(
+  "bags",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    name: text("name").notNull(),
+    bagType: text("bag_type").default("PRIMARY").notNull(),
+    isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [index("bags_user_active_idx").on(table.userId, table.isActive)],
+);
+
+export const bagSlots = sqliteTable(
+  "bag_slots",
+  {
+    id: text("id").primaryKey(),
+    bagId: text("bag_id").notNull(),
+    playerDiscId: text("player_disc_id").notNull(),
+    category: text("category"),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("bag_slots_bag_disc_unique").on(table.bagId, table.playerDiscId),
+    index("bag_slots_bag_sort_idx").on(table.bagId, table.sortOrder),
+  ],
+);
+
+export const playerDiscProfiles = sqliteTable(
+  "player_disc_profiles",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    playerDiscId: text("player_disc_id").notNull(),
+    throwType: text("throw_type").notNull(),
+    sampleCount: integer("sample_count").default(0).notNull(),
+    typicalDistanceFeet: real("typical_distance_feet"),
+    successRate: real("success_rate"),
+    observedTurn: real("observed_turn"),
+    observedFade: real("observed_fade"),
+    confidence: real("confidence").default(0).notNull(),
+    updatedAt: text("updated_at").notNull(),
+    version: integer("version").default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex("player_disc_profiles_disc_throw_unique").on(table.playerDiscId, table.throwType),
+    index("player_disc_profiles_user_idx").on(table.userId),
+  ],
+);
+
+export const discObservations = sqliteTable(
+  "disc_observations",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    playerDiscId: text("player_disc_id").notNull(),
+    aiRecommendationId: text("ai_recommendation_id"),
+    throwType: text("throw_type").notNull(),
+    intendedShape: text("intended_shape"),
+    result: text("result").notNull(),
+    missDirection: text("miss_direction"),
+    distanceFeet: integer("distance_feet"),
+    windMph: integer("wind_mph"),
+    windDirection: text("wind_direction"),
+    representative: integer("representative", { mode: "boolean" }).default(true).notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    index("disc_observations_disc_created_idx").on(table.playerDiscId, table.createdAt),
+    uniqueIndex("disc_observations_recommendation_user_unique").on(table.aiRecommendationId, table.userId),
+  ],
+);
+
+export const aiSessions = sqliteTable(
+  "ai_sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    feature: text("feature").notNull(),
+    provider: text("provider"),
+    modelVersion: text("model_version"),
+    promptVersion: text("prompt_version"),
+    outputSchemaVersion: text("output_schema_version"),
+    status: text("status").notNull(),
+    startedAt: text("started_at").notNull(),
+    completedAt: text("completed_at"),
+    latencyMs: integer("latency_ms"),
+    usageJson: text("usage_json"),
+    costMicros: integer("cost_micros"),
+    safetyResult: text("safety_result"),
+    failureReason: text("failure_reason"),
+  },
+  (table) => [index("ai_sessions_user_feature_idx").on(table.userId, table.feature)],
+);
+
+export const aiRecommendations = sqliteTable(
+  "ai_recommendations",
+  {
+    id: text("id").primaryKey(),
+    aiSessionId: text("ai_session_id").notNull(),
+    userId: text("user_id").notNull(),
+    recommendationType: text("recommendation_type").notNull(),
+    inputSummaryJson: text("input_summary_json").notNull(),
+    outputJson: text("output_json").notNull(),
+    confidence: text("confidence"),
+    createdAt: text("created_at").notNull(),
+    expiresAt: text("expires_at"),
+  },
+  (table) => [index("ai_recommendations_user_created_idx").on(table.userId, table.createdAt)],
+);
+
+export const aiFeedback = sqliteTable(
+  "ai_feedback",
+  {
+    id: text("id").primaryKey(),
+    aiRecommendationId: text("ai_recommendation_id").notNull(),
+    userId: text("user_id").notNull(),
+    rating: text("rating"),
+    correctionJson: text("correction_json"),
+    comment: text("comment"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [index("ai_feedback_recommendation_idx").on(table.aiRecommendationId)],
+);
+
+export const events = sqliteTable(
+  "events",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull(),
+    organizerUserId: text("organizer_user_id").notNull(),
+    organizerEmail: text("organizer_email").notNull(),
+    organizationName: text("organization_name").notNull(),
+    eventType: text("event_type").notNull(),
+    title: text("title").notNull(),
+    summary: text("summary").notNull(),
+    description: text("description").notNull(),
+    courseId: text("course_id"),
+    venueName: text("venue_name").notNull(),
+    addressLine1: text("address_line_1"),
+    city: text("city").notNull(),
+    regionCode: text("region_code").notNull(),
+    countryCode: text("country_code").default("US").notNull(),
+    startsAt: text("starts_at").notNull(),
+    endsAt: text("ends_at").notNull(),
+    registrationOpensAt: text("registration_opens_at"),
+    registrationClosesAt: text("registration_closes_at"),
+    registrationUrl: text("registration_url"),
+    contactEmail: text("contact_email").notNull(),
+    capacity: integer("capacity"),
+    entryFeeCents: integer("entry_fee_cents").default(0).notNull(),
+    currency: text("currency").default("USD").notNull(),
+    format: text("format").notNull(),
+    divisionsJson: text("divisions_json").notNull(),
+    accessibilityNotes: text("accessibility_notes"),
+    status: text("status").default("DRAFT").notNull(),
+    visibility: text("visibility").default("PUBLIC").notNull(),
+    publishedAt: text("published_at"),
+    cancelledAt: text("cancelled_at"),
+    cancellationReason: text("cancellation_reason"),
+    idempotencyKey: text("idempotency_key"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    deletedAt: text("deleted_at"),
+    version: integer("version").default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex("events_slug_unique").on(table.slug),
+    uniqueIndex("events_idempotency_unique").on(table.idempotencyKey),
+    index("events_public_schedule_idx").on(table.status, table.visibility, table.startsAt),
+    index("events_organizer_updated_idx").on(table.organizerUserId, table.updatedAt),
+  ],
+);
+
+export const eventAuditEvents = sqliteTable(
+  "event_audit_events",
+  {
+    id: text("id").primaryKey(),
+    eventId: text("event_id").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    action: text("action").notNull(),
+    fromStatus: text("from_status"),
+    toStatus: text("to_status"),
+    reason: text("reason"),
+    metadataJson: text("metadata_json"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [index("event_audit_event_created_idx").on(table.eventId, table.createdAt)],
+);

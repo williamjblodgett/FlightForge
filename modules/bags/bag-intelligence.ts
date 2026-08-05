@@ -4,16 +4,30 @@ export type PlayerDisc = {
   id: string;
   manufacturer: string;
   mold: string;
+  category?: string;
   plastic?: string;
   weightGrams?: number;
   color?: string;
   nickname?: string;
+  condition?: "NEW" | "GOOD" | "SEASONED" | "BEAT_IN";
+  wearRating?: number;
+  runName?: string;
+  domeProfile?: "FLAT" | "NEUTRAL" | "DOMEY";
   speed: number;
   glide: number;
   turn: number;
   fade: number;
   stability: DiscStability;
   inBag: boolean;
+  ratingSource?: string;
+  ratingSourceUrl?: string;
+  ratingVersionId?: string;
+  observedDistanceFeet?: number;
+  observedTurn?: number;
+  observedFade?: number;
+  reliability?: number;
+  sampleCount?: number;
+  profileConfidence?: number;
 };
 
 export type BagAnalysis = {
@@ -41,7 +55,8 @@ export function analyzeBag(discs: PlayerDisc[]): BagAnalysis {
         first &&
         second &&
         Math.abs(first.speed - second.speed) <= 1 &&
-        first.stability === second.stability
+        first.stability === second.stability &&
+        Math.abs((first.observedDistanceFeet ?? 0) - (second.observedDistanceFeet ?? 0)) <= 35
       ) {
         overlaps.push([first.mold, second.mold]);
       }

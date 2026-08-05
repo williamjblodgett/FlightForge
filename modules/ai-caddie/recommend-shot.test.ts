@@ -8,7 +8,7 @@ const discs = [
 ];
 
 describe("AI caddie recommendation schema", () => {
-  it("prefers an owned wind-safe disc and explains uncertainty", () => {
+  it("prefers an owned wind-safe disc and explains its evidence limits", () => {
     const result = recommendShot({
       distanceFeet: 315,
       windMph: 14,
@@ -21,10 +21,12 @@ describe("AI caddie recommendation schema", () => {
     });
 
     expect(result.primaryDisc).toContain("Raptor");
-    expect(result.reasoning).toHaveLength(3);
-    expect(result.reasoning).toContain("14 mph headwind conditions favor an overstable flight.");
-    expect(result.confidence).toBeGreaterThan(0.8);
-    expect(result.missingInformation).toEqual([]);
+    expect(result.primaryDiscId).toBe("3");
+    expect(result.reasoning.some((reason) => reason.includes("14 mph headwind"))).toBe(true);
+    expect(result.reasoning.some((reason) => reason.includes("catalog-based"))).toBe(true);
+    expect(result.confidence).toBeLessThan(0.8);
+    expect(result.confidenceBasis).toContain("limited independent evidence");
+    expect(result.modelVersion).toBe("flightforge-rules-2.0");
   });
 
   it("discloses missing distance information", () => {
@@ -38,7 +40,41 @@ describe("AI caddie recommendation schema", () => {
       riskPreference: "CONSERVATIVE",
       discs,
     });
-    expect(result.missingInformation).toContain("Controlled throwing distance");
+    expect(result.missingInformation).toContain("controlled throwing distance");
     expect(result.confidence).toBeLessThan(0.8);
+  });
+
+  it("raises confidence only when a physical disc has sourced and personal evidence", () => {
+    const result = recommendShot({
+      distanceFeet: 315,
+      windMph: 6,
+      windDirection: "LEFT_TO_RIGHT",
+      fairwayShape: "STRAIGHT",
+      throwingHand: "RIGHT",
+      throwType: "BACKHAND",
+      controlledDistanceFeet: 370,
+      riskPreference: "BALANCED",
+      elevationChangeFeet: 0,
+      groundCondition: "NORMAL",
+      hazardLevel: "LOW",
+      discs: [{
+        ...discs[1],
+        weightGrams: 173,
+        condition: "SEASONED",
+        wearRating: 4,
+        observedDistanceFeet: 320,
+        observedTurn: -0.25,
+        observedFade: 1.75,
+        sampleCount: 12,
+        reliability: 0.88,
+        profileConfidence: 0.8,
+        ratingSource: "Innova official product catalog",
+      }],
+    });
+
+    expect(result.confidenceLabel).toBe("HIGH");
+    expect(result.confidence).toBeGreaterThanOrEqual(0.78);
+    expect(result.confidenceBasis).toContain("12 recorded throws");
+    expect(result.missingInformation).toEqual([]);
   });
 });

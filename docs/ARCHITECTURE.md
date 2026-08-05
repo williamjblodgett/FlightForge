@@ -12,9 +12,15 @@ flowchart LR
   App --> Auth[Identity + RBAC]
   App --> Courses[Courses + imports]
   App --> Claims[Claims + audit]
+  App --> Events[Event publishing + audit]
+  App --> Bags[Physical bags + sourced catalog]
+  App --> Caddie[Explainable recommendation engine]
   App --> Maps[Map service interface]
   Courses --> D1[(Hosted slice: D1)]
   Claims --> D1
+  Events --> D1
+  Bags --> D1
+  Caddie --> D1
   Claims --> R2[(Private R2 evidence)]
   App -. production adapter .-> PG[(PostgreSQL + PostGIS)]
   PG --> Geo[GiST geographic indexes]
@@ -29,8 +35,10 @@ flowchart LR
 | `modules/imports` | Import normalization and duplicate candidates |
 | `modules/bookings` | Quote calculation, rule explanation, capacity, expiry, and idempotency |
 | `modules/rounds` | Offline snapshots, optimistic versions, score corrections, and summaries |
-| `modules/bags` | Disc inventory coverage, overlap, and missing-slot analysis |
-| `modules/ai-caddie` | Deterministic, explainable owned-disc recommendations with confidence |
+| `modules/events` | Organizer-owned drafts/publication, public queries, lifecycle transitions, versions, and audits |
+| `modules/discs` | Reviewed catalog contracts, provenance, and duplicate validation |
+| `modules/bags` | Persistent physical inventory, versioned catalog linkage, private profiles, coverage, overlap, and missing-slot analysis |
+| `modules/ai-caddie` | Deterministic, explainable owned-disc recommendations with calibrated confidence and physical/personal evidence |
 | `modules/media-analysis` | Media metadata, consent, age, size, and processing-readiness gates |
 | `packages/database` | PostgreSQL/PostGIS schema, client, migration, seed |
 | `packages/maps` | Provider-neutral directions and map-link contract |
@@ -48,11 +56,11 @@ Demo authentication is not the future public account system. A public deployment
 
 The production domain model targets PostgreSQL with PostGIS. It currently contains normalized identity, organization, course, source, geographic, favorite, claim, audit, import, and feature-flag tables. `course_locations.coordinates` is a PostGIS point with a GiST index.
 
-The deployed server slice uses platform-backed D1 and private R2 so interactive favorites and claims work without browser storage. This operational adapter is intentionally narrower than the production schema. Wiring all write flows to the PostgreSQL client is still required before a standalone production launch. The GitHub Pages adapter deliberately uses a versioned, Zod-validated browser record; it is isolated from production persistence and visibly labeled throughout the UI.
+The deployed server slice uses platform-backed D1 and private R2 so accounts, profiles, favorites, claims, coordinator events, physical bags, catalog provenance, caddie sessions, and private disc profiles work without browser storage. D1 write paths enforce ownership, validation, rate limits, optimistic versions, and audit records. PostgreSQL/PostGIS remains the portability target for a future standalone deployment. The GitHub Pages adapter deliberately uses a separate versioned, Zod-validated browser record; it is isolated from production persistence and visibly labeled throughout the UI.
 
 ## Feature modularity
 
-Feature flags are seeded for discovery, claims, booking, scoring, AI, media coaching, and platform fees. Only discovery and claims are enabled in the server slice. The Pages edition demonstrates later flows locally without changing those production flags. Core booking and scoring remain independent from any AI provider.
+Feature flags are seeded for discovery, claims, booking, scoring, AI, media coaching, and platform fees. `digital_bag`, `ai_caddie`, and `event_publishing` are active runtime-controlled server features; missing or unavailable controls fail closed for writes. Core booking and scoring remain independent from any AI provider.
 
 ## Mobile model
 

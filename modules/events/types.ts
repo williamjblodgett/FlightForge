@@ -1,0 +1,45 @@
+export const eventTypeValues = ["TOURNAMENT", "LEAGUE", "CLINIC", "CASUAL", "FUNDRAISER"] as const;
+export const eventStatusValues = ["DRAFT", "PUBLISHED", "CANCELLED"] as const;
+export const eventVisibilityValues = ["PUBLIC", "UNLISTED"] as const;
+
+export type EventType = (typeof eventTypeValues)[number];
+export type EventStatus = (typeof eventStatusValues)[number];
+export type EventVisibility = (typeof eventVisibilityValues)[number];
+
+export type EventRecord = {
+  id: string;
+  slug: string;
+  organizerUserId: string;
+  organizerEmail: string;
+  organizationName: string;
+  eventType: EventType;
+  title: string;
+  summary: string;
+  description: string;
+  courseId: string | null;
+  venueName: string;
+  addressLine1: string | null;
+  city: string;
+  regionCode: string;
+  countryCode: string;
+  startsAt: string;
+  endsAt: string;
+  registrationOpensAt: string | null;
+  registrationClosesAt: string | null;
+  registrationUrl: string | null;
+  contactEmail: string;
+  capacity: number | null;
+  entryFeeCents: number;
+  currency: string;
+  format: string;
+  divisions: string[];
+  accessibilityNotes: string | null;
+  status: EventStatus;
+  visibility: EventVisibility;
+  publishedAt: string | null;
+  cancelledAt: string | null;
+  cancellationReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  version: number;
+};
