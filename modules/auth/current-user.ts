@@ -28,7 +28,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
       id: persisted?.id ?? `chatgpt:${chatGPTUser.email.toLowerCase()}`,
       email: chatGPTUser.email.toLowerCase(),
       displayName: persisted?.displayName ?? chatGPTUser.displayName,
-      roles: mergeRoles(persisted?.roles ?? [], rolesForHostedEmail(chatGPTUser.email)),
+      roles: mergeRoles(persisted?.roles ?? [], rolesForConfiguredEmail(chatGPTUser.email)),
       source: "chatgpt",
       onboardingComplete: persisted?.onboardingComplete ?? false,
       isTestAccount: false,
@@ -47,10 +47,12 @@ function mergeRoles(first: Role[], second: Role[]): Role[] {
   return Array.from(new Set([...first, ...second]));
 }
 
-function rolesForHostedEmail(email: string): Role[] {
+function rolesForConfiguredEmail(email: string): Role[] {
   const normalized = email.toLowerCase();
   const roles: Role[] = ["PLAYER"];
   if (emailList("COURSE_OWNER_EMAILS").has(normalized)) roles.push("COURSE_OWNER");
+  if (emailList("EVENT_COORDINATOR_EMAILS").has(normalized)) roles.push("TOURNAMENT_DIRECTOR");
+  if (emailList("LEAGUE_ADMIN_EMAILS").has(normalized)) roles.push("LEAGUE_ADMIN");
   if (emailList("PLATFORM_ADMIN_EMAILS").has(normalized)) roles.push("PLATFORM_ADMIN");
   return roles;
 }

@@ -26,4 +26,17 @@ describe("role permissions", () => {
     expect(can(user(["PLATFORM_ADMIN"]), "reviewCourseClaim")).toBe(true);
     expect(can(null, "reviewCourseClaim")).toBe(false);
   });
+
+  it("allows verified event coordinators to publish without granting admin access", () => {
+    expect(can(user(["TOURNAMENT_DIRECTOR"]), "manageEvents")).toBe(true);
+    expect(can(user(["LEAGUE_ADMIN"]), "publishEvents")).toBe(true);
+    expect(can(user(["TOURNAMENT_DIRECTOR"]), "viewAdmin")).toBe(false);
+    expect(can(user(["PLAYER"]), "publishEvents")).toBe(false);
+  });
+
+  it("allows every signed-in operating role to manage only its own disc bag", () => {
+    expect(can(user(["PLAYER"]), "manageOwnBag")).toBe(true);
+    expect(can(user(["INSTRUCTOR"]), "requestCaddieRecommendation")).toBe(true);
+    expect(can(null, "manageOwnBag")).toBe(false);
+  });
 });

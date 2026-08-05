@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, MessageCircle, Search, ShieldCheck, UserRound } from "lucide-react";
+import { Bell, CalendarPlus2, MessageCircle, Search, ShieldCheck, UserRound } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { getCurrentUser } from "@/modules/auth/current-user";
@@ -8,10 +8,10 @@ import { can } from "@/modules/auth/permissions";
 const primaryNavigation = [
   { label: "Discover", href: "/courses" },
   { label: "Play", href: "/roadmap#play" },
-  { label: "Events", href: "/roadmap#events" },
+  { label: "Events", href: "/events" },
   { label: "Leagues", href: "/roadmap#leagues" },
   { label: "Learn", href: "/roadmap#learn" },
-  { label: "Bag", href: "/roadmap#bag" },
+  { label: "Bag", href: "/bag" },
   { label: "Community", href: "/roadmap#community" },
 ];
 
@@ -30,6 +30,10 @@ export async function SiteHeader() {
           {can(user, "viewAdmin") ? (
             <Link className="manage-link" href="/admin/claims">
               <ShieldCheck size={16} aria-hidden="true" /> Admin
+            </Link>
+          ) : can(user, "manageEvents") ? (
+            <Link className="manage-link" href="/events/manage">
+              <CalendarPlus2 size={16} aria-hidden="true" /> Manage events
             </Link>
           ) : user?.roles.includes("COURSE_OWNER") ? (
             <Link className="manage-link" href="/roadmap#owner">Manage course</Link>
@@ -58,6 +62,8 @@ export async function SiteHeader() {
                     : <Link href="/profile">Profile & privacy</Link>}
                 {!user.mustChangePassword && user.source === "password" ? <Link href="/account/password">Change password</Link> : null}
                 <Link href="/favorites">Saved courses</Link>
+                <Link href="/bag">My disc bag</Link>
+                {can(user, "manageEvents") ? <Link href="/events/manage">Manage events</Link> : null}
                 {can(user, "viewAdmin") ? <Link href="/admin/claims">Admin review</Link> : null}
                 <SignOutButton source={user.source} />
               </div>

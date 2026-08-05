@@ -5,6 +5,9 @@ import { preview } from "vite";
 let previewServer;
 let baseUrl;
 
+const coordinatorRunId = `${process.pid}-${Date.now()}`;
+const coordinatorEmail = process.env.TEST_COORDINATOR_EMAIL;
+
 before(async () => {
   previewServer = await preview({
     preview: {
@@ -69,7 +72,7 @@ test("creates a free player account and persists first-run privacy settings", as
   const email = `player-${Date.now()}@example.test`;
   const signup = await fetch(`${baseUrl}/api/auth/signup`, {
     method: "POST",
-    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, "cf-connecting-ip": `player-${coordinatorRunId}` },
     body: JSON.stringify({ displayName: "Trail Tester", email, password: "TrailBasket2026!", acceptTerms: true }),
   });
   assert.equal(signup.status, 201);
@@ -94,6 +97,65 @@ test("creates a free player account and persists first-run privacy settings", as
   const profile = await fetch(`${baseUrl}/profile`, { headers: { accept: "text/html", cookie } });
   assert.equal(profile.status, 200);
   assert.match(await profile.text(), /Player profile & privacy|Player profile and privacy/i);
+
+  const catalogResponse = await fetch(`${baseUrl}/api/discs/catalog?q=teebird`, { headers: { accept: "application/json" } });
+  assert.equal(catalogResponse.status, 200);
+  const catalog = await catalogResponse.json();
+  assert.equal(catalog.discs.length, 1);
+  assert.match(catalog.discs[0].ratingSourceUrl, /^https:\/\//u);
+
+  const addDisc = await fetch(`${baseUrl}/api/bag`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie },
+    body: JSON.stringify({
+      catalogMoldId: catalog.discs[0].id, manufacturerName: "", moldName: "",
+      manualSpeed: null, manualGlide: null, manualTurn: null, manualFade: null,
+      plastic: "Star", weightGrams: 173, color: "Orange", nickname: "Trail line",
+      condition: "SEASONED", wearRating: 4, domeProfile: "NEUTRAL", runName: null,
+      status: "IN_BAG", notes: "Integration-test physical disc",
+    }),
+  });
+  assert.equal(addDisc.status, 201);
+  const addedDisc = (await addDisc.json()).disc;
+  assert.equal(addedDisc.moldName, "TeeBird");
+  assert.match(addedDisc.ratingSource, /Innova/u);
+
+  const caddieResponse = await fetch(`${baseUrl}/api/caddie/recommendations`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie },
+    body: JSON.stringify({
+      distanceFeet: 300, windMph: 8, windDirection: "HEADWIND", fairwayShape: "LEFT",
+      throwingHand: "RIGHT", throwType: "BACKHAND", controlledDistanceFeet: 275,
+      riskPreference: "BALANCED", elevationChangeFeet: 0, groundCondition: "NORMAL", hazardLevel: "LOW",
+    }),
+  });
+  assert.equal(caddieResponse.status, 201);
+  const caddie = await caddieResponse.json();
+  assert.equal(caddie.recommendation.primaryDiscId, addedDisc.id);
+  assert.match(caddie.recommendation.confidenceBasis, /catalog baseline/i);
+
+  const feedback = await fetch(`${baseUrl}/api/caddie/recommendations/${caddie.id}/feedback`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie },
+    body: JSON.stringify({
+      playerDiscId: addedDisc.id, throwType: "BACKHAND", intendedShape: "LEFT",
+      result: "SUCCESS", flightAdjustment: "AS_EXPECTED", missDirection: "NONE",
+      distanceFeet: 294, windMph: 8, windDirection: "HEADWIND", representative: true, comment: null,
+    }),
+  });
+  assert.equal(feedback.status, 201);
+
+  const refreshedBag = await fetch(`${baseUrl}/api/bag`, { headers: { accept: "application/json", cookie } });
+  assert.equal(refreshedBag.status, 200);
+  const refreshedDisc = (await refreshedBag.json()).discs[0];
+  assert.equal(refreshedDisc.profiles[0].sampleCount, 1);
+
+  const removeDisc = await fetch(`${baseUrl}/api/bag/${addedDisc.id}`, {
+    method: "DELETE",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie },
+    body: JSON.stringify({ version: refreshedDisc.version }),
+  });
+  assert.equal(removeDisc.status, 204);
 
   const passwordChange = await fetch(`${baseUrl}/api/account/password`, {
     method: "PUT",
@@ -157,4 +219,68 @@ test("seeds the player-only JPhillips tester on first successful login", async (
   assert.equal(body.user.onboardingComplete, false);
   assert.equal(body.user.mustChangePassword, true);
   assert.equal(body.next, "/account/password");
+});
+
+test("lets an authorized coordinator publish an idempotent event to the public board", async () => {
+  assert.ok(coordinatorEmail, "the server-test runner must configure a unique coordinator email");
+  const coordinatorHeaders = {
+    accept: "application/json", "content-type": "application/json", origin: baseUrl,
+    "oai-authenticated-user-email": coordinatorEmail,
+    "oai-authenticated-user-full-name": "Event%20Coordinator",
+    "oai-authenticated-user-full-name-encoding": "percent-encoded-utf-8",
+  };
+  const idempotencyKey = `event-test-${coordinatorRunId}`;
+  const eventInput = {
+    organizationName: "Maine Fairway Club", eventType: "TOURNAMENT", title: `Pine Tree Integration Open ${coordinatorRunId}`,
+    summary: "A clearly listed one-day disc golf event for integration testing.",
+    description: "This organizer-owned event verifies the complete draft and public publishing path without external registration or payment claims.",
+    courseId: null, venueName: "Community Disc Golf Course", addressLine1: null,
+    city: "Augusta", regionCode: "ME", countryCode: "US",
+    startsAt: "2100-06-15T13:00:00.000Z", endsAt: "2100-06-15T21:00:00.000Z",
+    registrationOpensAt: null, registrationClosesAt: null, registrationUrl: null,
+    contactEmail: coordinatorEmail, capacity: 90, entryFeeCents: 0,
+    currency: "USD", format: "Two rounds of stroke play", divisions: ["Recreational", "Advanced"],
+    accessibilityNotes: "Contact the organizer for accommodation coordination.", visibility: "PUBLIC", action: "PUBLISH",
+  };
+  const publish = () => fetch(`${baseUrl}/api/events`, {
+    method: "POST",
+    headers: {
+      accept: "application/json", "content-type": "application/json", origin: baseUrl,
+      ...coordinatorHeaders, "idempotency-key": idempotencyKey,
+    },
+    body: JSON.stringify(eventInput),
+  });
+  const first = await publish();
+  assert.equal(first.status, 201);
+  const firstEvent = (await first.json()).event;
+  const duplicate = await publish();
+  assert.equal(duplicate.status, 201);
+  assert.equal((await duplicate.json()).event.id, firstEvent.id);
+
+  const unpublish = await fetch(`${baseUrl}/api/events/${firstEvent.id}`, {
+    method: "PATCH",
+    headers: coordinatorHeaders,
+    body: JSON.stringify({ action: "UNPUBLISH", reason: "Verifying the private draft transition", version: firstEvent.version }),
+  });
+  assert.equal(unpublish.status, 200);
+  const draftEvent = (await unpublish.json()).event;
+  assert.equal(draftEvent.status, "DRAFT");
+  assert.equal((await render(`/events/${firstEvent.slug}`)).status, 404);
+
+  const republish = await fetch(`${baseUrl}/api/events/${firstEvent.id}`, {
+    method: "PATCH",
+    headers: coordinatorHeaders,
+    body: JSON.stringify({ action: "PUBLISH", reason: "Event details passed coordinator review", version: draftEvent.version }),
+  });
+  assert.equal(republish.status, 200);
+
+  const publicPage = await render(`/events/${firstEvent.slug}`);
+  assert.equal(publicPage.status, 200);
+  const html = await publicPage.text();
+  assert.ok(html.includes(eventInput.title));
+  assert.match(html, /Organizer posted/u);
+
+  const board = await render("/events");
+  assert.equal(board.status, 200);
+  assert.ok((await board.text()).includes(eventInput.title));
 });

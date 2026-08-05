@@ -18,6 +18,9 @@ The server-backed application delivers a complete account-to-discovery-to-course
 - persistent favorites;
 - private course-claim evidence upload;
 - administrator claim and import review;
+- coordinator-owned event drafts, audited publication controls, a live public event board, and event detail pages;
+- persistent per-user physical disc collections backed by a reviewed, source-attributed, versioned catalog;
+- an explainable owned-disc caddie with physical-disc adjustments, calibrated confidence, representative throw feedback, and private learning profiles;
 - unit, rendered integration, type, lint, and production-build validation.
 
 The GitHub Pages edition adds working, device-local versions of previously deferred flows:
@@ -32,7 +35,7 @@ The GitHub Pages edition adds working, device-local versions of previously defer
 - an installable PWA shell, responsive collapsible map/list discovery, route-level code splitting, and complete mobile navigation;
 - a shared editorial field-atlas interface with photographic hero art and trustworthy topographic course placeholders.
 
-All fabricated booking, event, group, round, and operator records are pinned to the fictional Forge Ridge fixture and fail closed if a real course is supplied. All mutable Pages data stays in that browser. No real reservation, payment, registration, course publication, or AI media analysis occurs from the static edition; claim applications are clearly labeled device-local simulations.
+All fabricated booking, event, group, round, and operator records in the static Pages edition are pinned to the fictional Forge Ridge fixture and fail closed if a real course is supplied. All mutable Pages data stays in that browser. The server-backed application now has separate production event, bag, and caddie repositories; the static edition still cannot create real reservations, payments, registrations, course publications, or AI media analyses.
 
 ## Quick start
 
@@ -114,6 +117,8 @@ Validate the reviewed seed or another JSON/CSV file:
 ```powershell
 npm run seed:validate
 npm run seed:validate:statewide
+npm run catalog:validate
+npm run db:validate
 npx tsx scripts/validate-course-import.ts data/import/maine-courses.sample.csv
 ```
 
@@ -139,4 +144,4 @@ The workflow at `.github/workflows/pages.yml` validates and deploys `pages-dist/
 
 ## Honest scope boundary
 
-The Pages edition is a functional product demonstration, not a write-enabled production service. Public identity, cross-device persistence, marketplace payments, private media processing, real provider AI, notification delivery, security operations, and attorney approval require credentials or external review and remain deliberately gated. See [release scope](docs/RELEASE_SCOPE.md) for the exact boundary and next production slice.
+The Pages edition is a functional product demonstration, not a write-enabled production service. The server-backed Sites deployment supports accounts, profiles/privacy, discovery, favorites, claims, event publishing, physical bags, and the deterministic caddie. Shared booking/scoring, marketplace payments, private media processing, external-provider AI, notification delivery, independent security operations, and attorney approval require further code or external evidence and remain deliberately gated. See [release scope](docs/RELEASE_SCOPE.md) for the exact boundary and next production slice.

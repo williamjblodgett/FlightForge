@@ -5,6 +5,10 @@ export const permissions = {
   submitCourseClaim: ["PLAYER", "COURSE_OWNER", "PLATFORM_ADMIN"],
   reviewCourseClaim: ["PLATFORM_ADMIN"],
   viewAdmin: ["PLATFORM_ADMIN"],
+  manageOwnBag: ["PLAYER", "COURSE_STAFF", "COURSE_OWNER", "TOURNAMENT_DIRECTOR", "LEAGUE_ADMIN", "INSTRUCTOR", "PLATFORM_ADMIN"],
+  requestCaddieRecommendation: ["PLAYER", "COURSE_STAFF", "COURSE_OWNER", "TOURNAMENT_DIRECTOR", "LEAGUE_ADMIN", "INSTRUCTOR", "PLATFORM_ADMIN"],
+  manageEvents: ["COURSE_OWNER", "TOURNAMENT_DIRECTOR", "LEAGUE_ADMIN", "PLATFORM_ADMIN"],
+  publishEvents: ["COURSE_OWNER", "TOURNAMENT_DIRECTOR", "LEAGUE_ADMIN", "PLATFORM_ADMIN"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof permissions;

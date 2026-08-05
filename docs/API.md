@@ -39,6 +39,30 @@ Platform-administrator-only review. Requires one allowed transition and a writte
 
 Platform-administrator-only evidence proxy. Streams private R2 bytes with `private, no-store` and `nosniff` headers. There is no public object URL.
 
+### `GET|POST /api/events`
+
+GET lists public published/cancelled organizer records. POST requires a verified coordinator role, same-origin request, runtime feature flag, rate limit, validated future schedule, and a 16-100 character idempotency key. It saves either a private draft or an immediately public event.
+
+### `PUT|PATCH /api/events/:eventId`
+
+Organizer-owner or platform-administrator update. PUT validates and replaces editable facts; PATCH changes publish state with a required reason. Both enforce optimistic versions and atomically append event and platform audit entries.
+
+### `GET|POST /api/bag` and `PUT|DELETE /api/bag/:discId`
+
+Authenticated owner-scoped physical-disc inventory. Catalog-backed records retain a rating-version reference; custom records require four printed flight numbers. Updates and soft deletion use optimistic versions, same-origin checks, rate limits, conditional bag-slot writes, and audit entries.
+
+### `GET /api/discs/catalog`
+
+Returns the reviewed sourced catalog baseline. Search is bounded and each record includes the rating source, source URL, checked timestamp, and version identifier.
+
+### `POST /api/caddie/recommendations`
+
+Requires the caddie feature flag and the user's AI-recommendation preference. Stores a validated, explainable rules-engine result and its model/schema provenance without relying on an external AI provider.
+
+### `POST /api/caddie/recommendations/:recommendationId/feedback`
+
+Accepts one owner-authorized representative observation for the recommended physical disc. Duplicate feedback is constrained and the private disc profile is updated for future recommendations.
+
 ## Idempotency
 
-Favorites are naturally toggles and claim duplication is constrained per applicant/course. Dedicated idempotency keys are still required for future booking, payments, refunds, registrations, imports, and media-analysis jobs.
+Event creation requires a dedicated idempotency key; favorites are naturally toggles and claim duplication is constrained per applicant/course. Dedicated idempotency keys are still required for future booking, payments, refunds, registrations, imports, and media-analysis jobs.

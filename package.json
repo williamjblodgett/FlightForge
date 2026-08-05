@@ -13,8 +13,9 @@
     "pages:preview": "vite preview --config vite.pages.config.ts",
     "start": "vinext start",
     "typecheck": "tsc --noEmit",
-    "test": "npm run test:unit && npm run build && node --test tests/rendered-html.test.mjs && npm run test:pages",
+    "test": "npm run test:unit && npm run test:server && npm run test:pages",
     "test:unit": "vitest run",
+    "test:server": "node scripts/run-rendered-tests.mjs",
     "test:pages": "npm run pages:build && node --test tests/pages-build.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern pages-dist",
     "db:generate": "drizzle-kit generate",
@@ -23,7 +24,8 @@
     "db:migrate:postgres": "drizzle-kit migrate --config drizzle.postgres.config.ts",
     "seed:postgres": "tsx packages/database/src/seed.ts",
     "seed:validate": "tsx scripts/validate-course-import.ts data/import/maine-courses.reviewed.json",
-    "seed:validate:statewide": "vitest run modules/courses/statewide-courses.test.ts"
+    "seed:validate:statewide": "vitest run modules/courses/statewide-courses.test.ts",
+    "catalog:validate": "tsx scripts/validate-disc-catalog.ts data/import/disc-catalog.reviewed.json"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
