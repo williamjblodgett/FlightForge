@@ -16,7 +16,7 @@
 - [ ] Access policy tested with guest, player, owner, and administrator accounts
 - [ ] Upload malware scanning enabled
 - [x] On-device pose landmarks disclose their measurement limits
-- [ ] Global media-retention endpoint connected to a monitored scheduler
+- [ ] Global media-retention endpoint and scheduled handler connected to a monitored production cron trigger
 - [x] CSP, cookies, security headers, and request rate limits covered by automated checks
 - [ ] Operational audit alerts and incident escalation configured
 - [ ] Data retention, deletion, export, and incident response approved

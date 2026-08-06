@@ -45,6 +45,31 @@ const worker = {
 
     return withSecurityHeaders(request, await handler.fetch(request, env, ctx));
   },
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(purgeExpiredMedia(env));
+  },
 };
 
 export default worker;
+
+async function purgeExpiredMedia(env: Env): Promise<void> {
+  const now = new Date().toISOString();
+  const expired = await env.DB.prepare(
+    "SELECT id, user_id AS userId, storage_key AS storageKey FROM media_uploads WHERE status != 'DELETED' AND deleted_at IS NULL AND expires_at <= ? ORDER BY expires_at LIMIT 100",
+  ).bind(now).all<{ id: string; userId: string; storageKey: string }>();
+  let deleted = 0;
+  let failed = 0;
+  for (const item of expired.results) {
+    try {
+      await env.MEDIA.delete(item.storageKey);
+      await env.DB.batch([
+        env.DB.prepare("UPDATE media_uploads SET status = 'DELETED', deleted_at = ? WHERE id = ? AND user_id = ?").bind(now, item.id, item.userId),
+        env.DB.prepare("UPDATE media_analysis_results SET deleted_at = ? WHERE media_analysis_job_id IN (SELECT id FROM media_analysis_jobs WHERE media_upload_id = ?)").bind(now, item.id),
+      ]);
+      deleted += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+  console.log(JSON.stringify({ event: "media_retention_completed", deleted, failed, completedAt: now }));
+}

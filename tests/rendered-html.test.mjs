@@ -51,6 +51,18 @@ test("serves browser security headers", async () => {
   assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors/u);
 });
 
+test("reports production dependency health without exposing secrets", async () => {
+  const response = await fetch(`${baseUrl}/api/health`, { headers: { accept: "application/json" } });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "private, no-store");
+  const health = await response.json();
+  assert.equal(health.status, "ok");
+  assert.equal(health.service, "flightforge-web");
+  assert.deepEqual(health.checks, { database: true, privateStorage: true });
+  assert.equal(typeof health.supabaseConfigured, "boolean");
+  assert.equal("serviceRoleKey" in health, false);
+});
+
 test("server-renders a canonical course detail with its unclaimed notice", async () => {
   const response = await render("/courses/sabattus-disc-golf-eagle");
   assert.equal(response.status, 200);
