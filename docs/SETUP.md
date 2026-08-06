@@ -31,6 +31,12 @@ Run `npm run pages:dev` to open the static PWA locally. It requires no environme
 
 The first migration enables PostGIS before creating geographic columns and indexes.
 
+### Supabase production target
+
+Supabase is compatible with FlightForge's PostgreSQL/PostGIS design. Copy the transaction-pooler connection string from Supabase's Connect dialog into `DATABASE_URL`, run the PostgreSQL migration and seed commands above, and then run `packages/database/supabase/0001_security_foundation.sql` in the Supabase SQL editor. Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and the server-only `SUPABASE_SERVICE_ROLE_KEY` in the deployment environment. Never expose the service-role key through a `NEXT_PUBLIC_*` variable.
+
+The administrator-only `/api/admin/system/supabase` endpoint reports whether the configured project and `courses` table are reachable without returning credentials or raw database errors. The live application continues using D1 until each repository passes D1-to-Supabase parity tests. This prevents partially migrated accounts, bookings, or payments from splitting authoritative state.
+
 ## Import validation
 
 `npm run seed:validate` validates the small reviewed course import contract. `npm run seed:validate:statewide` validates all 120 statewide rows, unique slugs, coordinate bounds, source URLs, and open-status semantics. `npm run catalog:validate` validates the reviewed disc source ledger. `npm run db:validate` applies every D1 migration in memory and asserts the active event, bag, caddie tables, columns, and flags.
@@ -47,6 +53,9 @@ The first migration enables PostGIS before creating geographic columns and index
 | `EVENT_COORDINATOR_EMAILS` | Hosted tournament-director access | Comma-separated exact emails authorized to manage events |
 | `LEAGUE_ADMIN_EMAILS` | Hosted league-administrator access | Comma-separated exact emails authorized to manage events/leagues |
 | `NEXT_PUBLIC_APP_URL` | Deployment metadata | Public application origin |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase adapter | Public HTTPS project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase adapter | Public browser-safe project key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase server adapter | Server-only privileged key; never expose to clients |
 
 Mapbox, Stripe, and AI variables are placeholders for disabled feature modules. Never place server secrets in a `NEXT_PUBLIC_*` variable.
 

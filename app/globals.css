@@ -3560,6 +3560,17 @@ td a svg {
 .file-choice { display: flex; gap: 8px; align-items: center; margin: 15px 27px 0; color: var(--forest-strong); font-size: .75rem; font-weight: 800; cursor: pointer; }
 .file-choice svg { width: 17px; }
 .file-choice input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.pose-lab { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center; margin: 20px 27px 0; padding: 20px; border: 1px solid #476878; background: #0b2b43; color: white; }
+.pose-lab > div > span { color: var(--lime); font: 800 .6rem var(--font-geist-mono), monospace; letter-spacing: .1em; }
+.pose-lab h3 { margin: 5px 0; font-size: 1.1rem; }
+.pose-lab > div > p { margin: 0; color: #c6d5de; font-size: .72rem; line-height: 1.45; }
+.pose-lab canvas { grid-column: 1 / -1; display: block; width: 100%; max-height: 420px; object-fit: contain; background: #061726; }
+.pose-metrics { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: rgb(255 255 255 / 18%); }
+.pose-metrics > div { display: grid; gap: 3px; padding: 12px; background: #102f46; }
+.pose-metrics strong { color: #ffb27a; font: 850 1rem var(--font-geist-mono), monospace; }
+.pose-metrics span { color: #c6d5de; font-size: .65rem; }
+.pose-metrics ul, .pose-metrics p { grid-column: 1 / -1; margin: 0; padding: 14px 30px; background: #102f46; color: #d8e3e9; font-size: .72rem; line-height: 1.5; }
+.pose-metrics p { padding: 12px 14px; border: 1px solid #d7bb87; background: #3c382d; color: #fff0c5; }
 .coach-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 25px 27px; }
 .coach-form .wide { grid-column: 1 / -1; }
 .coach-form textarea { min-height: 88px; resize: vertical; }
@@ -3599,7 +3610,7 @@ td a svg {
 .coach-sources a svg { width: 15px; }
 
 @media (max-width: 980px) { .coach-hero, .coach-grid { grid-template-columns: 1fr; } .coach-trust { max-width: 520px; } .coach-sources > div { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .coach-page { padding-bottom: 100px; } .coach-hero { margin-top: 0; padding-block: 48px; } .coach-hero h1 { font-size: clamp(2.8rem, 15vw, 5rem); } .capture-settings, .coach-form, .target-grid { grid-template-columns: 1fr; } .coach-form .wide { grid-column: auto; } .camera-stage { min-height: 320px; margin-inline: 18px; } .capture-settings, .coach-form { padding-inline: 18px; } .capture-instruction, .file-choice, .coach-message { margin-inline: 18px; } .session-list article { grid-template-columns: minmax(0, 1fr) auto; } .session-list article > p { grid-column: 1 / -1; } .coach-sources > div { grid-template-columns: 1fr; } .coach-history, .coach-sources { padding: 22px 18px; } }
+@media (max-width: 640px) { .coach-page { padding-bottom: 100px; } .coach-hero { margin-top: 0; padding-block: 48px; } .coach-hero h1 { font-size: clamp(2.8rem, 15vw, 5rem); } .capture-settings, .coach-form, .target-grid { grid-template-columns: 1fr; } .coach-form .wide { grid-column: auto; } .camera-stage { min-height: 320px; margin-inline: 18px; } .capture-settings, .coach-form { padding-inline: 18px; } .capture-instruction, .file-choice, .coach-message { margin-inline: 18px; } .pose-lab { grid-template-columns: 1fr; margin-inline: 18px; } .pose-lab .button { width: 100%; } .pose-metrics { grid-template-columns: 1fr; } .pose-metrics ul, .pose-metrics p { grid-column: auto; } .session-list article { grid-template-columns: minmax(0, 1fr) auto; } .session-list article > p { grid-column: 1 / -1; } .coach-sources > div { grid-template-columns: 1fr; } .coach-history, .coach-sources { padding: 22px 18px; } }
 
 @media (prefers-reduced-motion: reduce) {
   *,

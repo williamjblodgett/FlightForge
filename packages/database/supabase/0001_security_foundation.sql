@@ -1,0 +1,19 @@
+-- Run after the generated Drizzle PostgreSQL migration.
+create extension if not exists postgis;
+alter table public.users add column if not exists supabase_auth_user_id uuid unique references auth.users(id) on delete set null;
+create index if not exists users_supabase_auth_user_idx on public.users(supabase_auth_user_id);
+alter table public.users enable row level security;
+alter table public.favorite_courses enable row level security;
+alter table public.courses enable row level security;
+alter table public.course_locations enable row level security;
+alter table public.course_sources enable row level security;
+drop policy if exists "public courses are readable" on public.courses;
+create policy "public courses are readable" on public.courses for select using (published_at is not null and deleted_at is null);
+drop policy if exists "public course locations are readable" on public.course_locations;
+create policy "public course locations are readable" on public.course_locations for select using (exists (select 1 from public.courses c where c.id = course_id and c.published_at is not null and c.deleted_at is null));
+drop policy if exists "public course sources are readable" on public.course_sources;
+create policy "public course sources are readable" on public.course_sources for select using (exists (select 1 from public.courses c where c.id = course_id and c.published_at is not null and c.deleted_at is null));
+drop policy if exists "players read own profile" on public.users;
+create policy "players read own profile" on public.users for select using (supabase_auth_user_id = auth.uid());
+drop policy if exists "players manage own favorites" on public.favorite_courses;
+create policy "players manage own favorites" on public.favorite_courses for all using (exists (select 1 from public.users u where u.id = user_id and u.supabase_auth_user_id = auth.uid())) with check (exists (select 1 from public.users u where u.id = user_id and u.supabase_auth_user_id = auth.uid()));

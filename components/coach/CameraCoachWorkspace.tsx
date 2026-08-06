@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Crosshair, ExternalLink, LocateFixed, ShieldCheck, Square, Trash2, Upload, Video } from "lucide-react";
+import { Activity, Camera, Crosshair, ExternalLink, LocateFixed, ShieldCheck, Square, Trash2, Upload, Video } from "lucide-react";
 import { coachingObservation, coachingSources, throwGuides, type CameraAngle, type ThrowType } from "@/modules/media-analysis/coaching-knowledge";
 import type { CoachingUpload } from "@/modules/media-analysis/coaching-repository";
 
 type Props = { initialUploads: CoachingUpload[] };
 type Position = { latitude: number; longitude: number; accuracy: number };
+type PoseSummary = { sampledFrames: number; detectedFrames: number; landmarkCount: number; averageVisibility: number; stanceToShoulderRatio: number | null; shoulderTiltDegrees: number | null; balanceOffsetPercent: number | null; confidence: "HIGH" | "MEDIUM" | "LOW"; observations: string[]; limitations: string[] };
 
 export function CameraCoachWorkspace({ initialUploads }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -27,6 +28,9 @@ export function CameraCoachWorkspace({ initialUploads }: Props) {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [result, setResult] = useState("CLEAN");
   const [idempotencyKey, setIdempotencyKey] = useState("");
+  const poseCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [poseState, setPoseState] = useState<"idle" | "loading" | "complete" | "failed">("idle");
+  const [poseSummary, setPoseSummary] = useState<PoseSummary | null>(null);
   const guide = throwGuides[throwType];
   const observation = coachingObservation(throwType, result);
 
@@ -54,7 +58,7 @@ export function CameraCoachWorkspace({ initialUploads }: Props) {
       const elapsed = Math.min(90, Math.max(0.1, (Date.now() - startedRef.current) / 1000));
       const mime = recorder.mimeType.split(";")[0] || "video/webm";
       const file = new File(chunksRef.current, `flightforge-${throwType.toLowerCase()}-${Date.now()}.webm`, { type: mime });
-      setDuration(elapsed); setClip(file); setIdempotencyKey(crypto.randomUUID()); setCameraState("recorded"); stopCamera();
+      setDuration(elapsed); setClip(file); setPoseSummary(null); setPoseState("idle"); setIdempotencyKey(crypto.randomUUID()); setCameraState("recorded"); stopCamera();
     };
     recorderRef.current = recorder; startedRef.current = Date.now(); recorder.start(250); setCameraState("recording");
     window.setTimeout(() => { if (recorder.state === "recording") recorder.stop(); }, 20_000);
@@ -62,16 +66,39 @@ export function CameraCoachWorkspace({ initialUploads }: Props) {
   function stopRecording() { if (recorderRef.current?.state === "recording") recorderRef.current.stop(); }
   function chooseFile(event: React.ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0]; if (!selected) return;
-    setClip(selected); setDuration(15); setIdempotencyKey(crypto.randomUUID()); setCameraState("recorded"); setMessage("Confirm or adjust the estimated duration before uploading.");
+    setClip(selected); setDuration(15); setPoseSummary(null); setPoseState("idle"); setIdempotencyKey(crypto.randomUUID()); setCameraState("recorded"); setMessage("Confirm or adjust the estimated duration before uploading.");
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!clip) { setMessage("Record or choose a video first."); return; }
-    const form = new FormData(event.currentTarget); form.set("video", clip); form.set("durationSeconds", String(duration)); form.set("throwType", throwType); form.set("cameraAngle", cameraAngle); form.set("result", result);
+    const form = new FormData(event.currentTarget); form.set("video", clip); form.set("durationSeconds", String(duration)); form.set("throwType", throwType); form.set("cameraAngle", cameraAngle); form.set("result", result); form.set("poseSummary", poseSummary ? JSON.stringify(poseSummary) : "");
     setMessage("Saving your private session…");
     const response = await fetch("/api/coaching", { method: "POST", body: form });
     const body = await response.json() as { upload?: CoachingUpload; error?: { message: string } };
     if (!response.ok || !body.upload) { setMessage(body.error?.message ?? "The upload could not be saved."); return; }
     setUploads((items) => items.some((item) => item.id === body.upload!.id) ? items : [body.upload!, ...items]); setClip(null); setCameraState("idle"); setIdempotencyKey(crypto.randomUUID()); setMessage("Private session saved. The current guidance is evidence-based and did not run computer vision on your clip.");
+  }
+  async function analyzePose() {
+    if (!clip) return;
+    setPoseState("loading"); setMessage("Loading the on-device pose model and sampling your clip…");
+    try {
+      const vision = await import("@mediapipe/tasks-vision");
+      const files = await vision.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm");
+      const landmarker = await vision.PoseLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task" }, runningMode: "VIDEO", numPoses: 1, minPoseDetectionConfidence: .55, minTrackingConfidence: .55 });
+      const video = document.createElement("video"); video.muted = true; video.playsInline = true; video.preload = "auto";
+      const objectUrl = URL.createObjectURL(clip); video.src = objectUrl; await eventOnce(video, "loadedmetadata");
+      const usableDuration = Number.isFinite(video.duration) ? Math.min(video.duration, 90) : duration;
+      const frames: Array<ReturnType<typeof landmarker.detectForVideo>["landmarks"][number]> = [];
+      let representative: ReturnType<typeof landmarker.detectForVideo> | null = null;
+      for (let index = 0; index < 12; index++) {
+        video.currentTime = Math.max(0, usableDuration * ((index + 1) / 13)); await eventOnce(video, "seeked");
+        const detected = landmarker.detectForVideo(video, video.currentTime * 1000);
+        if (detected.landmarks[0]) { frames.push(detected.landmarks[0]); if (!representative || index >= 6) representative = detected; }
+      }
+      const summary = summarizePose(frames, 12); setPoseSummary(summary);
+      const canvas = poseCanvasRef.current;
+      if (canvas && representative?.landmarks[0]) { const maxWidth = 720, scale = Math.min(1, maxWidth / video.videoWidth); canvas.width = Math.round(video.videoWidth * scale); canvas.height = Math.round(video.videoHeight * scale); const ctx = canvas.getContext("2d"); if (ctx) { ctx.drawImage(video, 0, 0, canvas.width, canvas.height); const drawing = new vision.DrawingUtils(ctx); drawing.drawConnectors(representative.landmarks[0], vision.PoseLandmarker.POSE_CONNECTIONS, { color: "#d7ff42", lineWidth: 3 }); drawing.drawLandmarks(representative.landmarks[0], { color: "#ff7a1a", radius: 3 }); } }
+      landmarker.close(); URL.revokeObjectURL(objectUrl); setPoseState("complete"); setMessage("Pose landmarks were extracted on this device. The measurements below are approximate observations, not a medical or biomechanical diagnosis.");
+    } catch { setPoseState("failed"); setMessage("Pose extraction could not run on this device or network. Your clip was not uploaded by this attempt."); }
   }
   async function remove(id: string) {
     if (!window.confirm("Permanently delete this private video and its guidance?")) return;
@@ -93,6 +120,7 @@ export function CameraCoachWorkspace({ initialUploads }: Props) {
         <p className="capture-instruction">{guide.framing}</p>
         <div className="camera-stage"><video ref={videoRef} muted playsInline/><div className="framing-guide" aria-hidden="true"><span>Keep full body inside frame</span></div>{cameraState === "idle" || cameraState === "recorded" ? <button type="button" onClick={startCamera}><Video/> Open camera</button> : cameraState === "ready" ? <button type="button" onClick={startRecording}><span className="record-dot"/> Record throw</button> : <button type="button" onClick={stopRecording}><Square/> Stop recording</button>}</div>
         <label className="file-choice"><Upload/> Choose an existing MP4, MOV, or WebM video<input type="file" accept="video/mp4,video/quicktime,video/webm" onChange={chooseFile}/></label>
+        {clip ? <section className="pose-lab"><div><span>ON-DEVICE VISION</span><h3>Body landmark extraction</h3><p>Samples 12 frames using MediaPipe. Video frames stay on this device during this step.</p></div><button className="button button-secondary" type="button" onClick={analyzePose} disabled={poseState === "loading"}><Activity/>{poseState === "loading" ? "Analyzing…" : "Analyze body position"}</button><canvas ref={poseCanvasRef} aria-label="Representative video frame with detected body landmarks"/>{poseSummary ? <div className="pose-metrics"><div><strong>{poseSummary.detectedFrames}/{poseSummary.sampledFrames}</strong><span>Frames detected</span></div><div><strong>{Math.round(poseSummary.averageVisibility * 100)}%</strong><span>Landmark visibility</span></div><div><strong>{poseSummary.confidence}</strong><span>Capture confidence</span></div><ul>{poseSummary.observations.map((item) => <li key={item}>{item}</li>)}</ul><p>{poseSummary.limitations.join(" ")}</p></div> : null}</section> : null}
         <form className="coach-form" onSubmit={submit}><input type="hidden" name="idempotencyKey" value={idempotencyKey}/>
           <label>Intended shot<input name="intendedShot" required minLength={2} maxLength={200} placeholder="Flat shot to the center gap"/></label><label>Disc used<input name="discUsed" maxLength={100} placeholder="Optional"/></label>
           <label>Approx. distance<input name="approximateDistanceFeet" type="number" min="0" max="1500" placeholder="feet"/></label><label>Actual result<select value={result} onChange={(e) => setResult(e.target.value)}><option value="CLEAN">Matched intention</option><option value="EARLY">Missed early</option><option value="LATE">Missed late</option><option value="LOW">Finished low</option><option value="HIGH">Finished high</option><option value="OTHER">Other</option></select></label>
@@ -115,3 +143,6 @@ export function CameraCoachWorkspace({ initialUploads }: Props) {
 function parseTarget(lat: string, lng: string) { const latitude = Number(lat), longitude = Number(lng); return Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180 && lat.trim() && lng.trim() ? { latitude, longitude } : null; }
 function rangeTo(from: Position, to: { latitude: number; longitude: number }) { const rad = Math.PI / 180, p1 = from.latitude * rad, p2 = to.latitude * rad, dl = (to.longitude - from.longitude) * rad, dp = (to.latitude - from.latitude) * rad; const a = Math.sin(dp/2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) ** 2; const meters = 6_371_000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); const y = Math.sin(dl) * Math.cos(p2), x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl); return { meters, feet: meters * 3.28084, bearing: (Math.atan2(y,x)/rad + 360) % 360 }; }
 function formatBytes(value: number) { return value > 1_048_576 ? `${(value / 1_048_576).toFixed(1)} MB` : `${Math.round(value / 1024)} KB`; }
+function eventOnce(target: HTMLMediaElement, event: string) { return new Promise<void>((resolve, reject) => { const timer = window.setTimeout(() => reject(new Error("Media timeout")), 10_000); target.addEventListener(event, () => { window.clearTimeout(timer); resolve(); }, { once: true }); target.addEventListener("error", () => { window.clearTimeout(timer); reject(new Error("Media error")); }, { once: true }); }); }
+function summarizePose(frames: Array<Array<{ x: number; y: number; visibility?: number }>>, sampledFrames: number): PoseSummary { const valid = frames.filter((frame) => frame.length >= 29); const visibility = valid.flatMap((frame) => frame.map((point) => point.visibility ?? 0)); const representative = valid[Math.floor(valid.length / 2)]; let stance: number | null = null, tilt: number | null = null, balance: number | null = null; if (representative) { const shoulderWidth = distance(representative[11], representative[12]); const ankleWidth = distance(representative[27], representative[28]); stance = shoulderWidth > .001 ? ankleWidth / shoulderWidth : null; tilt = Math.atan2(Math.abs(representative[11].y - representative[12].y), Math.abs(representative[11].x - representative[12].x)) * 180 / Math.PI; const hipX = (representative[23].x + representative[24].x) / 2, ankleX = (representative[27].x + representative[28].x) / 2; balance = shoulderWidth > .001 ? Math.abs(hipX - ankleX) / shoulderWidth * 100 : null; } const rate = valid.length / sampledFrames, averageVisibility = visibility.length ? visibility.reduce((a,b) => a+b,0) / visibility.length : 0; const confidence = rate >= .8 && averageVisibility >= .75 ? "HIGH" : rate >= .5 ? "MEDIUM" : "LOW"; const observations = [rate < .75 ? "The full body was not consistently detected; improve lighting, distance, or framing." : "The player was detected consistently enough for broad position observations.", balance != null && balance > 45 ? "The representative frame shows the hip center away from the ankle midpoint; review balance across the full clip before changing form." : "The representative frame does not show a large static balance offset.", tilt != null && tilt > 18 ? "The shoulders appear noticeably tilted in the representative frame; confirm whether that matches the intended release plane." : "No large shoulder tilt was measured in the representative frame."]; return { sampledFrames, detectedFrames: valid.length, landmarkCount: valid[0]?.length ?? 0, averageVisibility, stanceToShoulderRatio: stance, shoulderTiltDegrees: tilt, balanceOffsetPercent: balance, confidence, observations, limitations: ["Single-view pose landmarks do not measure disc nose angle, spin, release speed, or joint forces.", "Loose clothing, occlusion, camera angle, and motion blur can change these estimates."] }; }
+function distance(a: {x:number;y:number}, b: {x:number;y:number}) { return Math.hypot(a.x-b.x, a.y-b.y); }

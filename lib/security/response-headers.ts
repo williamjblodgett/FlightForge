@@ -6,7 +6,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://*.supabase.co",
   "media-src 'self' blob:",
   "worker-src 'self' blob:",
   "frame-src 'self'",
@@ -19,6 +19,7 @@ const privatePathPrefixes = [
   "/account/",
   "/admin/",
   "/api/",
+  "/coach",
   "/favorites",
   "/onboarding",
   "/profile",
@@ -33,7 +34,7 @@ export function withSecurityHeaders(request: Request, response: Response): Respo
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set(
     "Permissions-Policy",
-    "accelerometer=(), camera=(), geolocation=(self), gyroscope=(), microphone=(), payment=(), usb=()",
+    "accelerometer=(), camera=(self), geolocation=(self), gyroscope=(), microphone=(), payment=(), usb=()",
   );
 
   const url = new URL(request.url);

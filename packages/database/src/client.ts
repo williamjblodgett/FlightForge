@@ -1,5 +1,5 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
 
 export function getPostgresDatabase() {
@@ -8,7 +8,13 @@ export function getPostgresDatabase() {
     throw new Error("DATABASE_URL is required for the PostgreSQL adapter.");
   }
 
-  const client = neon(databaseUrl);
+  const client = postgres(databaseUrl, {
+    prepare: false,
+    max: 5,
+    idle_timeout: 20,
+    connect_timeout: 15,
+    ssl: databaseUrl.includes("supabase") ? "require" : false,
+  });
   return drizzle(client, { schema });
 }
 

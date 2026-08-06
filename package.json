@@ -28,10 +28,14 @@
     "catalog:validate": "tsx scripts/validate-disc-catalog.ts data/import/disc-catalog.reviewed.json"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^1.0.1",
     "@neondatabase/serverless": "^1.1.0",
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.2",
     "drizzle-orm": "0.45.2",
     "lucide-react": "^1.28.0",
     "next": "^16.2.12",
+    "postgres": "^3.4.9",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "zod": "^4.4.3"

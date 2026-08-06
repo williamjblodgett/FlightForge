@@ -92,6 +92,14 @@ async function purgeExpiredCoachingUploads(user: AuthenticatedUser): Promise<voi
   }
 }
 
+export async function purgeExpiredCoachingMedia(limit = 100): Promise<{ deleted: number; failed: number }> {
+  const database = getD1Database(); const now = new Date().toISOString();
+  const expired = await database.prepare("SELECT id, user_id AS userId, storage_key AS storageKey FROM media_uploads WHERE status != 'DELETED' AND deleted_at IS NULL AND expires_at <= ? ORDER BY expires_at LIMIT ?").bind(now, Math.max(1, Math.min(limit, 500))).all<{ id: string; userId: string; storageKey: string }>();
+  let deleted = 0, failed = 0;
+  for (const item of expired.results) { try { await getPrivateMediaBucket().delete(item.storageKey); await database.batch([database.prepare("UPDATE media_uploads SET status = 'DELETED', deleted_at = ? WHERE id = ? AND user_id = ?").bind(now, item.id, item.userId), database.prepare("UPDATE media_analysis_results SET deleted_at = ? WHERE media_analysis_job_id IN (SELECT id FROM media_analysis_jobs WHERE media_upload_id = ?)").bind(now, item.id)]); deleted++; } catch { failed++; } }
+  return { deleted, failed };
+}
+
 export async function deleteCoachingUpload(user: AuthenticatedUser, id: string): Promise<boolean> {
   const database = getD1Database();
   const row = await database.prepare("SELECT storage_key AS storageKey FROM media_uploads WHERE id = ? AND user_id = ? AND deleted_at IS NULL").bind(id, user.id).first<{ storageKey: string }>();

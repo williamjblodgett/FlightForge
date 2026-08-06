@@ -33,6 +33,7 @@ export async function POST(request: Request) {
     userIsMinor: form.get("userIsMinor") === "true", guardianConsent: form.get("guardianConsent") === "true",
     consentToAnalyze: form.get("consentToAnalyze") === "true", retainDays: form.get("retainDays"),
     idempotencyKey: form.get("idempotencyKey"),
+    poseSummary: form.get("poseSummary") ?? "",
   });
   if (!parsed.success) return apiError("VALIDATION_ERROR", "Check the recording details and consent choices.", 422, parsed.error.flatten());
   const decision = evaluateMediaUpload({ fileName: file.name, mimeType: file.type, sizeBytes: file.size, durationSeconds: parsed.data.durationSeconds, consentToAnalyze: true, userIsMinor: parsed.data.userIsMinor, guardianConsent: parsed.data.guardianConsent });

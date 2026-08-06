@@ -14,6 +14,7 @@ export const coachingContextSchema = z.object({
   consentToAnalyze: z.literal(true),
   retainDays: z.coerce.number().int().refine((value) => [1, 7, 30].includes(value)),
   idempotencyKey: z.string().uuid(),
+  poseSummary: z.string().max(20_000).optional().default(""),
 });
 
 export type CoachingContext = z.infer<typeof coachingContextSchema>;
