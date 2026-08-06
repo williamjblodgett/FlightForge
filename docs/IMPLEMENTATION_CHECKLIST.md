@@ -75,11 +75,15 @@
 
 ## Remaining production launch gates
 
+- [x] Guided camera capture, saved-video fallback, evidence-aware practice guide, and honest confidence limits
+- [x] Private coaching R2 uploads with D1 metadata, consent records, expiration choices, signature validation, and user deletion
+- [x] GPS rangefinder with accuracy radius, owner-coordinate workflow, and official satellite-view handoff
+
 - [ ] Wire public application workflows to PostgreSQL repository adapter
 - [ ] Public account creation and social OAuth outside Sites
 - [ ] Persist booking, group, round, and full import-review apply/rollback workflows across devices
 - [ ] Connect verified course inventory, email/push delivery, and operator calendars
 - [ ] Add Stripe Connect sandbox, marketplace ledger, payouts, tax, refunds, and disputes
-- [ ] Add private object storage, malware scanner, isolated transcoding, and retention jobs
-- [ ] Connect an approved multimodal provider only after consent and safety review
+- [ ] Add third-party malware scanning, isolated transcoding, and a scheduled global retention sweep (per-user expiry cleanup is active)
+- [ ] Connect pose-landmark and approved multimodal providers only after coach benchmark, consent, and safety review
 - [ ] Complete independent security assessment, operational readiness, and legal review

@@ -1,12 +1,13 @@
 import { getD1Database } from "@/db/runtime";
 
-export const productionFeatureKeys = ["digital_bag", "ai_caddie", "event_publishing"] as const;
+export const productionFeatureKeys = ["digital_bag", "ai_caddie", "event_publishing", "camera_coach"] as const;
 export type ProductionFeatureKey = (typeof productionFeatureKeys)[number];
 
 const descriptions: Record<ProductionFeatureKey, string> = {
   digital_bag: "Persistent physical disc inventory and sourced catalog",
   ai_caddie: "Explainable owned-disc recommendation rules engine",
   event_publishing: "Coordinator-owned event draft and publication workflow",
+  camera_coach: "Private guided throw capture, evidence-based coaching, and GPS rangefinding",
 };
 
 let featureInitialization: Promise<void> | null = null;

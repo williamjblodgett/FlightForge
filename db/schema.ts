@@ -576,6 +576,39 @@ export const aiFeedback = sqliteTable(
   (table) => [index("ai_feedback_recommendation_idx").on(table.aiRecommendationId)],
 );
 
+export const mediaUploads = sqliteTable(
+  "media_uploads",
+  {
+    id: text("id").primaryKey(), userId: text("user_id").notNull(), storageKey: text("storage_key").notNull(),
+    mediaType: text("media_type").notNull(), mimeType: text("mime_type").notNull(), byteSize: integer("byte_size").notNull(),
+    durationMs: integer("duration_ms"), width: integer("width"), height: integer("height"), status: text("status").notNull(),
+    metadataStripped: integer("metadata_stripped", { mode: "boolean" }).default(false).notNull(), expiresAt: text("expires_at"),
+    createdAt: text("created_at").notNull(), deletedAt: text("deleted_at"),
+  },
+  (table) => [index("media_uploads_user_created_idx").on(table.userId, table.createdAt), index("media_uploads_expiry_idx").on(table.status, table.expiresAt)],
+);
+
+export const mediaAnalysisJobs = sqliteTable(
+  "media_analysis_jobs",
+  {
+    id: text("id").primaryKey(), mediaUploadId: text("media_upload_id").notNull(), userId: text("user_id").notNull(),
+    analysisType: text("analysis_type").notNull(), inputContextJson: text("input_context_json").notNull(), status: text("status").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(), attempts: integer("attempts").default(0).notNull(), createdAt: text("created_at").notNull(),
+    startedAt: text("started_at"), completedAt: text("completed_at"), failureReason: text("failure_reason"),
+  },
+  (table) => [uniqueIndex("media_analysis_jobs_idempotency_unique").on(table.idempotencyKey), index("media_analysis_jobs_user_created_idx").on(table.userId, table.createdAt)],
+);
+
+export const mediaAnalysisResults = sqliteTable(
+  "media_analysis_results",
+  {
+    id: text("id").primaryKey(), mediaAnalysisJobId: text("media_analysis_job_id").notNull(), outputJson: text("output_json").notNull(),
+    confidence: text("confidence"), limitationsJson: text("limitations_json"), modelVersionId: text("model_version_id"),
+    promptVersionId: text("prompt_version_id"), createdAt: text("created_at").notNull(), deletedAt: text("deleted_at"),
+  },
+  (table) => [index("media_analysis_results_job_idx").on(table.mediaAnalysisJobId)],
+);
+
 export const events = sqliteTable(
   "events",
   {

@@ -3528,6 +3528,79 @@ td a svg {
   }
 }
 
+/* Camera coach: field-instrument visual language. */
+.coach-page { padding-block: 0 120px; }
+.coach-hero { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 48px; align-items: end; margin-inline: calc(50% - 50vw); padding: 70px max(24px, calc((100vw - 1240px) / 2)) 58px; background: #071f39; color: white; }
+.coach-hero h1 { max-width: 920px; margin: 14px 0 19px; font-size: clamp(3rem, 7vw, 7.2rem); line-height: .87; letter-spacing: -.065em; }
+.coach-hero h1 em { color: #ffb27a; font-family: Georgia, serif; font-weight: 400; }
+.coach-hero p { max-width: 690px; color: #c6d5de; font-size: 1rem; line-height: 1.65; }
+.coach-trust { display: grid; gap: 8px; padding: 24px; border: 1px solid rgb(255 255 255 / 28%); background: rgb(255 255 255 / 5%); }
+.coach-trust svg { width: 30px; color: var(--lime); }
+.coach-trust span { color: #c6d5de; font-size: .78rem; line-height: 1.5; }
+.coach-grid { display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(340px, .78fr); gap: 24px; margin-top: 34px; }
+.coach-grid .panel, .coach-history, .coach-sources { border: 1px solid var(--module-border); background: var(--surface); box-shadow: var(--shadow-md); }
+.panel-title { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 24px 27px; border-bottom: 1px solid var(--module-border); }
+.panel-title span { color: var(--forest); font: 800 .62rem var(--font-geist-mono), monospace; letter-spacing: .12em; }
+.panel-title h2 { margin: 5px 0 0; font-size: 1.55rem; }
+.panel-title > svg { width: 29px; color: var(--forest); }
+.capture-settings, .target-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 24px 27px 12px; }
+.capture-settings label, .coach-form label, .target-grid label { display: grid; gap: 7px; color: var(--ink); font-size: .76rem; font-weight: 800; }
+.capture-settings select, .coach-form input, .coach-form select, .coach-form textarea, .target-grid input { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 2px; background: #fffefa; color: var(--ink); }
+.capture-instruction { margin: 5px 27px 19px; color: var(--ink-muted); font-size: .8rem; line-height: 1.5; }
+.camera-stage { position: relative; display: grid; min-height: 370px; margin: 0 27px; overflow: hidden; place-items: center; border: 1px solid #355268; background: linear-gradient(145deg, #061726, #0c304b); }
+.camera-stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.framing-guide { position: absolute; inset: 8% 20%; border: 1px dashed rgb(255 255 255 / 70%); pointer-events: none; }
+.framing-guide::before, .framing-guide::after { position: absolute; left: 50%; content: ""; background: rgb(255 255 255 / 40%); transform: translateX(-50%); }
+.framing-guide::before { top: 0; bottom: 0; width: 1px; }
+.framing-guide::after { top: 50%; width: 42px; height: 1px; }
+.framing-guide span { position: absolute; bottom: 8px; left: 50%; width: max-content; max-width: 90%; padding: 5px 8px; background: rgb(4 20 32 / 78%); color: white; font: 700 .65rem var(--font-geist-mono), monospace; transform: translateX(-50%); }
+.camera-stage button { position: relative; z-index: 2; display: inline-flex; gap: 8px; align-items: center; min-height: 48px; padding: 11px 16px; border: 1px solid #ffb27a; background: rgb(7 31 57 / 88%); color: white; font-weight: 850; cursor: pointer; }
+.camera-stage button svg { width: 18px; }
+.record-dot { width: 12px; height: 12px; border-radius: 50%; background: #ff6a45; box-shadow: 0 0 0 5px rgb(255 106 69 / 22%); }
+.file-choice { display: flex; gap: 8px; align-items: center; margin: 15px 27px 0; color: var(--forest-strong); font-size: .75rem; font-weight: 800; cursor: pointer; }
+.file-choice svg { width: 17px; }
+.file-choice input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.coach-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 25px 27px; }
+.coach-form .wide { grid-column: 1 / -1; }
+.coach-form textarea { min-height: 88px; resize: vertical; }
+.coach-form small { color: var(--ink-muted); font-weight: 500; }
+.coach-form .check { display: flex; grid-auto-flow: column; grid-template-columns: 18px 1fr; align-items: start; line-height: 1.45; }
+.coach-form .check input { width: 17px; min-height: 17px; margin-top: 2px; }
+.coach-message { margin: 0 27px 27px; padding: 13px; border: 1px solid var(--border-strong); background: var(--surface-soft); font-size: .78rem; }
+.coach-side { display: grid; gap: 24px; align-content: start; }
+.coach-guidance > p, .rangefinder > p { margin: 22px 24px; color: var(--ink-muted); font-size: .82rem; line-height: 1.55; }
+.coach-guidance dl { display: grid; margin: 0 24px; border-top: 1px solid var(--border); }
+.coach-guidance dl div { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.coach-guidance dt { color: var(--forest); font: 800 .61rem var(--font-geist-mono), monospace; letter-spacing: .08em; text-transform: uppercase; }
+.coach-guidance dd { margin: 5px 0 0; font-size: .8rem; line-height: 1.45; }
+.limitation { padding: 14px !important; border: 1px solid #d7bb87; background: #fff5d9; color: #594b32 !important; }
+.rangefinder { overflow: hidden; }
+.rangefinder > .button { margin: 22px 24px 0; }
+.rangefinder .accuracy { margin-block: 10px; font: 700 .68rem var(--font-geist-mono), monospace; }
+.rangefinder .target-grid { padding-top: 10px; }
+.range-result { display: grid; gap: 4px; margin: 12px 24px; padding: 20px; background: #071f39; color: white; }
+.range-result strong { color: #ffb27a; font: 900 2.25rem var(--font-geist-mono), monospace; }
+.range-result span { color: #c6d5de; font-size: .72rem; }
+.satellite-link { display: flex; justify-content: space-between; gap: 8px; margin: 15px 24px; padding: 13px 0; border-block: 1px solid var(--border); color: var(--forest-strong); font-size: .78rem; font-weight: 850; }
+.satellite-link svg { width: 17px; }
+.coach-history, .coach-sources { margin-top: 34px; padding: 30px; }
+.session-list { display: grid; border-top: 1px solid var(--border-strong); }
+.session-list article { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(0, 1fr) auto; gap: 22px; align-items: center; padding: 18px 4px; border-bottom: 1px solid var(--border); }
+.session-list article > div { display: grid; gap: 4px; }
+.session-list article span { color: var(--forest); font: 800 .62rem var(--font-geist-mono), monospace; }
+.session-list article small, .session-list article p { margin: 0; color: var(--ink-muted); font-size: .75rem; line-height: 1.45; }
+.session-list button { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid #d2a19b; background: transparent; color: var(--danger); cursor: pointer; }
+.session-list button svg { width: 17px; }
+.coach-sources > p { color: var(--ink-muted); }
+.coach-sources > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.coach-sources a { display: grid; grid-template-columns: 1fr auto; gap: 8px; min-height: 115px; padding: 17px; border: 1px solid var(--border-strong); background: var(--surface-soft); }
+.coach-sources a span { grid-column: 1 / -1; color: var(--forest); font: 800 .6rem var(--font-geist-mono), monospace; text-transform: uppercase; }
+.coach-sources a strong { font-size: .78rem; line-height: 1.4; }
+.coach-sources a svg { width: 15px; }
+
+@media (max-width: 980px) { .coach-hero, .coach-grid { grid-template-columns: 1fr; } .coach-trust { max-width: 520px; } .coach-sources > div { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .coach-page { padding-bottom: 100px; } .coach-hero { margin-top: 0; padding-block: 48px; } .coach-hero h1 { font-size: clamp(2.8rem, 15vw, 5rem); } .capture-settings, .coach-form, .target-grid { grid-template-columns: 1fr; } .coach-form .wide { grid-column: auto; } .camera-stage { min-height: 320px; margin-inline: 18px; } .capture-settings, .coach-form { padding-inline: 18px; } .capture-instruction, .file-choice, .coach-message { margin-inline: 18px; } .session-list article { grid-template-columns: minmax(0, 1fr) auto; } .session-list article > p { grid-column: 1 / -1; } .coach-sources > div { grid-template-columns: 1fr; } .coach-history, .coach-sources { padding: 22px 18px; } }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

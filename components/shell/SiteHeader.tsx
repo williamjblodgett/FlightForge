@@ -11,6 +11,7 @@ const primaryNavigation = [
   { label: "Events", href: "/events" },
   { label: "Leagues", href: "/roadmap#leagues" },
   { label: "Learn", href: "/roadmap#learn" },
+  { label: "Coach", href: "/coach" },
   { label: "Bag", href: "/bag" },
   { label: "Community", href: "/roadmap#community" },
 ];
@@ -63,6 +64,7 @@ export async function SiteHeader() {
                 {!user.mustChangePassword && user.source === "password" ? <Link href="/account/password">Change password</Link> : null}
                 <Link href="/favorites">Saved courses</Link>
                 <Link href="/bag">My disc bag</Link>
+                <Link href="/coach">Camera coach</Link>
                 {can(user, "manageEvents") ? <Link href="/events/manage">Manage events</Link> : null}
                 {can(user, "viewAdmin") ? <Link href="/admin/claims">Admin review</Link> : null}
                 <SignOutButton source={user.source} />

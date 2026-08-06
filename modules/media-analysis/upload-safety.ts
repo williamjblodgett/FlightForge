@@ -15,14 +15,14 @@ export type MediaUploadDecision = {
   retentionDays: number;
 };
 
-const allowedTypes = new Set(["image/jpeg", "image/png", "video/mp4", "video/quicktime"]);
+const allowedTypes = new Set(["image/jpeg", "image/png", "video/mp4", "video/quicktime", "video/webm"]);
 
 export function evaluateMediaUpload(
   descriptor: MediaUploadDescriptor,
 ): MediaUploadDecision {
   const reasons: string[] = [];
   const isVideo = descriptor.mimeType.startsWith("video/");
-  const maximumBytes = isVideo ? 250 * 1024 * 1024 : 15 * 1024 * 1024;
+  const maximumBytes = isVideo ? 25 * 1024 * 1024 : 15 * 1024 * 1024;
   if (!descriptor.consentToAnalyze) reasons.push("Analysis consent is required.");
   if (descriptor.userIsMinor && !descriptor.guardianConsent) {
     reasons.push("Guardian consent is required for identifiable minor media.");
