@@ -28,6 +28,8 @@ export function CourseExplorer({
   const [difficulty, setDifficulty] = useState<CourseDifficulty | "ALL">("ALL");
   const [priceType, setPriceType] = useState<CoursePriceType | "ALL">("ALL");
   const [holes, setHoles] = useState<"ALL" | "9" | "18" | "36">("ALL");
+  const [state, setState] = useState("ALL");
+  const [evidence, setEvidence] = useState<"ALL" | "AUTHORITATIVE" | "DIRECTORY">("ALL");
   const [viewMode, setViewMode] = useState<ViewMode>("split");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id ?? null);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -42,9 +44,11 @@ export function CourseExplorer({
           difficulty,
           priceType,
           minimumHoles: holes === "ALL" ? null : Number(holes),
+          state,
+          evidence,
         }),
       ),
-    [courses, difficulty, holes, priceType, query],
+    [courses, difficulty, evidence, holes, priceType, query, state],
   );
   const visibleCourses = filteredCourses.slice(0, visibleCount);
   const effectiveSelectedCourseId = filteredCourses.some((course) => course.id === selectedCourseId)
@@ -56,6 +60,8 @@ export function CourseExplorer({
     setDifficulty("ALL");
     setPriceType("ALL");
     setHoles("ALL");
+    setState("ALL");
+    setEvidence("ALL");
     setVisibleCount(12);
   }
 
@@ -66,13 +72,13 @@ export function CourseExplorer({
           <div className="hero-grid-overlay" />
           <div className="hero-content page-shell">
             <div className="hero-copy">
-              <span className="eyebrow">Maine field index · source checked</span>
+              <span className="eyebrow">New England field index · evidence attached</span>
               <h1>Know before<br /><span>you throw.</span></h1>
               <p>
-                A statewide course ledger with evidence attached: who lists it, when it was checked, and whether “available” came from an operator or a directory.
+                A regional course ledger that shows who supports each fact, when it was checked, and whether availability came from an operator or a directory.
               </p>
               <div className="hero-actions">
-                <a className="button button-primary" href="#course-results">Explore Maine courses <ArrowRight aria-hidden="true" /></a>
+                <a className="button button-primary" href="#course-results">Explore New England <ArrowRight aria-hidden="true" /></a>
                 <Link className="button button-ghost-on-dark" href="/sign-up">Create a free field book</Link>
               </div>
             </div>
@@ -95,7 +101,7 @@ export function CourseExplorer({
               </figure>
               <div className="hero-signal-card" aria-label={`${brand.productName} launch snapshot`}>
                 <div className="signal-orbit"><MapPinned aria-hidden="true" /></div>
-                <span className="signal-kicker">Field audit · Aug 4, 2026</span>
+                <span className="signal-kicker">Regional evidence audit · Aug 7, 2026</span>
                 <strong>{courses.length} listings</strong>
                 <p>Public factual fields only. Every operational claim stays attached to its source.</p>
                 <div className="signal-stats">
@@ -112,11 +118,21 @@ export function CourseExplorer({
           <div>
             <span className="eyebrow">Course discovery</span>
             <h1>Choose the round that fits today.</h1>
-            <p>Search all currently reviewed Maine listings, then inspect the source evidence before making the drive.</p>
+            <p>Search Maine’s working directory plus verified launch records across Massachusetts, New Hampshire, Vermont, Connecticut, and Rhode Island.</p>
           </div>
           <div className="directory-stat"><strong>{courses.length}</strong><span>launch listings</span></div>
         </section>
       )}
+
+      <nav className="regional-state-strip page-shell" aria-label="Browse courses by state">
+        <Link href="/places/new-england">New England overview</Link>
+        <Link href="/places/maine">ME</Link>
+        <Link href="/places/massachusetts">MA</Link>
+        <Link href="/places/new-hampshire">NH</Link>
+        <Link href="/places/vermont">VT</Link>
+        <Link href="/places/connecticut">CT</Link>
+        <Link href="/places/rhode-island">RI</Link>
+      </nav>
 
       <section id="course-results" className="explorer-shell page-shell" aria-labelledby="results-heading">
         <div className="explorer-topbar">
@@ -130,7 +146,7 @@ export function CourseExplorer({
               value={query}
               onChange={(event) => { setQuery(event.target.value); setVisibleCount(12); }}
             />
-            <span className="search-location">Maine</span>
+            <span className="search-location">New England</span>
           </div>
           <button
             className={`filter-trigger${filtersOpen ? " is-active" : ""}`}
@@ -149,6 +165,26 @@ export function CourseExplorer({
         </div>
 
         <div id="course-filters" className={`filter-row${filtersOpen ? " is-open" : ""}`}>
+          <label>
+            <span>State</span>
+            <select value={state} onChange={(event) => { setState(event.target.value); setVisibleCount(12); }}>
+              <option value="ALL">All New England</option>
+              <option value="ME">Maine</option>
+              <option value="MA">Massachusetts</option>
+              <option value="NH">New Hampshire</option>
+              <option value="VT">Vermont</option>
+              <option value="CT">Connecticut</option>
+              <option value="RI">Rhode Island</option>
+            </select>
+          </label>
+          <label>
+            <span>Evidence</span>
+            <select value={evidence} onChange={(event) => { setEvidence(event.target.value as typeof evidence); setVisibleCount(12); }}>
+              <option value="ALL">All evidence levels</option>
+              <option value="AUTHORITATIVE">Operator or public agency</option>
+              <option value="DIRECTORY">Directory review pending</option>
+            </select>
+          </label>
           <label>
             <span>Difficulty</span>
             <select value={difficulty} onChange={(event) => { setDifficulty(event.target.value as CourseDifficulty | "ALL"); setVisibleCount(12); }}>
@@ -183,10 +219,10 @@ export function CourseExplorer({
 
         <div className="results-summary">
           <div>
-            <span className="eyebrow">Statewide Maine field index</span>
+            <span className="eyebrow">New England field index</span>
             <h2 id="results-heading">{filteredCourses.length} {filteredCourses.length === 1 ? "course" : "courses"} ready to explore</h2>
           </div>
-          <p>Coordinates are directory-sourced; same-day conditions still require operator confirmation.</p>
+          <p>Every location shows its evidence level; same-day conditions still require operator confirmation.</p>
         </div>
 
         <div className={`explorer-layout view-${viewMode}`}>

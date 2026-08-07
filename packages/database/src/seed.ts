@@ -5,6 +5,7 @@ import { brand } from "../../../config/brand";
 import { getPostgresDatabase } from "./client";
 import {
   courseLocations,
+  courseEvidence,
   courseSources,
   courses,
   featureFlags,
@@ -44,6 +45,8 @@ await database
   .values(
     seedCourses.map((course) => ({
       id: deterministicUuid(`course:${course.slug}`),
+      facilityId: course.facilityId,
+      recordType: course.recordType,
       slug: course.slug,
       name: course.name,
       description: course.shortDescription,
@@ -53,6 +56,7 @@ await database
       difficulty: course.difficulty,
       priceType: course.priceType,
       isFictionalDemo: course.fictionalDemo,
+      nextReviewDueAt: course.nextReviewDueAt ? new Date(course.nextReviewDueAt) : null,
       publishedAt: new Date(course.lastReviewedAt),
     })),
   )
@@ -72,7 +76,7 @@ await database
       latitude: course.latitude.toFixed(6),
       longitude: course.longitude.toFixed(6),
       coordinates: { x: course.longitude, y: course.latitude },
-      precision: course.fictionalDemo ? "FICTIONAL_DEMO" : "APPROXIMATE",
+      precision: course.fictionalDemo ? "FICTIONAL_DEMO" : course.locationPrecision,
     })),
   )
   .onConflictDoNothing();
@@ -91,9 +95,30 @@ await database
         ? `${brand.productName} fictional demonstration data`
         : "Factual seed fields only; no partnership implied",
       lastVerifiedAt: new Date(course.lastReviewedAt),
+      validUntil: course.nextReviewDueAt ? new Date(course.nextReviewDueAt) : null,
+      supportedFields: course.sources[0]?.supports ?? null,
     })),
   )
   .onConflictDoNothing();
+
+const evidenceRows = seedCourses.flatMap((course, courseIndex) =>
+  (course.sources[0]?.supports ?? []).map((field) => ({
+    id: deterministicUuid(`evidence:${course.slug}:${field}`),
+    courseId: deterministicUuid(`course:${course.slug}`),
+    sourceId: `90000000-0000-4000-8000-${String(courseIndex + 1).padStart(12, "0")}`,
+    fieldCode: field,
+    evidenceValue: null,
+    checkedAt: new Date(course.lastReviewedAt),
+    validUntil: course.nextReviewDueAt ? new Date(course.nextReviewDueAt) : null,
+    reviewStatus: "APPROVED",
+    createdAt: new Date(course.lastReviewedAt),
+    reviewedBy: null,
+  })),
+);
+
+if (evidenceRows.length) {
+  await database.insert(courseEvidence).values(evidenceRows).onConflictDoNothing();
+}
 
 await database
   .insert(featureFlags)

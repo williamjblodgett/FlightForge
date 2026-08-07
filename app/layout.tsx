@@ -24,18 +24,18 @@ function resolveRequestOrigin(requestHeaders: Headers): URL {
 
 export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = resolveRequestOrigin(await headers());
-  const socialImage = new URL("/og.png", metadataBase).toString();
+  const socialImage = new URL("/og-new-england.png", metadataBase).toString();
   return {
     metadataBase,
     title: { default: `${brand.productName} — Find your next round`, template: `%s · ${brand.productName}` },
-    description: "Discover disc golf courses, save favorites, and connect with course operators—starting in Maine and built to travel.",
+    description: "Discover evidence-backed disc golf courses, save favorites, and connect with course operators across New England.",
     icons: { icon: brand.favicon, shortcut: brand.favicon },
     openGraph: {
       type: "website", siteName: brand.productName, title: `${brand.productName} — Find your next round`,
-      description: "Maine is the first tee. Find courses, plan a round, and build your game.",
+      description: "Find evidence-backed New England courses, plan a round, and build your game.",
       images: [{ url: socialImage, width: 1734, height: 907, alt: `${brand.productName} — Find your line. Forge your game.` }],
     },
-    twitter: { card: "summary_large_image", title: `${brand.productName} — Find your next round`, description: "Maine is the first tee. Find courses, plan a round, and build your game.", images: [socialImage] },
+    twitter: { card: "summary_large_image", title: `${brand.productName} — Find your next round`, description: "Find evidence-backed New England courses, plan a round, and build your game.", images: [socialImage] },
   };
 }
 

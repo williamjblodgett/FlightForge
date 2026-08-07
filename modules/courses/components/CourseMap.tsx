@@ -14,15 +14,15 @@ export function CourseMap({ courses, selectedCourseId, onSelect }: Props) {
   return (
     <section className="course-map" aria-label="Map of course results">
       <div className="map-toolbar">
-        <span><MapPin aria-hidden="true" /> Maine course overview</span>
+        <span><MapPin aria-hidden="true" /> New England course overview</span>
         <button type="button" disabled title="Location permission is not enabled in this release">
           <LocateFixed aria-hidden="true" /> Use my location
         </button>
       </div>
       <div className="map-canvas">
-        <span className="map-region-label map-region-west">Western lakes</span>
-        <span className="map-region-label map-region-coast">Coast</span>
-        <span className="map-region-label map-region-north">Aroostook</span>
+        <span className="map-region-label map-region-west">NY border</span>
+        <span className="map-region-label map-region-coast">Atlantic</span>
+        <span className="map-region-label map-region-north">Northern Maine</span>
         {clusters.map((cluster, index) => {
           const selected = cluster.courses.some((course) => course.id === selectedCourseId);
           const target = selected
@@ -49,7 +49,7 @@ export function CourseMap({ courses, selectedCourseId, onSelect }: Props) {
         ) : null}
       </div>
       <div className="map-caption">
-        <span>Directory-sourced course centers · clustered for readability</span>
+        <span>Evidence-labeled course centers · clustered for readability</span>
         <span>Provider-neutral map adapter · GPS is not used for emergency navigation</span>
       </div>
     </section>
@@ -57,9 +57,9 @@ export function CourseMap({ courses, selectedCourseId, onSelect }: Props) {
 }
 
 function project(course: Course): { x: number; y: number } {
-  const west = -71.15;
+  const west = -73.7;
   const east = -66.85;
-  const south = 42.95;
+  const south = 41.05;
   const north = 47.48;
   const x = ((course.longitude - west) / (east - west)) * 82 + 9;
   const y = ((north - course.latitude) / (north - south)) * 78 + 9;

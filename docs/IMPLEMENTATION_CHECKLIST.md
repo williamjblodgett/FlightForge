@@ -35,6 +35,18 @@
 - [x] Administrator claim-review interface and required reason
 - [x] Administrator import-review interface
 
+## New England evidence expansion
+
+- [x] Five-state primary-source-only launch batch
+- [x] State and regional discovery pages
+- [x] State and evidence-level search filters
+- [x] Facility grouping for multi-course properties
+- [x] Field-level evidence, location precision, and re-review dates
+- [x] D1 and PostgreSQL evidence migrations plus Supabase read policies
+- [x] Regional validation CLI and unit tests
+- [ ] Complete authoritative review of the remaining directory-discovered candidates
+- [ ] Add operator outreach and correction-case workflow after communication approval
+
 ## GitHub Pages interactive edition
 
 - [x] Static hosting build with repository-relative asset paths
@@ -79,7 +91,7 @@
 - [x] Private coaching R2 uploads with D1 metadata, consent records, expiration choices, signature validation, and user deletion
 - [x] GPS rangefinder with accuracy radius, owner-coordinate workflow, and official satellite-view handoff
 
-- [ ] Wire public application workflows to PostgreSQL repository adapter
+- [ ] Complete public-workflow repository cutover from hosted D1 to Supabase PostgreSQL
 - [ ] Public account creation and social OAuth outside Sites
 - [ ] Persist booking, group, round, and full import-review apply/rollback workflows across devices
 - [ ] Connect verified course inventory, email/push delivery, and operator calendars

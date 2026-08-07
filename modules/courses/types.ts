@@ -26,6 +26,22 @@ export type CourseOperationalStatus =
   | "UNAVAILABLE_REPORTED"
   | "STATUS_UNVERIFIED";
 
+export type CourseEvidenceField =
+  | "IDENTITY"
+  | "LOCATION"
+  | "ACCESS"
+  | "SEASON"
+  | "HOURS"
+  | "COST"
+  | "LAYOUT"
+  | "ACCESSIBILITY";
+
+export type CourseLocationPrecision =
+  | "ENTRANCE_GEOCODED"
+  | "FACILITY_GEOCODED"
+  | "FACILITY_APPROXIMATE"
+  | "DIRECTORY_APPROXIMATE";
+
 export type CourseSource = {
   name: string;
   url: string;
@@ -33,10 +49,14 @@ export type CourseSource = {
   observation: string | null;
   checkedAt: string;
   authoritative: boolean;
+  validUntil?: string | null;
+  supports?: CourseEvidenceField[];
 };
 
 export type Course = {
   id: string;
+  facilityId: string | null;
+  recordType: "COURSE" | "FACILITY_COURSE" | "LAYOUT";
   slug: string;
   name: string;
   shortDescription: string;
@@ -47,6 +67,7 @@ export type Course = {
   addressLine1: string | null;
   latitude: number;
   longitude: number;
+  locationPrecision: CourseLocationPrecision;
   holeCount: number;
   layoutCount: number;
   difficulty: CourseDifficulty;
@@ -61,6 +82,7 @@ export type Course = {
     | "OPERATOR_SOURCE_REVIEWED"
     | "FICTIONAL_DEMO";
   lastReviewedAt: string;
+  nextReviewDueAt: string | null;
   sourceName: string;
   sourceUrl: string;
   sourceType: CourseSource["type"];

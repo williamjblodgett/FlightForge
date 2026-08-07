@@ -138,6 +138,8 @@ export const courses = sqliteTable(
   "courses",
   {
     id: text("id").primaryKey(),
+    facilityId: text("facility_id"),
+    recordType: text("record_type").default("COURSE").notNull(),
     slug: text("slug").notNull(),
     name: text("name").notNull(),
     city: text("city").notNull(),
@@ -147,12 +149,15 @@ export const courses = sqliteTable(
     addressLine1: text("address_line_1"),
     latitude: text("latitude").notNull(),
     longitude: text("longitude").notNull(),
+    locationPrecision: text("location_precision").default("DIRECTORY_APPROXIMATE").notNull(),
     holeCount: integer("hole_count"),
     operationalStatus: text("operational_status").default("STATUS_UNVERIFIED").notNull(),
     availabilityType: text("availability_type"),
     verificationLevel: text("verification_level").default("SOURCE_REVIEW_REQUIRED").notNull(),
     claimStatus: text("claim_status").default("UNCLAIMED").notNull(),
     isPublished: integer("is_published", { mode: "boolean" }).default(true).notNull(),
+    nextReviewDueAt: text("next_review_due_at"),
+    archivedReason: text("archived_reason"),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
     deletedAt: text("deleted_at"),
@@ -176,6 +181,8 @@ export const courseSources = sqliteTable(
     externalId: text("external_id"),
     observation: text("observation"),
     checkedAt: text("checked_at").notNull(),
+    validUntil: text("valid_until"),
+    supportedFields: text("supported_fields"),
     isAuthoritative: integer("is_authoritative", { mode: "boolean" }).default(false).notNull(),
     createdAt: text("created_at").notNull(),
   },
@@ -586,6 +593,26 @@ export const mediaUploads = sqliteTable(
     createdAt: text("created_at").notNull(), deletedAt: text("deleted_at"),
   },
   (table) => [index("media_uploads_user_created_idx").on(table.userId, table.createdAt), index("media_uploads_expiry_idx").on(table.status, table.expiresAt)],
+);
+
+export const courseEvidence = sqliteTable(
+  "course_evidence",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id").notNull(),
+    sourceId: text("source_id").notNull(),
+    fieldCode: text("field_code").notNull(),
+    evidenceValue: text("evidence_value"),
+    checkedAt: text("checked_at").notNull(),
+    validUntil: text("valid_until"),
+    reviewStatus: text("review_status").default("APPROVED").notNull(),
+    reviewedBy: text("reviewed_by"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("course_evidence_course_source_field_unique").on(table.courseId, table.sourceId, table.fieldCode),
+    index("course_evidence_review_due_idx").on(table.reviewStatus, table.validUntil),
+  ],
 );
 
 export const mediaAnalysisJobs = sqliteTable(

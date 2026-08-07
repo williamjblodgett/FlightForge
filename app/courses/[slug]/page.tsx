@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: `/courses/${course.slug}` },
     openGraph: {
       title: `${course.name} · ${brand.productName}`,
-      description: `Review source evidence for ${course.name} in ${course.city}, Maine.`,
+      description: `Review source evidence for ${course.name} in ${course.city}, ${course.state}.`,
     },
   };
 }
@@ -104,7 +104,7 @@ export default async function CourseDetailPage({ params }: Props) {
             {course.verifiedBadge ? (
               <span className="verified-badge"><BadgeCheck aria-hidden="true" /> Verified operator</span>
             ) : course.verificationLevel === "OPERATOR_SOURCE_REVIEWED" ? (
-              <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Operator source reviewed</span>
+              <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Primary source reviewed</span>
             ) : course.verificationLevel === "DIRECTORY_CROSS_CHECKED" ? (
               <span className="source-badge"><Database aria-hidden="true" /> Two directories matched</span>
             ) : (
@@ -196,14 +196,17 @@ export default async function CourseDetailPage({ params }: Props) {
               <div className="source-evidence-list">
                 {course.sources.map((source) => (
                   <article key={`${source.type}-${source.url}`}>
-                    <div><strong>{source.name}</strong><span>{source.authoritative ? "Operator / facility source" : source.type === "PDGA_DIRECTORY" ? "Independent directory cross-check" : "Current directory record"}</span></div>
+                    <div><strong>{source.name}</strong><span>{source.authoritative ? source.type === "PUBLIC_AGENCY" ? "Public-agency source" : "Operator / facility source" : source.type === "PDGA_DIRECTORY" ? "Independent directory cross-check" : "Current directory record"}</span></div>
                     <p>{source.observation ?? "Factual listing fields reviewed."}</p>
+                    {source.supports?.length ? <small>Supports: {source.supports.map((field) => field.toLowerCase()).join(", ")}</small> : null}
                     <a href={source.url} target="_blank" rel="noreferrer">Inspect source <ExternalLink aria-hidden="true" /></a>
                   </article>
                 ))}
               </div>
               <dl>
                 <div><dt>Last reviewed</dt><dd>{new Date(course.lastReviewedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</dd></div>
+                <div><dt>Location precision</dt><dd>{course.locationPrecision.replaceAll("_", " ").toLowerCase()}</dd></div>
+                {course.nextReviewDueAt ? <div><dt>Review due</dt><dd>{new Date(course.nextReviewDueAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</dd></div> : null}
                 <div><dt>Evidence level</dt><dd>{verificationLabel(course)}</dd></div>
                 <div><dt>Availability</dt><dd>{operationalLabel(course)}; same-day status not guaranteed</dd></div>
               </dl>
@@ -226,6 +229,7 @@ export default async function CourseDetailPage({ params }: Props) {
             <Link className="button button-secondary button-wide" href={`/courses/${course.slug}/claim`}>Claim this course</Link>
           ) : null}
           <p className="booking-fineprint">FlightForge reservations are not connected to this operator. Availability evidence above is informational, not a reservation.</p>
+          <a className="text-link" href={`mailto:${brand.supportEmail}?subject=${encodeURIComponent(`Course correction: ${course.name}`)}`}>Report incorrect course information</a>
         </aside>
       </div>
     </main>
@@ -238,8 +242,8 @@ function titleCase(value: string): string {
 
 function operationalLabel(course: NonNullable<ReturnType<typeof getCourseBySlug>>): string {
   switch (course.operationalStatus) {
-    case "OPERATOR_CONFIRMED_AVAILABLE": return "Operator source reports available";
-    case "OPERATOR_CONFIRMED_SEASONAL": return "Operator source reports seasonally available";
+    case "OPERATOR_CONFIRMED_AVAILABLE": return "Primary source reports available";
+    case "OPERATOR_CONFIRMED_SEASONAL": return "Primary source reports seasonally available";
     case "AVAILABLE_REPORTED": return "Directory reports available";
     case "SEASONAL_AVAILABLE": return "Directory reports seasonally available";
     case "UNAVAILABLE_REPORTED": return "Directory reports unavailable";
@@ -248,7 +252,7 @@ function operationalLabel(course: NonNullable<ReturnType<typeof getCourseBySlug>
 }
 
 function verificationLabel(course: NonNullable<ReturnType<typeof getCourseBySlug>>): string {
-  if (course.verificationLevel === "OPERATOR_SOURCE_REVIEWED") return "Operator or facility source plus directory review";
+  if (course.verificationLevel === "OPERATOR_SOURCE_REVIEWED") return "Operator, facility, or public-agency source reviewed";
   if (course.verificationLevel === "DIRECTORY_CROSS_CHECKED") return "Two independent directory records matched";
   return "One current directory record; manual review still required";
 }

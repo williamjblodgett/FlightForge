@@ -84,6 +84,8 @@ export const statewideCourses: Course[] = records.map((record) => {
   const displayName = normalizedDisplayName(record.slug, record.name);
   return {
     id: `course-${record.slug}`,
+    facilityId: null,
+    recordType: "COURSE",
     slug: record.slug,
     name: displayName,
     shortDescription: authoritative
@@ -96,6 +98,7 @@ export const statewideCourses: Course[] = records.map((record) => {
     addressLine1: record.address_line_1,
     latitude: record.latitude,
     longitude: record.longitude,
+    locationPrecision: "DIRECTORY_APPROXIMATE",
     holeCount: record.hole_count ?? 0,
     layoutCount: 1,
     difficulty: "UNRATED",
@@ -110,6 +113,7 @@ export const statewideCourses: Course[] = records.map((record) => {
         ? "DIRECTORY_CROSS_CHECKED"
         : "SOURCE_REVIEW_REQUIRED",
     lastReviewedAt: authoritative ? overrideEntries.reviewed_at : record.source_checked_at,
+    nextReviewDueAt: null,
     sourceName: primarySource.name,
     sourceUrl: primarySource.url,
     sourceType: primarySource.type,

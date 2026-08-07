@@ -146,6 +146,8 @@ export const courses = pgTable(
   "courses",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    facilityId: text("facility_id"),
+    recordType: text("record_type").default("COURSE").notNull(),
     organizationId: uuid("organization_id").references(() => organizations.id),
     slug: text("slug").notNull(),
     name: text("name").notNull(),
@@ -158,6 +160,8 @@ export const courses = pgTable(
     difficulty: text("difficulty"),
     priceType: text("price_type").default("FREE").notNull(),
     isFictionalDemo: boolean("is_fictional_demo").default(false).notNull(),
+    nextReviewDueAt: timestamp("next_review_due_at", { withTimezone: true }),
+    archivedReason: text("archived_reason"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -233,6 +237,8 @@ export const courseSources = pgTable(
     externalId: text("external_id"),
     attribution: text("attribution"),
     lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
+    supportedFields: jsonb("supported_fields").$type<string[]>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
@@ -241,6 +247,26 @@ export const courseSources = pgTable(
       table.externalId,
     ),
     index("course_sources_course_idx").on(table.courseId),
+  ],
+);
+
+export const courseEvidence = pgTable(
+  "course_evidence",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    courseId: uuid("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id").notNull().references(() => courseSources.id, { onDelete: "cascade" }),
+    fieldCode: text("field_code").notNull(),
+    evidenceValue: text("evidence_value"),
+    checkedAt: timestamp("checked_at", { withTimezone: true }).notNull(),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
+    reviewStatus: text("review_status").default("APPROVED").notNull(),
+    reviewedBy: uuid("reviewed_by").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("course_evidence_course_source_field_unique").on(table.courseId, table.sourceId, table.fieldCode),
+    index("course_evidence_review_due_idx").on(table.reviewStatus, table.validUntil),
   ],
 );
 

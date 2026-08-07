@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Discover courses",
-  description: `Search ${brand.productName}'s source-attributed Maine launch course collection.`,
+  description: `Search ${brand.productName}'s source-attributed New England course collection.`,
   alternates: { canonical: "/courses" },
 };
 

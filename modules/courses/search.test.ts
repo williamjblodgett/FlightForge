@@ -29,4 +29,10 @@ describe("course search", () => {
     expect(sabattusIndex).toBeGreaterThanOrEqual(0);
     expect(singleDirectoryIndex).toBeGreaterThan(sabattusIndex);
   });
+
+  it("filters regional records by state and evidence class", () => {
+    const massachusetts = filterCourses(courses, { query: "", difficulty: "ALL", priceType: "ALL", minimumHoles: null, state: "MA", evidence: "AUTHORITATIVE" });
+    expect(massachusetts.length).toBeGreaterThan(0);
+    expect(massachusetts.every((course) => course.state === "MA" && course.verificationLevel === "OPERATOR_SOURCE_REVIEWED")).toBe(true);
+  });
 });

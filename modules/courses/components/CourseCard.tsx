@@ -41,13 +41,13 @@ export function CourseCard({ course, favorite, signedIn, selected, onSelect }: P
           {course.verifiedBadge ? (
             <span className="verified-badge"><BadgeCheck aria-hidden="true" /> Verified operator</span>
           ) : course.verificationLevel === "OPERATOR_SOURCE_REVIEWED" ? (
-            <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Operator source reviewed</span>
+            <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Primary source reviewed</span>
           ) : course.verificationLevel === "DIRECTORY_CROSS_CHECKED" ? (
             <span className="source-badge"><Database aria-hidden="true" /> 2 sources matched</span>
           ) : (
             <span className="source-badge"><Database aria-hidden="true" /> 1 directory source</span>
           )}
-          <span>{approximateMilesFromPortland(course.latitude, course.longitude)} mi from Portland</span>
+          <span>{locationPrecisionLabel(course.locationPrecision)}</span>
         </div>
 
         <div className={`evidence-status status-${course.operationalStatus.toLowerCase()}`}>
@@ -81,8 +81,8 @@ function friendlyDifficulty(value: Course["difficulty"]): string {
 
 function operationalLabel(course: Course): string {
   switch (course.operationalStatus) {
-    case "OPERATOR_CONFIRMED_AVAILABLE": return "Operator source reports available";
-    case "OPERATOR_CONFIRMED_SEASONAL": return "Seasonal · operator source reports available";
+    case "OPERATOR_CONFIRMED_AVAILABLE": return "Primary source reports available";
+    case "OPERATOR_CONFIRMED_SEASONAL": return "Seasonal · primary source reports available";
     case "AVAILABLE_REPORTED": return "Directory reports available";
     case "SEASONAL_AVAILABLE": return "Seasonal · directory reports available";
     case "UNAVAILABLE_REPORTED": return "Directory reports unavailable";
@@ -90,19 +90,9 @@ function operationalLabel(course: Course): string {
   }
 }
 
-function approximateMilesFromPortland(latitude: number, longitude: number): number {
-  const earthRadiusMiles = 3958.8;
-  const portland = { latitude: 43.6591, longitude: -70.2568 };
-  const latitudeDelta = radians(latitude - portland.latitude);
-  const longitudeDelta = radians(longitude - portland.longitude);
-  const a =
-    Math.sin(latitudeDelta / 2) ** 2 +
-    Math.cos(radians(portland.latitude)) *
-      Math.cos(radians(latitude)) *
-      Math.sin(longitudeDelta / 2) ** 2;
-  return Math.round(earthRadiusMiles * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-}
-
-function radians(value: number): number {
-  return (value * Math.PI) / 180;
+function locationPrecisionLabel(value: Course["locationPrecision"]): string {
+  if (value === "ENTRANCE_GEOCODED") return "Entrance located";
+  if (value === "FACILITY_GEOCODED") return "Facility located";
+  if (value === "FACILITY_APPROXIMATE") return "Approximate facility pin";
+  return "Directory-sourced pin";
 }

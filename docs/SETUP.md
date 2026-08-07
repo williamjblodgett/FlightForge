@@ -41,6 +41,8 @@ The administrator-only `/api/admin/system/supabase` endpoint reports whether the
 
 `npm run seed:validate` validates the small reviewed course import contract. `npm run seed:validate:statewide` validates all 120 statewide rows, unique slugs, coordinate bounds, source URLs, and open-status semantics. `npm run catalog:validate` validates the reviewed disc source ledger. `npm run db:validate` applies every D1 migration in memory and asserts the active event, bag, caddie tables, columns, and flags.
 
+`npm run seed:validate:regional` validates the five-state authoritative batch, primary-source restriction, location evidence, review deadlines, facility grouping, and duplicate identities.
+
 ## Required environment variables
 
 | Variable | Required | Purpose |

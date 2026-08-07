@@ -64,6 +64,8 @@ Private evidence bytes live in R2. Public course facts remain version-controlled
 
 `drizzle/0003_domain_foundation.sql` also establishes schema-ready tables for all remaining bounded domains. See [database coverage](DATABASE_COVERAGE.md). These tables are disabled foundations, not claims of live feature behavior.
 
+Course evidence now records facility identity, course-versus-layout type, location precision, source-supported fields, source validity, and the next review deadline. `course_evidence` provides field-level provenance in both D1 and PostgreSQL. See [New England data policy](NEW_ENGLAND_DATA_POLICY.md).
+
 ## Future repositories
 
 Booking, pricing, payments, groups, rounds, statistics, ratings, leagues, media analysis, learning, notifications, moderation, and commerce have D1 tables but do not yet have complete server repositories or provider integrations. Event publishing, bags, and the deterministic caddie are active; multimodal AI and external model providers remain separate disabled capabilities. The next activation should be cross-device booking/scoring with transaction-level authorization and integration tests.

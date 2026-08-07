@@ -5,6 +5,8 @@ export type CourseSearchFilters = {
   difficulty: CourseDifficulty | "ALL";
   priceType: CoursePriceType | "ALL";
   minimumHoles: number | null;
+  state?: string | "ALL";
+  evidence?: "ALL" | "AUTHORITATIVE" | "DIRECTORY";
 };
 
 export function filterCourses(
@@ -31,7 +33,12 @@ export function filterCourses(
       (!normalizedQuery || searchText.includes(normalizedQuery)) &&
       (filters.difficulty === "ALL" || course.difficulty === filters.difficulty) &&
       (filters.priceType === "ALL" || course.priceType === filters.priceType) &&
-      (filters.minimumHoles == null || course.holeCount >= filters.minimumHoles)
+      (filters.minimumHoles == null || course.holeCount >= filters.minimumHoles) &&
+      (!filters.state || filters.state === "ALL" || course.state === filters.state) &&
+      (!filters.evidence || filters.evidence === "ALL" ||
+        (filters.evidence === "AUTHORITATIVE"
+          ? course.verificationLevel === "OPERATOR_SOURCE_REVIEWED"
+          : course.verificationLevel !== "OPERATOR_SOURCE_REVIEWED"))
     );
   });
 }

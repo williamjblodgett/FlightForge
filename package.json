@@ -25,6 +25,7 @@
     "seed:postgres": "tsx packages/database/src/seed.ts",
     "seed:validate": "tsx scripts/validate-course-import.ts data/import/maine-courses.reviewed.json",
     "seed:validate:statewide": "vitest run modules/courses/statewide-courses.test.ts",
+    "seed:validate:regional": "tsx scripts/validate-regional-course-import.ts data/import/new-england-courses.authoritative.json",
     "catalog:validate": "tsx scripts/validate-disc-catalog.ts data/import/disc-catalog.reviewed.json"
   },
   "dependencies": {

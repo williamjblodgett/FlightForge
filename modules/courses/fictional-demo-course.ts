@@ -9,6 +9,8 @@ import type { Course } from "./types";
  */
 export const fictionalDemoCourse: Course = {
   id: "demo-course-forge-ridge",
+  facilityId: "facility-fictional-demo",
+  recordType: "COURSE",
   slug: "forge-ridge-fictional-demo",
   name: "Forge Ridge Disc Golf Club",
   shortDescription:
@@ -20,6 +22,7 @@ export const fictionalDemoCourse: Course = {
   addressLine1: null,
   latitude: 44.31,
   longitude: -69.77,
+  locationPrecision: "FACILITY_APPROXIMATE",
   holeCount: 18,
   layoutCount: 2,
   difficulty: "INTERMEDIATE",
@@ -30,6 +33,7 @@ export const fictionalDemoCourse: Course = {
   claimStatus: "VERIFIED",
   dataVerificationStatus: "FICTIONAL_DEMO",
   lastReviewedAt: "2026-08-04T00:00:00.000Z",
+  nextReviewDueAt: null,
   sourceName: "FlightForge fictional test fixture",
   sourceUrl: "https://example.invalid/flightforge/forge-ridge",
   sourceType: "COURSE_OWNER",
