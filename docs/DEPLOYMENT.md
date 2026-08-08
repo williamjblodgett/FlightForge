@@ -16,7 +16,7 @@ The workflow derives the project-site base path from `GITHUB_REPOSITORY`. Do not
 
 `.openai/hosting.json` declares logical `DB` and `MEDIA` bindings. Sites creates the physical D1 database and private R2 bucket, injects identity, saves immutable versions, and builds the Vinext Cloudflare Worker output.
 
-`sites-deploy.yml` now follows a successful `main` CI run. Configure the protected production secret `SITES_DEPLOY_HOOK_URL` and variable `SITES_PRODUCTION_URL`; without both, automation fails closed instead of pretending a deployment happened. Each health response exposes a non-secret release identifier.
+`sites-deploy.yml` now follows a successful `main` CI run. Configure the protected production secret `SITES_DEPLOY_HOOK_URL` and variable `SITES_PRODUCTION_URL`; until the hook is configured, the workflow reports that automation is paused and exits cleanly. Each health response exposes a non-secret release identifier. Set `RELEASE_ID` to the full Git commit SHA before saving a Sites version because Sites snapshots build-time environment values when the version is created.
 
 Before publishing:
 
