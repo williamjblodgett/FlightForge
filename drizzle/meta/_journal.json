@@ -57,6 +57,20 @@
       "when": 1786021154876,
       "tag": "0007_yellow_random",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786118400000,
+      "tag": "0008_course_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786204800000,
+      "tag": "0009_hole_highlight_videos",
+      "breakpoints": true
     }
   ]
 }

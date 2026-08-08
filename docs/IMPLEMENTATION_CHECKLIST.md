@@ -44,7 +44,9 @@
 - [x] Field-level evidence, location precision, and re-review dates
 - [x] D1 and PostgreSQL evidence migrations plus Supabase read policies
 - [x] Regional validation CLI and unit tests
-- [ ] Complete authoritative review of the remaining directory-discovered candidates
+- [x] Uniformly triage all 468 six-state directory candidates with source health and explicit publication outcomes
+- [x] Refresh and evidence-tier all 120 Maine records without inflating directory evidence into operator verification
+- [ ] Obtain primary owner or public-agency evidence for the 333 withheld expansion candidates
 - [ ] Add operator outreach and correction-case workflow after communication approval
 
 ## GitHub Pages interactive edition
@@ -92,6 +94,9 @@
 - [x] GPS rangefinder with accuracy radius, owner-coordinate workflow, and official satellite-view handoff
 
 - [ ] Complete public-workflow repository cutover from hosted D1 to Supabase PostgreSQL
+- [x] Initialize Supabase PostGIS/security foundation and seed the 135 reviewed public course records
+- [ ] Configure server-only Supabase credentials and transaction-pooler `DATABASE_URL`
+- [ ] Prove full D1/PostgreSQL repository parity, identity linking, backup, rollback, and cutover rehearsal
 - [ ] Public account creation and social OAuth outside Sites
 - [ ] Persist booking, group, round, and full import-review apply/rollback workflows across devices
 - [ ] Connect verified course inventory, email/push delivery, and operator calendars

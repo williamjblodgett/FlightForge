@@ -4,6 +4,7 @@ import { CheckCircle2, Database, ExternalLink, ShieldAlert } from "lucide-react"
 import statewideBatch from "@/data/import/maine-courses.statewide.json";
 import operatorReview from "@/data/import/maine-course-authoritative-overrides.json";
 import regionalBatch from "@/data/import/new-england-courses.authoritative.json";
+import evidenceAudit from "@/data/import/new-england-course-evidence-audit.json";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { can } from "@/modules/auth/permissions";
@@ -38,6 +39,21 @@ type RegionalRecord = {
   location_precision: string;
 };
 
+type EvidenceAudit = {
+  generated_at: string;
+  counts: {
+    total: number;
+    by_state: Record<string, number>;
+    primary_source_reviewed: number;
+    directory_cross_checked: number;
+    directory_single_source: number;
+    withheld_pending_primary_source: number;
+    cited_source_urls: number;
+    reachable_source_urls: number;
+    cited_source_urls_needing_recheck: number;
+  };
+};
+
 export default async function AdminImportsPage() {
   const user = await getCurrentUser();
   if (!user || !can(user, "viewAdmin")) {
@@ -64,9 +80,22 @@ export default async function AdminImportsPage() {
       return counts;
     }, {}),
   );
+  const audit = evidenceAudit as EvidenceAudit;
 
   return (
     <AdminShell active="imports">
+      <section>
+        <div className="admin-section-heading">
+          <div><span className="eyebrow">Uniform evidence audit</span><h2>All six-state candidates triaged</h2><p>Every refreshed directory candidate now has an explicit evidence and publication outcome. Primary-source gaps remain visible and withheld instead of being treated as open courses.</p></div>
+          <span className="import-health is-valid"><CheckCircle2 aria-hidden="true" />{audit.counts.total} candidates reviewed</span>
+        </div>
+        <div className="import-summary-grid">
+          <article><Database aria-hidden="true" /><span>Six-state snapshot</span><strong>{Object.entries(audit.counts.by_state).map(([state, count]) => `${state} ${count}`).join(" · ")}</strong><small>Refreshed {new Date(audit.generated_at).toLocaleDateString("en-US")}</small></article>
+          <article><span className="summary-number">{audit.counts.primary_source_reviewed}</span><span>Primary-source reviewed</span><strong>{audit.counts.directory_cross_checked + audit.counts.directory_single_source} Maine directory-only records</strong><small>Evidence tier remains visible on every listing</small></article>
+          <article><span className="summary-number">{audit.counts.withheld_pending_primary_source}</span><span>Expansion candidates withheld</span><strong>{audit.counts.reachable_source_urls}/{audit.counts.cited_source_urls} cited URLs responded</strong><small>{audit.counts.cited_source_urls_needing_recheck} primary citation needs manual recheck</small></article>
+        </div>
+        <div className="import-notes"><h3>Audit outcome</h3><ul><li>All 120 Maine records received the same refreshed directory review</li><li>Outside Maine, directory discovery alone never authorizes publication</li><li>Unmatched candidates are retained in the evidence ledger with a primary-source-required outcome</li><li>Normal availability evidence never becomes an “open now” guarantee</li></ul></div>
+      </section>
       <section>
         <div className="admin-section-heading">
           <div><span className="eyebrow">Regional release gate</span><h2>Authoritative New England launch set</h2><p>Only operator and public-agency records can enter the five-state expansion. Directory estimates remain an unpublished research queue.</p></div>

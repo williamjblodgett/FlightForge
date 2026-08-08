@@ -8,6 +8,20 @@
       "when": 1785775823767,
       "tag": "0000_shallow_adam_warlock",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786118400000,
+      "tag": "0001_course_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786204800000,
+      "tag": "0002_hole_highlight_videos",
+      "breakpoints": true
     }
   ]
 }

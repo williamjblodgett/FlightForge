@@ -1,6 +1,8 @@
 # Maine course research ledger
 
-Research was refreshed on August 3, 2026. The statewide import contains 120 current public-directory listings. Sixty-eight were independently matched to the PDGA directory using normalized name, city, and geographic proximity. Seventeen layouts were additionally reviewed against current course-operator or facility-owner pages.
+Research was refreshed uniformly on August 8, 2026. The statewide import contains 120 current public-directory listings. Sixty-eight remain independently matched to the PDGA directory using normalized name, city, and geographic proximity. Sixteen course records are additionally reviewed against current course-operator or facility-owner pages.
+
+The refresh produced no added or removed records and no changes to names, cities, coordinates, hole counts, availability classifications, access notes, cost notes, or PDGA matches. The uniform audit ledger is `data/import/new-england-course-evidence-audit.json`; it preserves the lower evidence tier for the other 104 Maine records rather than implying operator confirmation.
 
 ## Evidence policy
 
@@ -18,4 +20,4 @@ The import copies only factual fields needed for discovery: name, city, state, c
 
 ## Operational follow-up
 
-The ledger should be refreshed on a schedule, stale observations should be flagged, and claimed operators should be able to publish live conditions. A manual call/email review of every unclaimed private property is still required before FlightForge describes any directory-only listing as operator verified.
+The ledger should be refreshed on a schedule, stale observations should be flagged, and claimed operators should be able to publish live conditions. Manual operator outreach is still required before FlightForge describes any of the 104 directory-only listings as operator verified.

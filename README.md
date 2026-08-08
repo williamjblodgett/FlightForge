@@ -12,7 +12,7 @@ The server-backed application delivers a complete account-to-discovery-to-course
 - centralized roles and server-side authorization;
 - PostgreSQL/PostGIS production schema and migrations;
 - durable Sites D1/R2 adapter for the deployed first slice;
-- a 120-record Maine evidence ledger, operator-source overrides, and import contracts with duplicate detection;
+- a uniformly triaged 468-candidate New England evidence ledger, including all 120 Maine records, source-health checks, operator-source overrides, and conservative publication gates;
 - responsive course search and provider-neutral map/list views;
 - source-attributed course details and exact unclaimed notices;
 - persistent favorites;
@@ -118,6 +118,7 @@ Validate the reviewed seed or another JSON/CSV file:
 ```powershell
 npm run seed:validate
 npm run seed:validate:statewide
+npm run courses:audit:validate
 npm run catalog:validate
 npm run db:validate
 npx tsx scripts/validate-course-import.ts data/import/maine-courses.sample.csv
