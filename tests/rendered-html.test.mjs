@@ -80,6 +80,22 @@ test("keeps administrator claims protected", async () => {
   assert.match(html, /noindex|index:false/i);
 });
 
+test("renders the highlight-enabled scorecard and protects video uploads", async () => {
+  const scorecard = await render("/play");
+  assert.equal(scorecard.status, 200);
+  const html = await scorecard.text();
+  assert.match(html, /Scorecard &amp; moments/u);
+  assert.match(html, /Share moment/u);
+  assert.match(html, /Public videos are reviewed/u);
+
+  const form = new FormData();
+  form.set("courseId", "flightforge-demo-course");
+  form.set("eventId", "flightforge-demo-event");
+  form.set("holeNumber", "1");
+  const upload = await fetch(`${baseUrl}/api/hole-highlights`, { method: "POST", headers: { origin: baseUrl }, body: form });
+  assert.equal(upload.status, 401);
+});
+
 test("creates a free player account and persists first-run privacy settings", async () => {
   const email = `player-${Date.now()}@example.test`;
   const signup = await fetch(`${baseUrl}/api/auth/signup`, {

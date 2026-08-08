@@ -270,6 +270,41 @@ export const courseEvidence = pgTable(
   ],
 );
 
+export const holeHighlightVideos = pgTable(
+  "hole_highlight_videos",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    courseId: text("course_id").notNull(),
+    eventId: text("event_id").notNull(),
+    holeNumber: integer("hole_number").notNull(),
+    uploaderUserId: uuid("uploader_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    uploaderDisplayName: text("uploader_display_name").notNull(),
+    storageKey: text("storage_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    durationMs: integer("duration_ms").notNull(),
+    caption: text("caption").default("").notNull(),
+    moderationStatus: text("moderation_status").default("PENDING").notNull(),
+    moderationReason: text("moderation_reason"),
+    moderatedBy: uuid("moderated_by").references(() => users.id),
+    moderatedAt: timestamp("moderated_at", { withTimezone: true }),
+    rightsConfirmed: boolean("rights_confirmed").notNull(),
+    participantConsentConfirmed: boolean("participant_consent_confirmed").notNull(),
+    minorPresent: boolean("minor_present").default(false).notNull(),
+    guardianConsentConfirmed: boolean("guardian_consent_confirmed").default(false).notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("hole_highlight_videos_idempotency_unique").on(table.idempotencyKey),
+    index("hole_highlight_videos_scorecard_idx").on(table.courseId, table.eventId, table.holeNumber, table.moderationStatus),
+    index("hole_highlight_videos_moderation_idx").on(table.moderationStatus, table.createdAt),
+    index("hole_highlight_videos_uploader_idx").on(table.uploaderUserId, table.createdAt),
+  ],
+);
+
 export const favoriteCourses = pgTable(
   "favorite_courses",
   {

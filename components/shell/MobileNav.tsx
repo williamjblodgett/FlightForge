@@ -8,7 +8,7 @@ export async function MobileNav() {
     <nav className="mobile-nav" aria-label="Mobile navigation">
       <Link href="/"><Home aria-hidden="true" /><span>Home</span></Link>
       <Link href="/courses"><Compass aria-hidden="true" /><span>Explore</span></Link>
-      <Link className="mobile-play" href="/coach">
+      <Link className="mobile-play" href="/play">
         <span className="mobile-play-icon"><Play aria-hidden="true" /></span>
         <span>Play</span>
       </Link>

@@ -66,6 +66,8 @@ Private evidence bytes live in R2. Public course facts remain version-controlled
 
 Course evidence now records facility identity, course-versus-layout type, location precision, source-supported fields, source validity, and the next review deadline. `course_evidence` provides field-level provenance in both D1 and PostgreSQL. See [New England data policy](NEW_ENGLAND_DATA_POLICY.md).
 
+`hole_highlight_videos` connects a private video object to a course, event, and hole. It stores uploader attribution, duration, consent assertions, moderation state, an idempotency key, timestamps, and soft-deletion state. Video bytes remain in private object storage rather than the relational database. See [Hole highlight videos](HOLE_HIGHLIGHTS.md).
+
 ## Future repositories
 
 Booking, pricing, payments, groups, rounds, statistics, ratings, leagues, media analysis, learning, notifications, moderation, and commerce have D1 tables but do not yet have complete server repositories or provider integrations. Event publishing, bags, and the deterministic caddie are active; multimodal AI and external model providers remain separate disabled capabilities. The next activation should be cross-device booking/scoring with transaction-level authorization and integration tests.

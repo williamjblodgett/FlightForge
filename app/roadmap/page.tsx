@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Product roadmap" };
 const slices = [
   { id: "discover", icon: MapPinned, title: "Discovery & trust", status: "Available now", body: "Source-attributed course search, responsive map/list views, saved courses, operator claims, and administrator review." },
   { id: "booking", icon: CalendarDays, title: "Availability & booking", status: "Next slice", body: "Capacity-safe tee times, quote locking, free and paid reservations, group invitations, waitlists, and owner calendars." },
-  { id: "play", icon: Play, title: "Rounds & offline scoring", status: "Planned", body: "Mobile score entry, local-first round events, conflict-safe synchronization, throw history, and player statistics." },
+  { id: "play", icon: Play, title: "Rounds & hole highlights", status: "Scorecard preview live", body: "Mobile score entry now includes private, moderated video moments attached to specific event holes. Cross-device synchronization and complete statistics remain next." },
   { id: "events", icon: Trophy, title: "Tournaments", status: "Planned", body: "Registration, divisions, cards, starts, live standings, announcements, waitlists, and results." },
   { id: "leagues", icon: Users, title: "Regional leagues", status: "Planned", body: "Multi-course seasons, points, handicaps, drop weeks, attendance, schedules, and member communication." },
   { id: "bag", icon: Disc3, title: "Digital bag", status: "Planned", body: "Disc inventory, duplicate molds, stability gaps, course-specific bags, and equipment-aware recommendations." },

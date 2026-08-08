@@ -19,6 +19,7 @@ The server-backed application delivers a complete account-to-discovery-to-course
 - private course-claim evidence upload;
 - administrator claim and import review;
 - coordinator-owned event drafts, audited publication controls, a live public event board, and event detail pages;
+- moderated hole-by-hole community video uploads embedded in an active scorecard;
 - persistent per-user physical disc collections backed by a reviewed, source-attributed, versioned catalog;
 - an explainable owned-disc caddie with physical-disc adjustments, calibrated confidence, representative throw feedback, and private learning profiles;
 - unit, rendered integration, type, lint, and production-build validation.

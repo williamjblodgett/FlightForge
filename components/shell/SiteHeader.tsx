@@ -7,7 +7,7 @@ import { can } from "@/modules/auth/permissions";
 
 const primaryNavigation = [
   { label: "Discover", href: "/courses" },
-  { label: "Play", href: "/roadmap#play" },
+  { label: "Play", href: "/play" },
   { label: "Events", href: "/events" },
   { label: "Leagues", href: "/roadmap#leagues" },
   { label: "Learn", href: "/roadmap#learn" },
@@ -65,6 +65,7 @@ export async function SiteHeader() {
                 <Link href="/favorites">Saved courses</Link>
                 <Link href="/bag">My disc bag</Link>
                 <Link href="/coach">Camera coach</Link>
+                <Link href="/play">Live scorecard</Link>
                 {can(user, "manageEvents") ? <Link href="/events/manage">Manage events</Link> : null}
                 {can(user, "viewAdmin") ? <Link href="/admin/claims">Admin review</Link> : null}
                 <SignOutButton source={user.source} />

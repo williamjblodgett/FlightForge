@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { BarChart3, Database, Flag, ShieldCheck, SlidersHorizontal, Users } from "lucide-react";
+import { BarChart3, Database, Film, Flag, ShieldCheck, SlidersHorizontal, Users } from "lucide-react";
 import { brand } from "@/config/brand";
 
 type Props = {
-  active: "claims" | "imports";
+  active: "claims" | "imports" | "highlights";
   children: React.ReactNode;
 };
 
 const adminLinks = [
   { key: "claims", label: "Claim review", href: "/admin/claims", icon: ShieldCheck },
   { key: "imports", label: "Import review", href: "/admin/imports", icon: Database },
+  { key: "highlights", label: "Hole videos", href: "/admin/highlights", icon: Film },
 ] as const;
 
 export function AdminShell({ active, children }: Props) {
@@ -27,7 +28,7 @@ export function AdminShell({ active, children }: Props) {
               return <Link key={item.key} className={active === item.key ? "is-active" : ""} href={item.href}><Icon aria-hidden="true" />{item.label}</Link>;
             })}
             <span aria-disabled="true"><Users aria-hidden="true" />User management <small>Later</small></span>
-            <span aria-disabled="true"><Flag aria-hidden="true" />Moderation <small>Later</small></span>
+            <span aria-disabled="true"><Flag aria-hidden="true" />Reports <small>Later</small></span>
             <span aria-disabled="true"><SlidersHorizontal aria-hidden="true" />Feature flags <small>Later</small></span>
             <span aria-disabled="true"><BarChart3 aria-hidden="true" />Analytics <small>Later</small></span>
           </nav>

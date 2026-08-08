@@ -595,6 +595,41 @@ export const mediaUploads = sqliteTable(
   (table) => [index("media_uploads_user_created_idx").on(table.userId, table.createdAt), index("media_uploads_expiry_idx").on(table.status, table.expiresAt)],
 );
 
+export const holeHighlightVideos = sqliteTable(
+  "hole_highlight_videos",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id").notNull(),
+    eventId: text("event_id").notNull(),
+    holeNumber: integer("hole_number").notNull(),
+    uploaderUserId: text("uploader_user_id").notNull(),
+    uploaderDisplayName: text("uploader_display_name").notNull(),
+    storageKey: text("storage_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    durationMs: integer("duration_ms").notNull(),
+    caption: text("caption").default("").notNull(),
+    moderationStatus: text("moderation_status").default("PENDING").notNull(),
+    moderationReason: text("moderation_reason"),
+    moderatedBy: text("moderated_by"),
+    moderatedAt: text("moderated_at"),
+    rightsConfirmed: integer("rights_confirmed", { mode: "boolean" }).notNull(),
+    participantConsentConfirmed: integer("participant_consent_confirmed", { mode: "boolean" }).notNull(),
+    minorPresent: integer("minor_present", { mode: "boolean" }).default(false).notNull(),
+    guardianConsentConfirmed: integer("guardian_consent_confirmed", { mode: "boolean" }).default(false).notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    deletedAt: text("deleted_at"),
+  },
+  (table) => [
+    uniqueIndex("hole_highlight_videos_idempotency_unique").on(table.idempotencyKey),
+    index("hole_highlight_videos_scorecard_idx").on(table.courseId, table.eventId, table.holeNumber, table.moderationStatus),
+    index("hole_highlight_videos_moderation_idx").on(table.moderationStatus, table.createdAt),
+    index("hole_highlight_videos_uploader_idx").on(table.uploaderUserId, table.createdAt),
+  ],
+);
+
 export const courseEvidence = sqliteTable(
   "course_evidence",
   {

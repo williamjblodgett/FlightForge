@@ -3549,6 +3549,129 @@ td a svg {
   }
 }
 
+/* Active round scorecard and moderated hole videos. */
+.play-page { padding-block: 46px 118px; }
+.live-round-shell { max-width: 1220px; margin-inline: auto; }
+.round-command-bar { display: flex; justify-content: space-between; gap: 30px; align-items: flex-end; margin-bottom: 28px; }
+.round-command-bar h1 { margin: 8px 0 4px; font-size: clamp(2.7rem, 6vw, 5.5rem); letter-spacing: -.055em; }
+.round-command-bar p { margin: 0; color: var(--ink-muted); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ee6426; box-shadow: 0 0 0 5px rgb(238 100 38 / 15%); }
+.round-total { display: grid; min-width: 118px; padding: 14px 20px; border: 1px solid var(--module-border); background: #071f39; color: white; text-align: right; }
+.round-total small { color: #c7d5dd; font: 750 .68rem var(--font-geist-mono), monospace; text-transform: uppercase; }
+.round-total strong { color: #ffb27a; font: 900 2.15rem var(--font-geist-mono), monospace; }
+.round-message { display: flex; gap: 9px; align-items: center; margin-bottom: 18px; padding: 13px 16px; border: 1px solid #79a78a; background: #e8f3e9; font-size: .82rem; }
+.round-message svg { width: 18px; }
+.current-hole-card { display: grid; grid-template-columns: 210px minmax(0, 1fr); border: 1px solid var(--module-border); background: var(--surface); box-shadow: 11px 11px 0 #ff7a1a; }
+.hole-number-block { display: grid; align-content: center; justify-items: center; padding: 32px 22px; background: #071f39; color: white; }
+.hole-number-block span { color: #a9bdc9; font: 800 .69rem var(--font-geist-mono), monospace; letter-spacing: .13em; text-transform: uppercase; }
+.hole-number-block strong { color: #ffb27a; font: 900 clamp(4.5rem, 9vw, 7.5rem) var(--font-geist-mono), monospace; line-height: .95; }
+.hole-number-block small { margin-top: 15px; color: #d9e2e7; }
+.hole-play-panel { padding: 28px 32px; }
+.hole-title-row { display: flex; justify-content: space-between; gap: 22px; align-items: flex-start; }
+.hole-title-row h2 { margin: 7px 0 0; font-size: clamp(1.8rem, 4vw, 3.4rem); }
+.highlight-camera { display: grid; min-width: 112px; min-height: 76px; place-items: center; gap: 3px; border: 1px solid var(--border-strong); background: #eef2e9; color: var(--forest-strong); cursor: pointer; }
+.highlight-camera svg { width: 24px; }
+.highlight-camera span { font-size: .7rem; font-weight: 800; }
+.score-stepper { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 26px; }
+.score-stepper button { display: grid; min-height: 72px; place-items: center; border: 1px solid var(--border-strong); background: var(--surface-soft); cursor: pointer; }
+.score-stepper button.is-selected { outline: 3px solid #ff7a1a; background: #fff3e8; }
+.score-stepper strong { font: 900 1.45rem var(--font-geist-mono), monospace; }
+.score-stepper span { color: var(--ink-muted); font-size: .68rem; }
+.hole-navigation { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: 22px; padding-top: 17px; border-top: 1px solid var(--border); }
+.hole-navigation button { display: inline-flex; gap: 4px; align-items: center; border: 0; background: transparent; color: var(--forest-strong); font-weight: 800; cursor: pointer; }
+.hole-navigation button:disabled { opacity: .35; cursor: not-allowed; }
+.hole-navigation svg { width: 17px; }
+.hole-navigation span { color: var(--ink-muted); font-size: .72rem; }
+.scorecard-panel { margin-top: 38px; border: 1px solid var(--module-border); background: var(--surface); }
+.panel-title h2 { margin: 5px 0 0; font-size: 1.7rem; }
+.moderation-key { display: inline-flex; gap: 7px; align-items: center; color: var(--ink-muted); font-size: .72rem; }
+.moderation-key svg { width: 17px; color: var(--forest); }
+.hole-score-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.hole-score-grid article { min-width: 0; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.hole-score-grid article:nth-child(6n) { border-right: 0; }
+.hole-score-grid article.is-current { box-shadow: inset 0 0 0 3px #ff7a1a; }
+.score-hole-main { display: grid; grid-template-columns: 1fr auto; width: 100%; min-height: 86px; padding: 14px; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.score-hole-main > span { font: 900 1.35rem var(--font-geist-mono), monospace; }
+.score-hole-main small { color: var(--ink-muted); }
+.score-hole-main strong { grid-column: 1 / -1; align-self: end; font: 900 1.6rem var(--font-geist-mono), monospace; }
+.hole-moment-actions { display: flex; border-top: 1px solid var(--border); }
+.hole-moment-actions button { display: flex; min-height: 37px; flex: 1; align-items: center; justify-content: center; border: 0; background: #f2efe6; cursor: pointer; }
+.hole-moment-actions button + button { border-left: 1px solid var(--border); }
+.hole-moment-actions svg { width: 16px; }
+.video-count { position: relative; gap: 5px; color: #b74720; font-weight: 900; }
+.video-count i { position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: #ef9d24; }
+.modal-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 20px; background: rgb(4 20 32 / 78%); }
+.highlight-modal { position: relative; width: min(620px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 32px; border: 2px solid #071f39; background: #fffdf5; box-shadow: 12px 12px 0 #ff7a1a; }
+.highlight-modal h2 { margin: 8px 38px 22px 0; font-size: clamp(1.9rem, 5vw, 3.1rem); }
+.modal-close { position: absolute; top: 17px; right: 17px; display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--border-strong); background: white; cursor: pointer; }
+.modal-close svg { width: 19px; }
+.highlight-modal form, .highlight-modal form > label:not(.consent-check) { display: grid; gap: 8px; }
+.highlight-modal form { gap: 15px; }
+.highlight-modal textarea { width: 100%; padding: 11px; border: 1px solid var(--border-strong); resize: vertical; }
+.video-drop { position: relative; place-items: center; padding: 25px; border: 1px dashed var(--forest); background: #edf3e9; text-align: center; cursor: pointer; }
+.video-drop svg { width: 30px; color: var(--forest); }
+.video-drop span { color: var(--ink-muted); font-size: .7rem; }
+.video-drop input { width: 100%; padding: 8px; border: 1px solid var(--border); background: white; }
+.consent-check { display: grid; grid-template-columns: 19px minmax(0, 1fr); gap: 9px; align-items: start; font-size: .76rem; line-height: 1.45; }
+.consent-check input { width: 17px; height: 17px; accent-color: var(--forest); }
+.upload-safety-note { display: flex; gap: 9px; margin: 2px 0; padding: 13px; border: 1px solid var(--border); background: var(--surface-soft); color: var(--ink-muted); font-size: .7rem; line-height: 1.45; }
+.upload-safety-note svg { width: 20px; flex: none; color: var(--forest); }
+.highlight-modal .button svg { width: 17px; }
+.sign-in-gate { display: grid; justify-items: start; padding: 20px; border: 1px solid var(--border-strong); background: var(--surface-soft); }
+.sign-in-gate > svg { width: 30px; color: var(--forest); }
+.highlight-modal.viewer { background: #071f39; color: white; box-shadow: 12px 12px 0 #9bd53f; }
+.highlight-modal.viewer .modal-close { background: #071f39; color: white; border-color: #758d9b; }
+.highlight-modal.viewer .eyebrow { color: #ffb27a; }
+.highlight-modal.viewer video { width: 100%; max-height: 55vh; background: black; }
+.video-attribution { display: grid; grid-template-columns: auto 1fr; gap: 7px 10px; align-items: center; margin-top: 15px; color: #cfdae0; font-size: .75rem; }
+.video-attribution svg { width: 17px; }
+.video-attribution b { grid-column: 2; color: #9bd53f; font-size: .68rem; }
+.highlight-review-list { display: grid; gap: 16px; }
+.highlight-review-list article { display: grid; grid-template-columns: 220px minmax(0, 1fr) auto; gap: 20px; align-items: center; padding: 18px; border: 1px solid var(--module-border); background: var(--surface); }
+.highlight-review-list video { width: 100%; max-height: 145px; background: black; }
+.highlight-review-list h3 { margin: 8px 0 4px; }
+.highlight-review-list p { margin: 0 0 8px; color: var(--ink-muted); }
+.highlight-review-list small { color: var(--ink-muted); }
+.highlight-review-actions { display: grid; gap: 7px; }
+.highlight-review-actions button { display: inline-flex; gap: 6px; align-items: center; padding: 9px 11px; border: 1px solid var(--border-strong); background: var(--surface-soft); font-weight: 800; cursor: pointer; }
+.highlight-review-actions button:last-child { color: var(--danger); }
+.highlight-review-actions svg { width: 17px; }
+.moderation-footer { display: flex; gap: 8px; align-items: center; color: var(--ink-muted); font-size: .72rem; }
+.moderation-footer svg { width: 17px; }
+.spin { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 800px) {
+  .play-page { padding: 34px 15px 108px; }
+  .round-command-bar { align-items: flex-start; }
+  .current-hole-card { grid-template-columns: 1fr; box-shadow: 7px 7px 0 #ff7a1a; }
+  .hole-number-block { grid-template-columns: auto auto 1fr; gap: 11px; justify-items: start; align-items: baseline; padding: 17px 20px; }
+  .hole-number-block strong { font-size: 2.7rem; }
+  .hole-number-block small { margin: 0 0 0 auto; }
+  .hole-play-panel { padding: 23px 19px; }
+  .hole-score-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hole-score-grid article:nth-child(6n) { border-right: 1px solid var(--border); }
+  .hole-score-grid article:nth-child(3n) { border-right: 0; }
+  .highlight-review-list article { grid-template-columns: 160px minmax(0, 1fr); }
+  .highlight-review-actions { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 520px) {
+  .round-command-bar { align-items: stretch; flex-direction: column; }
+  .round-total { min-width: 0; grid-template-columns: 1fr auto; align-items: center; text-align: left; }
+  .hole-title-row { align-items: stretch; flex-direction: column; }
+  .highlight-camera { min-height: 54px; grid-template-columns: auto auto; justify-content: center; }
+  .score-stepper { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hole-navigation > span { display: none; }
+  .panel-title { align-items: flex-start; flex-direction: column; }
+  .hole-score-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hole-score-grid article:nth-child(3n) { border-right: 1px solid var(--border); }
+  .hole-score-grid article:nth-child(2n) { border-right: 0; }
+  .highlight-modal { padding: 25px 18px; box-shadow: 7px 7px 0 #ff7a1a; }
+  .highlight-review-list article { grid-template-columns: 1fr; }
+  .highlight-review-actions { grid-column: auto; }
+}
+
 .regional-state-strip {
   display: flex;
   align-items: center;
