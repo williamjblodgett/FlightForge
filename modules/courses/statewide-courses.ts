@@ -82,6 +82,8 @@ export const statewideCourses: Course[] = records.map((record) => {
 
   const primarySource = sources[0];
   const displayName = normalizedDisplayName(record.slug, record.name);
+  const reviewedAt = authoritative ? overrideEntries.reviewed_at : record.source_checked_at;
+  const nextReviewDueAt = addDays(reviewedAt, authoritative ? 120 : 90);
   return {
     id: `course-${record.slug}`,
     facilityId: null,
@@ -112,12 +114,13 @@ export const statewideCourses: Course[] = records.map((record) => {
       : record.verification_level === "DIRECTORY_CROSS_CHECKED"
         ? "DIRECTORY_CROSS_CHECKED"
         : "SOURCE_REVIEW_REQUIRED",
-    lastReviewedAt: authoritative ? overrideEntries.reviewed_at : record.source_checked_at,
-    nextReviewDueAt: null,
+    lastReviewedAt: reviewedAt,
+    nextReviewDueAt,
+    evidenceStatus: evidenceStatus(nextReviewDueAt),
     sourceName: primarySource.name,
     sourceUrl: primarySource.url,
     sourceType: primarySource.type,
-    sources,
+    sources: sources.map((source) => ({ ...source, validUntil: nextReviewDueAt })),
     operationalStatus: authoritative?.operational_status ?? record.operational_status,
     availabilityType: record.availability_type,
     verificationLevel: authoritative ? "OPERATOR_SOURCE_REVIEWED" : record.verification_level,
@@ -131,6 +134,9 @@ export const statewideCourses: Course[] = records.map((record) => {
     heroTone: heroTones[stableIndex(record.slug, heroTones.length)],
   };
 });
+
+function addDays(value: string, days: number) { const date = new Date(value); date.setUTCDate(date.getUTCDate() + days); return date.toISOString(); }
+function evidenceStatus(dueAt: string): "CURRENT" | "REVIEW_DUE" | "STALE" { const days = (new Date(dueAt).getTime() - Date.now()) / 86_400_000; return days < 0 ? "STALE" : days <= 30 ? "REVIEW_DUE" : "CURRENT"; }
 
 function normalizedDisplayName(slug: string, fallback: string): string {
   if (slug === "devils-grove-disc-golf-devil") return "Devil’s Grove — Devil Course";

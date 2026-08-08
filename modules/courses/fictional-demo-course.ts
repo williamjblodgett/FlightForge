@@ -34,6 +34,7 @@ export const fictionalDemoCourse: Course = {
   dataVerificationStatus: "FICTIONAL_DEMO",
   lastReviewedAt: "2026-08-04T00:00:00.000Z",
   nextReviewDueAt: null,
+  evidenceStatus: "CURRENT",
   sourceName: "FlightForge fictional test fixture",
   sourceUrl: "https://example.invalid/flightforge/forge-ridge",
   sourceType: "COURSE_OWNER",

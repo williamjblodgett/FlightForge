@@ -3,6 +3,7 @@ import { ensurePersistedUserId } from "@/modules/auth/account-repository";
 import type { AuthenticatedUser } from "@/modules/auth/types";
 import type { EventEditorInput, EventStatusAction } from "./validation";
 import type { EventRecord, EventStatus } from "./types";
+import { jPhillipsTestAccount } from "@/modules/auth/test-account";
 
 type EventRow = Omit<EventRecord, "divisions"> & { divisionsJson: string };
 
@@ -27,6 +28,7 @@ const schemaStatements = [
     id TEXT PRIMARY KEY, slug TEXT NOT NULL, organizer_user_id TEXT NOT NULL,
     organizer_email TEXT NOT NULL, organization_name TEXT NOT NULL, event_type TEXT NOT NULL,
     title TEXT NOT NULL, summary TEXT NOT NULL, description TEXT NOT NULL, course_id TEXT,
+    layout_id TEXT, hole_count INTEGER NOT NULL DEFAULT 18, time_zone TEXT NOT NULL DEFAULT 'America/New_York',
     venue_name TEXT NOT NULL, address_line_1 TEXT, city TEXT NOT NULL, region_code TEXT NOT NULL,
     country_code TEXT NOT NULL DEFAULT 'US', starts_at TEXT NOT NULL, ends_at TEXT NOT NULL,
     registration_opens_at TEXT, registration_closes_at TEXT, registration_url TEXT,
@@ -47,13 +49,16 @@ const schemaStatements = [
     metadata_json TEXT, created_at TEXT NOT NULL
   )`,
   `CREATE INDEX IF NOT EXISTS event_audit_event_created_idx ON event_audit_events(event_id, created_at)`,
+  `CREATE TABLE IF NOT EXISTS event_participants (
+    id TEXT PRIMARY KEY, event_id TEXT NOT NULL, user_id TEXT NOT NULL, course_id TEXT NOT NULL,
+    layout_id TEXT, status TEXT NOT NULL DEFAULT 'REGISTERED', created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS event_participants_event_user_unique ON event_participants(event_id, user_id)`,
 ] as const;
 
 export async function ensureEventSchema(): Promise<void> {
   if (!schemaInitialization) {
-    schemaInitialization = getD1Database()
-      .batch(schemaStatements.map((statement) => getD1Database().prepare(statement)))
-      .then(() => undefined)
+    schemaInitialization = initializeEventSchema()
       .catch((error: unknown) => {
         schemaInitialization = null;
         throw error;
@@ -150,15 +155,15 @@ export async function createEvent(
     database.prepare(
       `INSERT INTO events (
         id, slug, organizer_user_id, organizer_email, organization_name, event_type,
-        title, summary, description, course_id, venue_name, address_line_1, city,
+        title, summary, description, course_id, layout_id, hole_count, time_zone, venue_name, address_line_1, city,
         region_code, country_code, starts_at, ends_at, registration_opens_at,
         registration_closes_at, registration_url, contact_email, capacity,
         entry_fee_cents, currency, format, divisions_json, accessibility_notes,
         status, visibility, published_at, idempotency_key, created_at, updated_at, version
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
     ).bind(
       id, slug, organizerUserId, user.email.toLowerCase(), input.organizationName, input.eventType,
-      input.title, input.summary, input.description, input.courseId, input.venueName,
+      input.title, input.summary, input.description, input.courseId, input.layoutId, input.holeCount, input.timeZone, input.venueName,
       input.addressLine1, input.city, input.regionCode, input.countryCode, input.startsAt,
       input.endsAt, input.registrationOpensAt, input.registrationClosesAt, input.registrationUrl,
       input.contactEmail, input.capacity, input.entryFeeCents, input.currency, input.format,
@@ -189,7 +194,7 @@ export async function updateEvent(
   const results = await database.batch([
     database.prepare(
     `UPDATE events SET organization_name = ?, event_type = ?, title = ?, summary = ?,
-      description = ?, course_id = ?, venue_name = ?, address_line_1 = ?, city = ?,
+      description = ?, course_id = ?, layout_id = ?, hole_count = ?, time_zone = ?, venue_name = ?, address_line_1 = ?, city = ?,
       region_code = ?, country_code = ?, starts_at = ?, ends_at = ?, registration_opens_at = ?,
       registration_closes_at = ?, registration_url = ?, contact_email = ?, capacity = ?,
       entry_fee_cents = ?, currency = ?, format = ?, divisions_json = ?, accessibility_notes = ?,
@@ -198,7 +203,7 @@ export async function updateEvent(
      WHERE id = ? AND version = ? AND deleted_at IS NULL`,
     ).bind(
     input.organizationName, input.eventType, input.title, input.summary, input.description,
-    input.courseId, input.venueName, input.addressLine1, input.city, input.regionCode,
+    input.courseId, input.layoutId, input.holeCount, input.timeZone, input.venueName, input.addressLine1, input.city, input.regionCode,
     input.countryCode, input.startsAt, input.endsAt, input.registrationOpensAt,
     input.registrationClosesAt, input.registrationUrl, input.contactEmail, input.capacity,
     input.entryFeeCents, input.currency, input.format, JSON.stringify(input.divisions),
@@ -254,6 +259,7 @@ export async function changeEventStatus(
 const eventSelect = `SELECT id, slug, organizer_user_id AS organizerUserId,
   organizer_email AS organizerEmail, organization_name AS organizationName,
   event_type AS eventType, title, summary, description, course_id AS courseId,
+  layout_id AS layoutId, hole_count AS holeCount, time_zone AS timeZone,
   venue_name AS venueName, address_line_1 AS addressLine1, city,
   region_code AS regionCode, country_code AS countryCode, starts_at AS startsAt,
   ends_at AS endsAt, registration_opens_at AS registrationOpensAt,
@@ -266,6 +272,86 @@ const eventSelect = `SELECT id, slug, organizer_user_id AS organizerUserId,
 
 function eventFromRow(row: EventRow): EventRecord {
   return { ...row, divisions: safeStringArray(row.divisionsJson) };
+}
+
+async function initializeEventSchema(): Promise<void> {
+  const database = getD1Database();
+  await database.batch(schemaStatements.map((statement) => database.prepare(statement)));
+  const columns = await database.prepare("PRAGMA table_info(events)").all<{ name: string }>();
+  const names = new Set(columns.results.map((column) => column.name));
+  const additions: D1PreparedStatement[] = [];
+  if (!names.has("layout_id")) additions.push(database.prepare("ALTER TABLE events ADD COLUMN layout_id TEXT"));
+  if (!names.has("hole_count")) additions.push(database.prepare("ALTER TABLE events ADD COLUMN hole_count INTEGER NOT NULL DEFAULT 18"));
+  if (!names.has("time_zone")) additions.push(database.prepare("ALTER TABLE events ADD COLUMN time_zone TEXT NOT NULL DEFAULT 'America/New_York'"));
+  if (additions.length) await database.batch(additions);
+  await seedFictionalEvent();
+}
+
+export async function resolveEventHighlightContext(input: {
+  eventId: string;
+  courseId: string;
+  holeNumber: number;
+  user: AuthenticatedUser;
+}): Promise<{ layoutId: string | null; participantId: string | null; event: EventRecord }> {
+  await ensureEventSchema();
+  const row = await getD1Database().prepare(
+    `${eventSelect} WHERE id = ? AND course_id = ? AND status = 'PUBLISHED' AND deleted_at IS NULL LIMIT 1`,
+  ).bind(input.eventId, input.courseId).first<EventRow>();
+  if (!row) throw new EventAccessError();
+  const event = eventFromRow(row);
+  if (input.holeNumber < 1 || input.holeNumber > event.holeCount) throw new EventAccessError();
+  const userId = await ensurePersistedUserId(input.user);
+  if (event.organizerUserId === userId || input.user.roles.includes("PLATFORM_ADMIN")) {
+    return { layoutId: event.layoutId, participantId: null, event };
+  }
+  const participant = await getD1Database().prepare(
+    `SELECT id FROM event_participants
+     WHERE event_id = ? AND user_id = ? AND course_id = ? AND status IN ('REGISTERED', 'CHECKED_IN', 'ACTIVE') LIMIT 1`,
+  ).bind(event.id, userId, event.courseId).first<{ id: string }>();
+  if (!participant) throw new EventAccessError();
+  return { layoutId: event.layoutId, participantId: participant.id, event };
+}
+
+export async function getPublishedEventById(id: string): Promise<EventRecord | null> {
+  await ensureEventSchema();
+  const row = await getD1Database().prepare(
+    `${eventSelect} WHERE id = ? AND status = 'PUBLISHED' AND visibility IN ('PUBLIC', 'UNLISTED') AND deleted_at IS NULL LIMIT 1`,
+  ).bind(id).first<EventRow>();
+  return row ? eventFromRow(row) : null;
+}
+
+async function seedFictionalEvent(): Promise<void> {
+  const database = getD1Database();
+  const createdAt = "2026-08-08T00:00:00.000Z";
+  await database.batch([
+    database.prepare(
+      `INSERT OR IGNORE INTO events
+        (id, slug, organizer_user_id, organizer_email, organization_name, event_type, title, summary,
+         description, course_id, layout_id, hole_count, time_zone, venue_name, city, region_code, country_code,
+         starts_at, ends_at, contact_email, entry_fee_cents, currency, format, divisions_json,
+         status, visibility, published_at, created_at, updated_at, version)
+       VALUES ('flightforge-demo-event', 'pine-state-open-demo', 'flightforge-system', 'demo@flightforge.invalid',
+         'FlightForge fictional demonstration', 'TOURNAMENT', 'Pine State Open · Round 1',
+         'A clearly labeled fictional event used to demonstrate scoring and moderated hole videos.',
+         'This fictional event is not a real tournament and does not accept registration or payment.',
+         'demo-course-forge-ridge', 'flightforge-demo-layout', 18, 'America/New_York',
+         'FlightForge demonstration course', 'Augusta', 'ME', 'US', '2099-08-08T13:00:00.000Z',
+         '2099-08-08T21:00:00.000Z', 'demo@flightforge.invalid', 0, 'USD', 'One demonstration round',
+         '["Demonstration"]', 'PUBLISHED', 'PUBLIC', ?, ?, ?, 1)
+       ON CONFLICT(id) DO UPDATE SET
+         course_id = excluded.course_id, title = excluded.title, layout_id = excluded.layout_id,
+         hole_count = excluded.hole_count, time_zone = excluded.time_zone,
+         status = 'PUBLISHED', visibility = 'PUBLIC', updated_at = excluded.updated_at`,
+    ).bind(createdAt, createdAt, createdAt),
+    database.prepare(
+      `INSERT OR IGNORE INTO event_participants
+        (id, event_id, user_id, course_id, layout_id, status, created_at, updated_at)
+       VALUES ('flightforge-demo-participant-jphillips', 'flightforge-demo-event', ?,
+         'demo-course-forge-ridge', 'flightforge-demo-layout', 'REGISTERED', ?, ?)
+       ON CONFLICT(event_id, user_id) DO UPDATE SET
+         course_id = excluded.course_id, layout_id = excluded.layout_id, updated_at = excluded.updated_at`,
+    ).bind(jPhillipsTestAccount.id, createdAt, createdAt),
+  ]);
 }
 
 function safeStringArray(value: string): string[] {

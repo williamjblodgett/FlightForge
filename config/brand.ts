@@ -3,8 +3,8 @@ export const brand = {
   shortProductName: "Forge",
   appStoreName: "FlightForge Disc Golf",
   legalEntityName: "FlightForge, Inc. (working title)",
-  supportEmail: "support@flightforge.example",
-  domain: "flightforge.example",
+  supportEmail: "",
+  domain: "flightforge-maine-launch.williamjblodgett.chatgpt.site",
   logo: {
     wordmark: "FlightForge",
     accessibleLabel: "FlightForge home",

@@ -35,6 +35,7 @@ export type CourseEvidenceField =
   | "COST"
   | "LAYOUT"
   | "ACCESSIBILITY";
+export type CourseEvidenceStatus = "CURRENT" | "REVIEW_DUE" | "STALE";
 
 export type CourseLocationPrecision =
   | "ENTRANCE_GEOCODED"
@@ -83,6 +84,7 @@ export type Course = {
     | "FICTIONAL_DEMO";
   lastReviewedAt: string;
   nextReviewDueAt: string | null;
+  evidenceStatus: CourseEvidenceStatus;
   sourceName: string;
   sourceUrl: string;
   sourceType: CourseSource["type"];

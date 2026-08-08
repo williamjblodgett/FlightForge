@@ -1,9 +1,10 @@
 import { apiError } from "@/lib/http/api-response";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { can } from "@/modules/auth/permissions";
-import { reviewCourseClaim } from "@/modules/courses/course-repository";
+import { getCourseClaim, reviewCourseClaim } from "@/modules/courses/course-repository";
 import { claimReviewSchema } from "@/modules/courses/validation";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
+import { getCourseById } from "@/modules/courses/demo-courses";
 
 type RouteContext = { params: Promise<{ claimId: string }> };
 
@@ -37,11 +38,16 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   const { claimId } = await params;
+  const existing = await getCourseClaim(claimId);
+  if (!existing) return apiError("CLAIM_NOT_FOUND", "That claim does not exist.", 404);
+  const course = getCourseById(existing.courseId);
+  if (!course) return apiError("COURSE_NOT_FOUND", "The claimed course listing no longer exists.", 409);
   const claim = await reviewCourseClaim(
     user,
     claimId,
     parsed.data.status,
     parsed.data.reason,
+    course.name,
   );
   if (!claim) return apiError("CLAIM_NOT_FOUND", "That claim does not exist.", 404);
   return Response.json({ claim });

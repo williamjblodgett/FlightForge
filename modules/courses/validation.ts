@@ -88,8 +88,11 @@ export const authoritativeRegionalCourseBatchSchema = z.object({
   records: z.array(authoritativeRegionalCourseRecordSchema).min(5).max(5000),
 });
 
+export const courseIdentifierSchema = z.string().trim().min(3).max(180)
+  .regex(/^course-[a-z0-9]+(?:-[a-z0-9]+)*$/u, "Choose a published FlightForge course listing");
+
 export const courseClaimSchema = z.object({
-  courseId: z.uuid(),
+  courseId: courseIdentifierSchema,
   applicantName: z.string().trim().min(2).max(120),
   applicantRole: z.string().trim().min(2).max(120),
   businessEmail: z.email().max(254),

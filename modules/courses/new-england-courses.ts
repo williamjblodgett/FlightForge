@@ -65,6 +65,7 @@ export const authoritativeNewEnglandCourses: Course[] = records.map((record) => 
   dataVerificationStatus: "OPERATOR_SOURCE_REVIEWED",
   lastReviewedAt: record.source_checked_at,
   nextReviewDueAt: record.next_review_due_at,
+  evidenceStatus: evidenceStatus(record.next_review_due_at),
   sourceName: record.source_name,
   sourceUrl: record.source_url,
   sourceType: record.source_type,
@@ -90,6 +91,8 @@ export const authoritativeNewEnglandCourses: Course[] = records.map((record) => 
   nextAvailableAt: null,
   heroTone: heroTones[stableIndex(record.slug, heroTones.length)],
 }));
+
+function evidenceStatus(dueAt: string): "CURRENT" | "REVIEW_DUE" | "STALE" { const days = (new Date(dueAt).getTime() - Date.now()) / 86_400_000; return days < 0 ? "STALE" : days <= 30 ? "REVIEW_DUE" : "CURRENT"; }
 
 function priceType(costNote: string): CoursePriceType {
   if (/\bfree\b/iu.test(costNote)) return "FREE";

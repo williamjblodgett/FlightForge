@@ -3550,6 +3550,76 @@ td a svg {
 }
 
 /* Active round scorecard and moderated hole videos. */
+.round-hud { position: sticky; top: 72px; z-index: 30; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: center; margin: 0 0 18px; padding: 10px 14px; color: #fff; background: rgb(7 31 57 / 96%); border: 1px solid rgb(255 255 255 / 16%); box-shadow: 0 12px 30px rgb(7 31 57 / 22%); backdrop-filter: blur(14px); }
+.round-hud > div:first-child { display: grid; grid-template-columns: auto auto; column-gap: 10px; align-items: baseline; min-width: 106px; }
+.round-hud > div:first-child span { grid-column: 1 / -1; font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; }
+.round-hud > div:first-child strong { font-size: 1.6rem; color: #ffb27a; }
+.round-hud > div:first-child small { font-size: .72rem; color: #c6d3df; }
+.round-hud-title { min-width: 0; display: grid; }
+.round-hud-title b, .round-hud-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.round-hud-title span { color: #c6d3df; font-size: .78rem; }
+.round-hud-actions { display: flex; gap: 6px; }
+.round-hud-actions a, .round-hud-actions button { display: grid; place-items: center; width: 44px; height: 44px; color: #fff; border: 1px solid rgb(255 255 255 / 20%); background: transparent; }
+.round-hud-actions a:hover, .round-hud-actions button:hover { background: rgb(255 255 255 / 10%); }
+.sync-summary { margin: 0 0 14px; font-size: .82rem; color: var(--ink-muted); }
+.score-entry { display: grid; gap: 14px; margin: 18px 0; }
+.stroke-control, .penalty-control { display: grid; grid-template-columns: minmax(120px, 1fr) 48px 62px 48px; align-items: center; gap: 8px; }
+.stroke-control button, .penalty-control button { min-width: 48px; min-height: 48px; display: grid; place-items: center; }
+.stroke-control output { font-size: 2rem; font-weight: 800; text-align: center; }
+.penalty-control output { font-size: 1.25rem; font-weight: 750; text-align: center; }
+.quick-scores { display: flex; flex-wrap: wrap; gap: 8px; }
+.quick-scores button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--module-border); background: var(--surface); }
+.quick-scores button.is-selected { color: #fff; background: #12304e; border-color: #12304e; }
+.video-processing { padding: 28px; background: #102d48; border: 1px solid #526b7d; }
+.video-processing svg { color: #9bd53f; }
+
+.desktop-nav a.is-active { color: var(--orange); }
+.desktop-nav a.is-active::after { transform: scaleX(1); }
+.mobile-nav > a.is-active { color: var(--orange); }
+.profile-menu summary { min-width: 44px; min-height: 44px; }
+.profile-tool-hub { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 24px; }
+.profile-tool-hub a { display: flex; min-height: 76px; gap: 12px; align-items: center; padding: 15px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+.profile-tool-hub svg { color: var(--orange); flex: 0 0 auto; }
+.profile-tool-hub span { display: grid; gap: 3px; }
+.profile-tool-hub small { color: var(--ink-muted); }
+.system-state { min-height: 60vh; padding-block: 80px; }
+.system-state h1 { max-width: 720px; font-size: clamp(2.2rem, 5vw, 5rem); }
+.system-state-skeleton { max-width: 850px; height: 240px; margin-top: 30px; background: linear-gradient(90deg, #e8ece9 25%, #f8faf8 45%, #e8ece9 65%); background-size: 300% 100%; animation: skeleton-sweep 1.5s infinite; }
+@keyframes skeleton-sweep { to { background-position: -150% 0; } }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 14px; padding-block: 18px; }
+.pagination .is-disabled { pointer-events: none; opacity: .45; }
+.correction-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px; }
+.correction-form label { display: grid; gap: 7px; }
+.correction-form .wide, .correction-form > p, .correction-form > button { grid-column: 1 / -1; }
+.map-pan-layer { position: absolute; inset: 0; transform-origin: center; transition: transform 120ms ease-out; }
+.map-canvas { touch-action: none; cursor: grab; overflow: hidden; }
+.map-canvas:active { cursor: grabbing; }
+.map-zoom { position: absolute; right: 12px; bottom: 12px; display: grid; z-index: 5; }
+.map-zoom button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid var(--border); background: var(--surface); }
+.search-area-button { position: absolute; z-index: 6; top: 12px; left: 50%; display: flex; min-height: 44px; align-items: center; gap: 7px; transform: translateX(-50%); border: 1px solid var(--forest); background: var(--surface); color: var(--forest); font-weight: 800; box-shadow: var(--shadow-sm); }
+.map-toolbar > div { display: flex; gap: 8px; }
+
+@media (max-width: 800px) {
+  .profile-tool-hub { grid-template-columns: 1fr 1fr; }
+  .correction-form { grid-template-columns: 1fr; padding: 18px; }
+  .correction-form > * { grid-column: 1 !important; }
+  .view-split .map-panel, .view-list .map-panel { display: none; }
+  .view-split .course-results-list, .view-list .course-results-list { display: grid; grid-template-columns: 1fr; }
+  .view-map .map-panel { position: fixed; inset: 0; z-index: 1000; display: block; padding: 0; background: var(--surface); }
+  .view-map .course-map { height: 100dvh; border-radius: 0; }
+  .view-map .map-canvas { min-height: 0; height: calc(100dvh - 126px); }
+  .view-toggle button:first-child { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .system-state-skeleton { animation: none; }
+  .map-pan-layer { transition: none; }
+}
+.video-transcript { margin-top: 14px; padding: 12px 14px; border: 1px solid #526b7d; }
+.video-transcript summary { cursor: pointer; font-weight: 700; }
+.video-transcript-missing { color: #cfdae0; font-size: .84rem; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.highlight-modal:focus { outline: 3px solid #ff7a1a; outline-offset: 4px; }
 .play-page { padding-block: 46px 118px; }
 .live-round-shell { max-width: 1220px; margin-inline: auto; }
 .round-command-bar { display: flex; justify-content: space-between; gap: 30px; align-items: flex-end; margin-bottom: 28px; }
@@ -3643,6 +3713,12 @@ td a svg {
 
 @media (max-width: 800px) {
   .play-page { padding: 34px 15px 108px; }
+  .round-hud { top: 0; margin-inline: -15px; grid-template-columns: auto 1fr auto; gap: 8px; padding: 8px 10px; }
+  .round-hud-title span { display: none; }
+  .round-hud-actions a:nth-child(-n + 2) { display: none; }
+  .round-hud-actions a, .round-hud-actions button { width: 42px; height: 42px; }
+  .stroke-control, .penalty-control { grid-template-columns: 1fr 48px 52px 48px; }
+  .highlight-modal { max-height: 92dvh; width: calc(100% - 20px); }
   .round-command-bar { align-items: flex-start; }
   .current-hole-card { grid-template-columns: 1fr; box-shadow: 7px 7px 0 #ff7a1a; }
   .hole-number-block { grid-template-columns: auto auto 1fr; gap: 11px; justify-items: start; align-items: baseline; padding: 17px 20px; }

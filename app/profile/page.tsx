@@ -4,6 +4,8 @@ import { SignOutButton } from "@/components/auth/SignOutButton";
 import { ProfileSetupForm } from "@/components/profile/ProfileSetupForm";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { getAccountSettings } from "@/modules/auth/account-repository";
+import Link from "next/link";
+import { Backpack, Camera, Flag, Heart } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Player profile and privacy", robots: { index: false, follow: false } };
@@ -20,6 +22,12 @@ export default async function ProfilePage() {
         <h1>{settings.displayName}</h1>
         <p>Update playing context and privacy without exposing your precise home location.</p>
       </header>
+      <nav className="profile-tool-hub" aria-label="Player tools">
+        <Link href="/bag"><Backpack aria-hidden="true" /><span><strong>Disc bag</strong><small>Equipment for your caddie</small></span></Link>
+        <Link href="/coach"><Camera aria-hidden="true" /><span><strong>Camera coach</strong><small>Record and review form</small></span></Link>
+        <Link href="/play"><Flag aria-hidden="true" /><span><strong>Live round</strong><small>Score offline</small></span></Link>
+        <Link href="/favorites"><Heart aria-hidden="true" /><span><strong>Saved courses</strong><small>Your field list</small></span></Link>
+      </nav>
       <ProfileSetupForm initial={settings} firstRun={false} />
       <section className="account-actions-panel" aria-labelledby="account-actions-heading">
         <div>

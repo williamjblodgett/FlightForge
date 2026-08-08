@@ -7,7 +7,7 @@ export const holeHighlightContextSchema = z.object({
   eventId: identifier,
   holeNumber: z.coerce.number().int().min(1).max(36),
   caption: z.string().trim().max(280).default(""),
-  durationSeconds: z.coerce.number().positive().max(60),
+  transcript: z.string().trim().max(2000).default(""),
   rightsConfirmed: z.literal(true),
   participantConsentConfirmed: z.literal(true),
   containsMinor: z.boolean().default(false),

@@ -22,6 +22,20 @@
       "when": 1786204800000,
       "tag": "0002_hole_highlight_videos",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786291200000,
+      "tag": "0003_production_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786377600000,
+      "tag": "0004_supabase_rls",
+      "breakpoints": true
     }
   ]
 }

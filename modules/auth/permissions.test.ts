@@ -12,6 +12,7 @@ function user(roles: AuthenticatedUser["roles"]): AuthenticatedUser {
     onboardingComplete: true,
     isTestAccount: true,
     mustChangePassword: false,
+    emailVerified: true,
   };
 }
 

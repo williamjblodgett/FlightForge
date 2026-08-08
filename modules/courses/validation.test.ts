@@ -20,4 +20,12 @@ describe("course validation", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("accepts a published catalog course identifier for claiming", () => {
+    expect(courseClaimSchema.safeParse({
+      courseId: "course-sabattus-disc-golf-eagle", applicantName: "Course Operator",
+      applicantRole: "Owner", businessEmail: "owner@example.com", businessPhone: "207-555-0199",
+      website: "https://example.com", explanation: "I operate this course and can provide supporting business records.",
+    }).success).toBe(true);
+  });
 });

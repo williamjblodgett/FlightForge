@@ -1,0 +1,21 @@
+name: Production synthetic health
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check HTML and dependencies
+        env:
+          SITE_URL: ${{ vars.SITES_PRODUCTION_URL }}
+        run: |
+          test -n "$SITE_URL"
+          curl --fail-with-body --max-time 20 "$SITE_URL/"
+          curl --fail-with-body --max-time 20 "$SITE_URL/api/health"

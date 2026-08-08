@@ -12,6 +12,11 @@ export const eventEditorSchema = z.object({
   summary: z.string().trim().min(20).max(240),
   description: z.string().trim().min(30).max(5000),
   courseId: optionalText(100),
+  layoutId: optionalText(100),
+  holeCount: z.number().int().min(1).max(36).default(18),
+  timeZone: z.string().trim().min(3).max(80).refine((value) => {
+    try { new Intl.DateTimeFormat("en-US", { timeZone: value }).format(); return true; } catch { return false; }
+  }, "Choose a valid IANA time zone"),
   venueName: z.string().trim().min(2).max(160),
   addressLine1: optionalText(160),
   city: z.string().trim().min(2).max(80),

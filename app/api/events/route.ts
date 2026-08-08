@@ -5,6 +5,8 @@ import { can } from "@/modules/auth/permissions";
 import { isFeatureEnabled } from "@/modules/config/feature-flags";
 import { createEvent, listPublishedEvents } from "@/modules/events/event-repository";
 import { eventEditorSchema } from "@/modules/events/validation";
+import { canCoordinateCourse } from "@/modules/events/coordinator-repository";
+import { logError } from "@/lib/observability/logger";
 
 export async function GET() {
   const events = await listPublishedEvents().catch(() => []);
@@ -31,10 +33,14 @@ export async function POST(request: Request) {
   if (parsed.data.action === "PUBLISH" && !can(user, "publishEvents")) {
     return apiError("FORBIDDEN", "Your account can save drafts but cannot publish events.", 403);
   }
+  if (!await canCoordinateCourse(user, parsed.data.courseId).catch(() => false)) {
+    return apiError("COURSE_SCOPE_REQUIRED", "Approval for this specific course is required before creating its event.", 403);
+  }
   try {
     const event = await createEvent(user, parsed.data, idempotencyKey);
     return Response.json({ event, next: event.status === "PUBLISHED" ? `/events/${event.slug}` : "/events/manage" }, { status: 201 });
-  } catch {
+  } catch (error) {
+    logError("event.save.failed", error, { userId: user.id });
     return apiError("EVENT_SAVE_FAILED", "The event could not be saved. No duplicate event was published.", 503);
   }
 }

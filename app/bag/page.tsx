@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "My bag & virtual caddie", descriptio
 
 export default async function BagPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/sign-in?returnTo=%2Fbag");
+  if (!user) redirect("/sign-in?return_to=%2Fbag");
   if (user.mustChangePassword) redirect("/account/password");
   if (!can(user, "manageOwnBag")) redirect("/");
   const [bagEnabled, caddieEnabled] = await Promise.all([

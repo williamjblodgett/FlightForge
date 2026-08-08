@@ -27,5 +27,5 @@ export function can(
   user: AuthenticatedUser | null,
   permission: Permission,
 ): boolean {
-  return hasRole(user, permissions[permission]);
+  return !user?.identityLinkRequired && hasRole(user, permissions[permission]);
 }

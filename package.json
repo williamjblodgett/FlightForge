@@ -17,6 +17,7 @@
     "test:unit": "vitest run",
     "test:server": "node scripts/run-rendered-tests.mjs",
     "test:pages": "npm run pages:build && node --test tests/pages-build.test.mjs",
+    "test:e2e": "playwright test",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern pages-dist",
     "db:generate": "drizzle-kit generate",
     "db:validate": "node --experimental-sqlite scripts/validate-d1-migrations.mjs",
@@ -49,6 +50,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.50.0",
     "@cloudflare/workers-types": "^5.20260801.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "4.2.1",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",

@@ -5,7 +5,7 @@ import test from "node:test";
 
 const output = path.resolve("pages-dist");
 
-test("GitHub Pages build contains the branded offline app shell", async () => {
+test("GitHub Pages build contains the branded installable app shell", async () => {
   const html = await readFile(path.join(output, "index.html"), "utf8");
   assert.match(html, /FlightForge/u);
   assert.match(html, /manifest\.webmanifest/u);
@@ -13,7 +13,7 @@ test("GitHub Pages build contains the branded offline app shell", async () => {
   assert.match(html, /object-src 'none'/u);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/u);
   await access(path.join(output, "sw.js"));
-  await access(path.join(output, "og.png"));
+  await access(path.join(output, "og.webp"));
   await access(path.join(output, "brand", "flightforge-maine-hero-v2.webp"));
   await access(path.join(output, "icon.svg"));
   const manifest = JSON.parse(await readFile(path.join(output, "manifest.webmanifest"), "utf8"));
@@ -40,9 +40,12 @@ test("GitHub Pages build emits JavaScript and CSS assets", async () => {
   assert.ok(Math.max(...scriptStats.map((fileStat) => fileStat.size)) < 400_000, "expected route-level code splitting to keep every JavaScript chunk below 400 kB");
 });
 
-test("service worker precaches the hashed app shell", async () => {
+test("service worker caches only explicitly public assets", async () => {
   const worker = await readFile(path.join(output, "sw.js"), "utf8");
-  assert.match(worker, /cacheAppShell/u);
-  assert.match(worker, /matchAll/u);
+  assert.match(worker, /PUBLIC_ASSETS/u);
   assert.match(worker, /flightforge-maine-hero-v2\.webp/u);
+  assert.match(worker, /event\.request\.mode === "navigate"/u);
+  assert.match(worker, /url\.pathname\.startsWith\("\/api\/"\)/u);
+  assert.match(worker, /event\.request\.headers\.has\("authorization"\)/u);
+  assert.doesNotMatch(worker, /cacheAppShell|matchAll/u);
 });

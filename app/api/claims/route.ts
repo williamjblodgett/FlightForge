@@ -11,6 +11,7 @@ import { getCourseById } from "@/modules/courses/demo-courses";
 import { courseClaimSchema } from "@/modules/courses/validation";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
 import { brand } from "@/config/brand";
+import { ensurePersistedUserId } from "@/modules/auth/account-repository";
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) {
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
   const file = formData.get("supportingDocument");
   try {
     if (file instanceof File && file.size > 0) {
-      evidenceKey = await storeClaimEvidence(file, user.id, course.id);
+      evidenceKey = await storeClaimEvidence(file, await ensurePersistedUserId(user), course.id);
     }
     const claim = await submitCourseClaim(user, parsed.data, evidenceKey);
     return Response.json({ claim }, { status: 201 });

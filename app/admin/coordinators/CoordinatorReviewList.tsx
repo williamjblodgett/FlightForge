@@ -1,0 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import type { CoordinatorApplication } from "@/modules/events/coordinator-repository";
+
+export function CoordinatorReviewList({ initial }: { initial: CoordinatorApplication[] }) { const [items, setItems] = useState(initial); const [reason, setReason] = useState<Record<string, string>>({}); async function review(id: string, decision: "APPROVED" | "REJECTED") { const response = await fetch(`/api/admin/coordinator-applications/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ decision, reason: reason[id] ?? "" }) }); if (response.ok) setItems((current) => current.map((item) => item.id === id ? { ...item, status: decision, reviewReason: reason[id] } : item)); }
+  return <div className="managed-event-list">{items.length ? items.map((item) => <article key={item.id}><div className="managed-event-main"><span className={`event-status ${item.status.toLowerCase()}`}>{item.status}</span><h2>{item.organizationName}</h2><p>Course ID: {item.courseId}</p><p>{item.experience}</p>{item.status === "PENDING" ? <label><span>Required review reason</span><textarea value={reason[item.id] ?? ""} onChange={(event) => setReason((value) => ({ ...value, [item.id]: event.target.value }))} minLength={12} rows={3} /></label> : <p>{item.reviewReason}</p>}</div>{item.status === "PENDING" ? <div className="dialog-actions"><button className="button button-secondary" onClick={() => review(item.id, "REJECTED")}>Reject</button><button className="button button-primary" onClick={() => review(item.id, "APPROVED")}>Approve scoped access</button></div> : null}</article>) : <div className="event-state"><strong>No coordinator applications.</strong></div>}</div>;
+}

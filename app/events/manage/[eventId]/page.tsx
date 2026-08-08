@@ -11,7 +11,7 @@ type Props = { params: Promise<{ eventId: string }> };
 
 export default async function EditEventPage({ params }: Props) {
   const user = await getCurrentUser();
-  if (!user) redirect("/sign-in?returnTo=%2Fevents%2Fmanage");
+  if (!user) redirect("/sign-in?return_to=%2Fevents%2Fmanage");
   if (!await isFeatureEnabled("event_publishing")) redirect("/events");
   if (!can(user, "manageEvents")) redirect("/events");
   const { eventId } = await params;

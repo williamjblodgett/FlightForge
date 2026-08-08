@@ -1,0 +1,9 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+
+export function CoordinatorApplicationForm({ courses }: { courses: { id: string; name: string; city: string; state: string }[] }) {
+  const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
+  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setBusy(true); setMessage(""); const data = Object.fromEntries(new FormData(event.currentTarget)); const response = await fetch("/api/coordinator-applications", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) }); const body = await response.json().catch(() => null) as { application?: { id: string }; error?: { message?: string } } | null; setBusy(false); setMessage(response.ok && body?.application ? `Application received. Reference ${body.application.id}.` : body?.error?.message ?? "Application failed."); }
+  return <form className="correction-form panel" onSubmit={submit}><label><span>Organization or event group</span><input name="organizationName" minLength={2} maxLength={160} required /></label><label><span>Course scope</span><select name="courseId" required><option value="">Choose a course</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.name} · {course.city}, {course.state}</option>)}</select></label><label className="wide"><span>Coordinator experience and authority</span><textarea name="experience" minLength={30} maxLength={3000} rows={7} required placeholder="Describe the event, your role, and how the course can confirm your authority." /></label><p>Approval is limited to the selected course. It does not grant platform-wide event access.</p><button className="button button-primary" disabled={busy}>{busy ? "Submitting…" : "Apply for coordinator access"}</button><p role="status" aria-live="polite">{message}</p></form>;
+}

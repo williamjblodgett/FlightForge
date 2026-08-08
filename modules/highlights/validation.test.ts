@@ -6,7 +6,7 @@ const valid = {
   eventId: "event-demo",
   holeNumber: 1,
   caption: "Ace on the opening hole.",
-  durationSeconds: 12,
+  transcript: "The player releases a backhand and the disc enters the basket.",
   rightsConfirmed: true,
   participantConsentConfirmed: true,
   containsMinor: false,
@@ -23,7 +23,8 @@ describe("hole highlight validation", () => {
     expect(holeHighlightContextSchema.safeParse({ ...valid, containsMinor: true }).success).toBe(false);
   });
 
-  it("rejects videos longer than one minute", () => {
-    expect(holeHighlightContextSchema.safeParse({ ...valid, durationSeconds: 61 }).success).toBe(false);
+  it("does not accept client-supplied duration as trusted context", () => {
+    const result = holeHighlightContextSchema.parse({ ...valid, durationSeconds: 61 });
+    expect("durationSeconds" in result).toBe(false);
   });
 });

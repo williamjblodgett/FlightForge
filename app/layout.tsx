@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/shell/SiteFooter";
 import { SiteHeader } from "@/components/shell/SiteHeader";
 import { brand } from "@/config/brand";
 import "./globals.css";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -24,7 +25,7 @@ function resolveRequestOrigin(requestHeaders: Headers): URL {
 
 export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = resolveRequestOrigin(await headers());
-  const socialImage = new URL("/og-new-england.png", metadataBase).toString();
+  const socialImage = new URL("/og-new-england.webp", metadataBase).toString();
   return {
     metadataBase,
     title: { default: `${brand.productName} — Find your next round`, template: `%s · ${brand.productName}` },
@@ -36,6 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [{ url: socialImage, width: 1734, height: 907, alt: `${brand.productName} — Find your line. Forge your game.` }],
     },
     twitter: { card: "summary_large_image", title: `${brand.productName} — Find your next round`, description: "Find evidence-backed New England courses, plan a round, and build your game.", images: [socialImage] },
+    manifest: "/manifest.webmanifest",
   };
 }
 
@@ -48,6 +50,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div id="main-content" className="site-content">{children}</div>
         <SiteFooter />
         <MobileNav />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

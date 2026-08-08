@@ -12,6 +12,7 @@ export function SignupForm() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [created, setCreated] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,13 +29,15 @@ export function SignupForm() {
         setError(body.error?.message ?? "Your account could not be created.");
         return;
       }
-      window.location.assign(body.next ?? "/onboarding");
+      setCreated(true);
     } catch {
       setError(`${brand.productName} could not reach the account service.`);
     } finally {
       setSubmitting(false);
     }
   }
+
+  if (created) return <section className="auth-card account-form" role="status"><Shield aria-hidden="true" /><span className="eyebrow">Check your inbox</span><h2>Verify your email to continue.</h2><p>We sent a single-use link that expires in 30 minutes. No session is created until that link is verified.</p><Link className="button button-secondary button-wide" href="/sign-in">Return to sign in</Link></section>;
 
   return (
     <div className="account-entry-grid signup-grid">

@@ -260,7 +260,7 @@ export const courseEvidence = pgTable(
     evidenceValue: text("evidence_value"),
     checkedAt: timestamp("checked_at", { withTimezone: true }).notNull(),
     validUntil: timestamp("valid_until", { withTimezone: true }),
-    reviewStatus: text("review_status").default("APPROVED").notNull(),
+    reviewStatus: text("review_status").default("CURRENT").notNull(),
     reviewedBy: uuid("reviewed_by").references(() => users.id),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },

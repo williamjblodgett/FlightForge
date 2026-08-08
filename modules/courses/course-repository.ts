@@ -1,4 +1,5 @@
 import { getD1Database } from "@/db/runtime";
+import { ensurePersistedUserId, findAccountUserByEmail } from "@/modules/auth/account-repository";
 import type { AuthenticatedUser } from "@/modules/auth/types";
 import type { ClaimStatus, CourseClaimApplication } from "./types";
 
@@ -72,6 +73,10 @@ const schemaStatements = [
   )`,
   `CREATE INDEX IF NOT EXISTS claim_audit_claim_created_idx
     ON course_claim_audit_events (claim_id, created_at)`,
+  `CREATE TABLE IF NOT EXISTS organization_course_access (
+    organization_id TEXT NOT NULL, course_id TEXT NOT NULL, created_at TEXT NOT NULL,
+    PRIMARY KEY (organization_id, course_id)
+  )`,
   `CREATE TABLE IF NOT EXISTS import_batches (
     id TEXT PRIMARY KEY,
     source_label TEXT NOT NULL,
@@ -223,6 +228,7 @@ export async function submitCourseClaim(
 ): Promise<CourseClaimRecord> {
   await ensureSchema();
   const database = getD1Database();
+  await ensurePersistedUserId(user);
   const id = crypto.randomUUID();
   const timestamp = new Date().toISOString();
 
@@ -326,14 +332,16 @@ export async function reviewCourseClaim(
   claimId: string,
   status: Exclude<ClaimStatus, "UNCLAIMED" | "CLAIM_SUBMITTED">,
   reason: string,
+  courseName: string,
 ): Promise<CourseClaimRecord | null> {
   await ensureSchema();
   const database = getD1Database();
+  const reviewerUserId = await ensurePersistedUserId(reviewer);
   const current = await getCourseClaim(claimId);
   if (!current) return null;
 
   const timestamp = new Date().toISOString();
-  await database.batch([
+  const statements: D1PreparedStatement[] = [
     database
       .prepare(
         `UPDATE course_claims SET status = ?, reviewed_by = ?, review_reason = ?,
@@ -363,7 +371,50 @@ export async function reviewCourseClaim(
         reason,
         timestamp,
       ),
-  ]);
+  ];
+
+  if (status === "VERIFIED") {
+    const claimant = await findAccountUserByEmail(current.applicantUserEmail);
+    if (!claimant?.emailVerified) throw new Error("A verified claimant account is required before ownership can be granted.");
+    const organizationId = `organization:${current.courseId}`;
+    statements.push(
+      database.prepare(
+        `INSERT OR IGNORE INTO organizations
+          (id, name, slug, organization_type, created_at, updated_at, version)
+         VALUES (?, ?, ?, 'COURSE_OPERATOR', ?, ?, 1)`,
+      ).bind(organizationId, `${courseName} operator`, `operator-${current.courseId}`.slice(0, 180), timestamp, timestamp),
+      database.prepare(
+        `INSERT OR IGNORE INTO organization_memberships
+          (id, organization_id, user_id, status, permissions_json, created_at, updated_at)
+         VALUES (?, ?, ?, 'ACTIVE', ?, ?, ?)`,
+      ).bind(crypto.randomUUID(), organizationId, claimant.id, JSON.stringify(["OWNER", "MANAGE_COURSE"]), timestamp, timestamp),
+      database.prepare(
+        `INSERT OR IGNORE INTO organization_course_access
+          (organization_id, course_id, created_at) VALUES (?, ?, ?)`,
+      ).bind(organizationId, current.courseId, timestamp),
+      database.prepare(
+        `INSERT OR IGNORE INTO course_staff
+          (id, course_id, user_id, staff_role, permissions_json, status, created_at, updated_at)
+         VALUES (?, ?, ?, 'OWNER', ?, 'ACTIVE', ?, ?)`,
+      ).bind(crypto.randomUUID(), current.courseId, claimant.id, JSON.stringify(["MANAGE_COURSE", "MANAGE_STAFF", "MANAGE_EVENTS"]), timestamp, timestamp),
+      database.prepare(
+        `INSERT OR IGNORE INTO user_roles
+          (user_id, role, organization_id, created_at, created_by)
+         VALUES (?, 'COURSE_OWNER', ?, ?, ?)`,
+      ).bind(claimant.id, organizationId, timestamp, reviewerUserId),
+      database.prepare(
+        `UPDATE courses SET claim_status = 'VERIFIED', updated_at = ?, version = version + 1
+         WHERE id = ?`,
+      ).bind(timestamp, current.courseId),
+      database.prepare(
+        `INSERT INTO audit_logs
+          (id, actor_user_id, organization_id, action, resource_type, resource_id, reason, metadata_json, created_at)
+         VALUES (?, ?, ?, 'COURSE_OWNERSHIP_GRANTED', 'course', ?, ?, ?, ?)`,
+      ).bind(crypto.randomUUID(), reviewerUserId, organizationId, current.courseId, reason, JSON.stringify({ claimantUserId: claimant.id, claimId }), timestamp),
+    );
+  }
+
+  await database.batch(statements);
 
   return getCourseClaim(claimId);
 }

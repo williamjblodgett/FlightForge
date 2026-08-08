@@ -1,21 +1,28 @@
-import { NextResponse } from "next/server";
 import { apiError } from "@/lib/http/api-response";
 import {
   AccountEmailTakenError,
-  ACCOUNT_SESSION_COOKIE,
   createAccount,
-  createAccountSession,
+  createEmailVerificationToken,
 } from "@/modules/auth/account-repository";
+import { isEmailVerificationDeliveryConfigured, sendEmailVerification } from "@/modules/notifications/email-verification";
+import { isPublicRegistrationReady } from "@/config/public-launch";
 import { signupSchema } from "@/modules/auth/account-validation";
 import {
   checkRateLimit,
   isSameOriginMutation,
   requestClientKey,
 } from "@/lib/security/request-security";
+import { logError } from "@/lib/observability/logger";
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) {
     return apiError("ORIGIN_REJECTED", "The sign-up request origin was rejected.", 403);
+  }
+  if (!isPublicRegistrationReady()) {
+    return apiError("REGISTRATION_NOT_READY", "Public registration is paused until verified support, privacy, and email-delivery contacts are configured.", 503);
+  }
+  if (!isEmailVerificationDeliveryConfigured()) {
+    return apiError("EMAIL_DELIVERY_NOT_READY", "Email verification is temporarily unavailable, so no account was created.", 503);
   }
   try {
     const rateLimit = await checkRateLimit("account-signup", requestClientKey(request), 5, 900);
@@ -47,25 +54,24 @@ export async function POST(request: Request) {
 
   try {
     const user = await createAccount(parsed.data);
-    const session = await createAccountSession(user.id, request.headers.get("user-agent"));
-    const response = NextResponse.json({ user, next: "/onboarding" }, { status: 201 });
-    response.cookies.set(ACCOUNT_SESSION_COOKIE, session.token, sessionCookie(session.maxAge));
-    return response;
+    const verificationToken = await createEmailVerificationToken(user.id);
+    await sendEmailVerification({
+      email: user.email,
+      displayName: user.displayName,
+      token: verificationToken,
+      origin: new URL(request.url).origin,
+    });
+    return Response.json({
+      user,
+      next: "/verify-email",
+      verificationToken: process.env.EMAIL_DELIVERY_MODE === "test" ? verificationToken : undefined,
+    }, { status: 201 });
   } catch (error) {
     if (error instanceof AccountEmailTakenError) {
       return apiError("ACCOUNT_EXISTS", error.message, 409);
     }
+    logError("account.signup.failed", error);
     return apiError("SIGNUP_FAILED", "The account could not be created right now.", 503);
   }
-}
-
-function sessionCookie(maxAge: number) {
-  return {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge,
-  };
 }
 

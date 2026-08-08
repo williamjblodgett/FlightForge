@@ -20,6 +20,7 @@ type FormState = {
   summary: string;
   description: string;
   courseId: string;
+  timeZone: string;
   venueName: string;
   addressLine1: string;
   city: string;
@@ -72,6 +73,9 @@ export function EventPublisherForm({ organizerEmail, courses, initial }: Props) 
       summary: form.summary,
       description: form.description,
       courseId: form.courseId || null,
+      layoutId: null,
+      holeCount: 18,
+      timeZone: form.timeZone,
       venueName: form.venueName,
       addressLine1: form.addressLine1 || null,
       city: form.city,
@@ -138,6 +142,7 @@ export function EventPublisherForm({ organizerEmail, courses, initial }: Props) 
           <label><span>City</span><input required minLength={2} maxLength={80} value={form.city} onChange={(event) => set("city", event.target.value)} /></label>
           <label><span>Street address <small>Optional</small></span><input maxLength={160} value={form.addressLine1} onChange={(event) => set("addressLine1", event.target.value)} /></label>
           <label><span>State</span><input required minLength={2} maxLength={3} value={form.regionCode} onChange={(event) => set("regionCode", event.target.value.toUpperCase())} /></label>
+          <label><span>Event time zone</span><select value={form.timeZone} onChange={(event) => set("timeZone", event.target.value)}><option value="America/New_York">Eastern Time</option><option value="America/Chicago">Central Time</option><option value="America/Denver">Mountain Time</option><option value="America/Los_Angeles">Pacific Time</option><option value="America/Anchorage">Alaska Time</option><option value="Pacific/Honolulu">Hawaii Time</option></select></label>
           <label><span>Starts</span><input required type="datetime-local" value={form.startsAt} onChange={(event) => set("startsAt", event.target.value)} /></label>
           <label><span>Ends</span><input required type="datetime-local" value={form.endsAt} onChange={(event) => set("endsAt", event.target.value)} /></label>
         </div>
@@ -182,6 +187,7 @@ function initialState(email: string, event?: EventRecord): FormState {
     summary: event?.summary ?? "",
     description: event?.description ?? "",
     courseId: event?.courseId ?? "",
+    timeZone: event?.timeZone ?? "America/New_York",
     venueName: event?.venueName ?? "",
     addressLine1: event?.addressLine1 ?? "",
     city: event?.city ?? "",

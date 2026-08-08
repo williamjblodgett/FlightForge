@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, List, Map, MapPinned, Search, SlidersHorizontal } from "lucide-react";
 import type { Course, CourseDifficulty, CoursePriceType } from "../types";
 import { filterCourses, rankCoursesForDiscovery } from "../search";
 import { CourseCard } from "./CourseCard";
-import { CourseMap } from "./CourseMap";
+import { CourseMap, type MapBounds } from "./CourseMap";
 import { brand } from "@/config/brand";
 
 type Props = {
@@ -14,6 +15,10 @@ type Props = {
   initialFavoriteIds: string[];
   signedIn: boolean;
   variant?: "home" | "directory";
+  totalMatches?: number;
+  page?: number;
+  pageSize?: number;
+  initialFilters?: { query: string; difficulty: CourseDifficulty | "ALL"; priceType: CoursePriceType | "ALL"; holes: "ALL" | "9" | "18" | "36"; state: string; evidence: "ALL" | "AUTHORITATIVE" | "DIRECTORY"; view: ViewMode };
 };
 
 type ViewMode = "split" | "list" | "map";
@@ -23,17 +28,41 @@ export function CourseExplorer({
   initialFavoriteIds,
   signedIn,
   variant = "directory",
+  totalMatches,
+  page = 1,
+  pageSize = 24,
+  initialFilters,
 }: Props) {
-  const [query, setQuery] = useState("");
-  const [difficulty, setDifficulty] = useState<CourseDifficulty | "ALL">("ALL");
-  const [priceType, setPriceType] = useState<CoursePriceType | "ALL">("ALL");
-  const [holes, setHoles] = useState<"ALL" | "9" | "18" | "36">("ALL");
-  const [state, setState] = useState("ALL");
-  const [evidence, setEvidence] = useState<"ALL" | "AUTHORITATIVE" | "DIRECTORY">("ALL");
-  const [viewMode, setViewMode] = useState<ViewMode>("split");
+  const router = useRouter();
+  const pathname = usePathname();
+  const [query, setQuery] = useState(initialFilters?.query ?? "");
+  const [difficulty, setDifficulty] = useState<CourseDifficulty | "ALL">(initialFilters?.difficulty ?? "ALL");
+  const [priceType, setPriceType] = useState<CoursePriceType | "ALL">(initialFilters?.priceType ?? "ALL");
+  const [holes, setHoles] = useState<"ALL" | "9" | "18" | "36">(initialFilters?.holes ?? "ALL");
+  const [state, setState] = useState(initialFilters?.state ?? "ALL");
+  const [evidence, setEvidence] = useState<"ALL" | "AUTHORITATIVE" | "DIRECTORY">(initialFilters?.evidence ?? "ALL");
+  const [viewMode, setViewMode] = useState<ViewMode>(initialFilters?.view ?? "split");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id ?? null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+
+  useEffect(() => {
+    if (variant !== "directory") return;
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams();
+      if (query) params.set("q", query);
+      if (state !== "ALL") params.set("state", state);
+      if (difficulty !== "ALL") params.set("difficulty", difficulty);
+      if (priceType !== "ALL") params.set("price", priceType);
+      if (holes !== "ALL") params.set("holes", holes);
+      if (evidence !== "ALL") params.set("evidence", evidence);
+      if (viewMode !== "split") params.set("view", viewMode);
+      if (page > 1) params.set("page", String(page));
+      router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [difficulty, evidence, holes, page, pathname, priceType, query, router, state, variant, viewMode]);
 
   const favoriteIds = useMemo(() => new Set(initialFavoriteIds), [initialFavoriteIds]);
   const filteredCourses = useMemo(
@@ -46,9 +75,9 @@ export function CourseExplorer({
           minimumHoles: holes === "ALL" ? null : Number(holes),
           state,
           evidence,
-        }),
+        }).filter((course) => !mapBounds || (course.latitude <= mapBounds.north && course.latitude >= mapBounds.south && course.longitude <= mapBounds.east && course.longitude >= mapBounds.west)),
       ),
-    [courses, difficulty, evidence, holes, priceType, query, state],
+    [courses, difficulty, evidence, holes, mapBounds, priceType, query, state],
   );
   const visibleCourses = filteredCourses.slice(0, visibleCount);
   const effectiveSelectedCourseId = filteredCourses.some((course) => course.id === selectedCourseId)
@@ -63,6 +92,7 @@ export function CourseExplorer({
     setState("ALL");
     setEvidence("ALL");
     setVisibleCount(12);
+    setMapBounds(null);
   }
 
   return (
@@ -120,7 +150,7 @@ export function CourseExplorer({
             <h1>Choose the round that fits today.</h1>
             <p>Search Maine’s working directory plus verified launch records across Massachusetts, New Hampshire, Vermont, Connecticut, and Rhode Island.</p>
           </div>
-          <div className="directory-stat"><strong>{courses.length}</strong><span>launch listings</span></div>
+          <div className="directory-stat"><strong>{totalMatches ?? courses.length}</strong><span>matching listings</span></div>
         </section>
       )}
 
@@ -220,7 +250,7 @@ export function CourseExplorer({
         <div className="results-summary">
           <div>
             <span className="eyebrow">New England field index</span>
-            <h2 id="results-heading">{filteredCourses.length} {filteredCourses.length === 1 ? "course" : "courses"} ready to explore</h2>
+            <h2 id="results-heading">{totalMatches ?? filteredCourses.length} {(totalMatches ?? filteredCourses.length) === 1 ? "course" : "courses"} ready to explore</h2>
           </div>
           <p>Every location shows its evidence level; same-day conditions still require operator confirmation.</p>
         </div>
@@ -256,12 +286,24 @@ export function CourseExplorer({
                 <button className="button button-secondary" type="button" onClick={clearFilters}>Reset filters</button>
               </div>
             ) : null}
+            {variant === "directory" && (totalMatches ?? 0) > pageSize ? <nav className="pagination" aria-label="Course result pages">
+              <Link className={`button button-secondary${page <= 1 ? " is-disabled" : ""}`} aria-disabled={page <= 1} href={pageHref(page - 1)}>Previous</Link>
+              <span>Page {page} of {Math.ceil((totalMatches ?? 0) / pageSize)}</span>
+              <Link className={`button button-secondary${page * pageSize >= (totalMatches ?? 0) ? " is-disabled" : ""}`} aria-disabled={page * pageSize >= (totalMatches ?? 0)} href={pageHref(page + 1)}>Next</Link>
+            </nav> : null}
           </div>
           <div className="map-panel">
-            <CourseMap courses={filteredCourses} selectedCourseId={effectiveSelectedCourseId} onSelect={setSelectedCourseId} />
+            <CourseMap courses={filteredCourses} selectedCourseId={effectiveSelectedCourseId} onSelect={setSelectedCourseId} onSearchArea={setMapBounds} onClose={() => setViewMode("list")} />
           </div>
         </div>
       </section>
     </>
   );
+
+  function pageHref(nextPage: number) {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query); if (state !== "ALL") params.set("state", state); if (difficulty !== "ALL") params.set("difficulty", difficulty);
+    if (priceType !== "ALL") params.set("price", priceType); if (holes !== "ALL") params.set("holes", holes); if (evidence !== "ALL") params.set("evidence", evidence); if (viewMode !== "split") params.set("view", viewMode);
+    if (nextPage > 1) params.set("page", String(nextPage)); return `${pathname}?${params}`;
+  }
 }

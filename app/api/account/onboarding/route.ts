@@ -8,6 +8,7 @@ import {
   isSameOriginMutation,
   requestClientKey,
 } from "@/lib/security/request-security";
+import { logError } from "@/lib/observability/logger";
 
 export async function PUT(request: Request) {
   if (!isSameOriginMutation(request)) {
@@ -47,6 +48,7 @@ export async function PUT(request: Request) {
     if (error instanceof PasswordChangeRequiredError) {
       return apiError("PASSWORD_CHANGE_REQUIRED", error.message, 409);
     }
+    logError("account.onboarding.save.failed", error, { userId: user.id });
     return apiError("PROFILE_SAVE_FAILED", "Your changes could not be saved right now.", 503);
   }
 }

@@ -18,9 +18,10 @@ export async function GET() {
   return Response.json({
     status: healthy ? "ok" : "degraded",
     service: "flightforge-web",
+    releaseId: process.env.RELEASE_ID ?? "unknown",
     checks,
     supabaseConfigured,
     latencyMs: Date.now() - startedAt,
     checkedAt: new Date().toISOString(),
-  }, { status: healthy ? 200 : 503, headers: { "Cache-Control": "no-store" } });
+  }, { status: healthy ? 200 : 503, headers: { "Cache-Control": "no-store", "x-flightforge-release": process.env.RELEASE_ID ?? "unknown" } });
 }

@@ -71,6 +71,13 @@
       "when": 1786204800000,
       "tag": "0009_hole_highlight_videos",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786291200000,
+      "tag": "0010_production_hardening",
+      "breakpoints": true
     }
   ]
 }

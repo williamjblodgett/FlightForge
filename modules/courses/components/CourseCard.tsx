@@ -48,6 +48,7 @@ export function CourseCard({ course, favorite, signedIn, selected, onSelect }: P
             <span className="source-badge"><Database aria-hidden="true" /> 1 directory source</span>
           )}
           <span>{locationPrecisionLabel(course.locationPrecision)}</span>
+          <span className={`review-state review-${course.evidenceStatus.toLowerCase()}`}>{course.evidenceStatus === "CURRENT" ? "Evidence current" : course.evidenceStatus === "REVIEW_DUE" ? "Evidence review due" : "Evidence stale"}</span>
         </div>
 
         <div className={`evidence-status status-${course.operationalStatus.toLowerCase()}`}>

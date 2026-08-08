@@ -4,6 +4,7 @@ import {
   ACCOUNT_SESSION_COOKIE,
   authenticateAccount,
   createAccountSession,
+  EmailVerificationRequiredError,
 } from "@/modules/auth/account-repository";
 import { loginSchema } from "@/modules/auth/account-validation";
 import {
@@ -78,7 +79,10 @@ export async function POST(request: Request) {
       maxAge: session.maxAge,
     });
     return response;
-  } catch {
+  } catch (error) {
+    if (error instanceof EmailVerificationRequiredError) {
+      return apiError("EMAIL_VERIFICATION_REQUIRED", error.message, 403);
+    }
     return apiError("SIGNIN_FAILED", "The sign-in service is temporarily unavailable.", 503);
   }
 }

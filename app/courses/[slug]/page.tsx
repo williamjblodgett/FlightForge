@@ -82,7 +82,7 @@ export default async function CourseDetailPage({ params }: Props) {
       latitude: course.latitude,
       longitude: course.longitude,
     },
-    url: `https://flightforge.example/courses/${course.slug}`,
+    url: `https://${brand.domain}/courses/${course.slug}`,
   };
 
   return (
@@ -229,7 +229,7 @@ export default async function CourseDetailPage({ params }: Props) {
             <Link className="button button-secondary button-wide" href={`/courses/${course.slug}/claim`}>Claim this course</Link>
           ) : null}
           <p className="booking-fineprint">FlightForge reservations are not connected to this operator. Availability evidence above is informational, not a reservation.</p>
-          <a className="text-link" href={`mailto:${brand.supportEmail}?subject=${encodeURIComponent(`Course correction: ${course.name}`)}`}>Report incorrect course information</a>
+          <Link className="text-link" href={`/support/course-correction?courseId=${encodeURIComponent(course.id)}&courseName=${encodeURIComponent(course.name)}`}>Report incorrect course information</Link>
         </aside>
       </div>
     </main>

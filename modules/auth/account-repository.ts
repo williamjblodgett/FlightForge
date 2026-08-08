@@ -24,6 +24,8 @@ type UserRow = {
   status: string;
   isTestAccount: number;
   onboardingCompletedAt: string | null;
+  authProviderSubject: string | null;
+  emailVerifiedAt: string | null;
 };
 
 export type AccountSettings = OnboardingInput & {
@@ -51,6 +53,20 @@ export class PasswordChangeRequiredError extends Error {
   constructor() {
     super("Set a private password before completing profile setup.");
     this.name = "PasswordChangeRequiredError";
+  }
+}
+
+export class EmailVerificationRequiredError extends Error {
+  constructor() {
+    super("Verify your email address before signing in.");
+    this.name = "EmailVerificationRequiredError";
+  }
+}
+
+export class ExternalIdentityLinkRequiredError extends Error {
+  constructor() {
+    super("Confirm your existing password before linking this hosted identity.");
+    this.name = "ExternalIdentityLinkRequiredError";
   }
 }
 
@@ -118,6 +134,14 @@ const accountSchemaStatements = [
     action TEXT NOT NULL, resource_type TEXT NOT NULL, resource_id TEXT,
     reason TEXT, request_id TEXT, metadata_json TEXT, created_at TEXT NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS email_verification_tokens (
+    id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token_hash TEXT NOT NULL,
+    expires_at TEXT NOT NULL, consumed_at TEXT, created_at TEXT NOT NULL
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS email_verification_tokens_hash_unique
+    ON email_verification_tokens(token_hash)`,
+  `CREATE INDEX IF NOT EXISTS email_verification_tokens_user_idx
+    ON email_verification_tokens(user_id, expires_at)`,
 ] as const;
 
 export async function ensureAccountSchema(): Promise<void> {
@@ -164,7 +188,7 @@ export async function createAccount(input: {
         `INSERT INTO users
           (id, email, display_name, password_hash, password_salt, password_iterations,
            status, is_test_account, created_at, updated_at, version)
-         VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', 0, ?, ?, 1)`,
+         VALUES (?, ?, ?, ?, ?, ?, 'PENDING_EMAIL_VERIFICATION', 0, ?, ?, 1)`,
       ).bind(
         id,
         email,
@@ -217,7 +241,50 @@ export async function createAccount(input: {
     onboardingComplete: false,
     isTestAccount: false,
     mustChangePassword: false,
+    emailVerified: false,
   };
+}
+
+export async function createEmailVerificationToken(userId: string): Promise<string> {
+  await ensureAccountSchema();
+  const token = randomToken(32);
+  const tokenHash = await sha256Text(token);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 30 * 60_000).toISOString();
+  await getD1Database().batch([
+    getD1Database().prepare(
+      "UPDATE email_verification_tokens SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL",
+    ).bind(now.toISOString(), userId),
+    getD1Database().prepare(
+      `INSERT INTO email_verification_tokens
+        (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)`,
+    ).bind(crypto.randomUUID(), userId, tokenHash, expiresAt, now.toISOString()),
+  ]);
+  return token;
+}
+
+export async function verifyAccountEmail(token: string): Promise<AuthenticatedUser | null> {
+  await ensureAccountSchema();
+  const tokenHash = await sha256Text(token);
+  const now = new Date().toISOString();
+  const row = await getD1Database().prepare(
+    `SELECT t.id AS tokenId, t.user_id AS userId
+     FROM email_verification_tokens t
+     WHERE t.token_hash = ? AND t.consumed_at IS NULL AND t.expires_at > ? LIMIT 1`,
+  ).bind(tokenHash, now).first<{ tokenId: string; userId: string }>();
+  if (!row) return null;
+  await getD1Database().batch([
+    getD1Database().prepare(
+      "UPDATE email_verification_tokens SET consumed_at = ? WHERE id = ? AND consumed_at IS NULL",
+    ).bind(now, row.tokenId),
+    getD1Database().prepare(
+      `UPDATE users SET email_verified_at = ?, status = 'ACTIVE', updated_at = ?, version = version + 1
+       WHERE id = ? AND status = 'PENDING_EMAIL_VERIFICATION'`,
+    ).bind(now, now, row.userId),
+    auditStatement(getD1Database(), row.userId, "EMAIL_VERIFIED", "user", row.userId, now),
+  ]);
+  const verified = await findUserRowById(row.userId);
+  return verified ? accountUserFromRow(verified, await rolesForUser(verified.id)) : null;
 }
 
 export async function authenticateAccount(
@@ -244,7 +311,11 @@ export async function authenticateAccount(
     salt: row.passwordSalt,
     iterations: row.passwordIterations,
   });
-  if (!verified || row.status !== "ACTIVE") return null;
+  if (!verified) return null;
+  if (row.status === "PENDING_EMAIL_VERIFICATION" || !row.emailVerifiedAt) {
+    throw new EmailVerificationRequiredError();
+  }
+  if (row.status !== "ACTIVE") return null;
 
   const timestamp = new Date().toISOString();
   await getD1Database()
@@ -295,7 +366,9 @@ export async function getAccountUserBySession(
         u.must_change_password AS mustChangePassword,
         u.password_bootstrap_version AS passwordBootstrapVersion, u.status,
         u.is_test_account AS isTestAccount,
-        u.onboarding_completed_at AS onboardingCompletedAt
+        u.onboarding_completed_at AS onboardingCompletedAt,
+        u.auth_provider_subject AS authProviderSubject,
+        u.email_verified_at AS emailVerifiedAt
        FROM auth_sessions s JOIN users u ON u.id = s.user_id
        WHERE s.token_hash = ? AND s.revoked_at IS NULL AND s.expires_at > ?
          AND u.deleted_at IS NULL LIMIT 1`,
@@ -319,6 +392,43 @@ export async function findAccountUserByEmail(emailInput: string): Promise<Authen
   await ensureAccountSchema();
   const row = await findUserRowByEmail(emailInput.trim().toLowerCase());
   return row ? accountUserFromRow(row, await rolesForUser(row.id)) : null;
+}
+
+export async function findAccountUserByProviderSubject(subject: string): Promise<AuthenticatedUser | null> {
+  await ensureAccountSchema();
+  const row = await findUserRowByProviderSubject(subject);
+  return row ? accountUserFromRow(row, await rolesForUser(row.id)) : null;
+}
+
+export async function linkHostedIdentity(input: {
+  email: string;
+  providerSubject: string;
+  password: string;
+}): Promise<AuthenticatedUser> {
+  await ensureAccountSchema();
+  const row = await findUserRowByEmail(input.email);
+  if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations) {
+    throw new InvalidCurrentPasswordError();
+  }
+  const valid = await verifyPassword(input.password, {
+    hash: row.passwordHash,
+    salt: row.passwordSalt,
+    iterations: row.passwordIterations,
+  });
+  if (!valid) throw new InvalidCurrentPasswordError();
+  const existingSubject = await findUserRowByProviderSubject(input.providerSubject);
+  if (existingSubject && existingSubject.id !== row.id) throw new ExternalIdentityLinkRequiredError();
+  const now = new Date().toISOString();
+  await getD1Database().batch([
+    getD1Database().prepare(
+      `UPDATE users SET auth_provider_subject = ?, email_verified_at = COALESCE(email_verified_at, ?),
+       status = 'ACTIVE', updated_at = ?, version = version + 1 WHERE id = ?`,
+    ).bind(input.providerSubject, now, now, row.id),
+    auditStatement(getD1Database(), row.id, "HOSTED_IDENTITY_LINKED", "user", row.id, now),
+  ]);
+  const linked = await findUserRowById(row.id);
+  if (!linked) throw new Error("The linked account could not be loaded.");
+  return accountUserFromRow(linked, await rolesForUser(linked.id));
 }
 
 export async function changeAccountPassword(
@@ -355,7 +465,7 @@ export async function changeAccountPassword(
 
 export async function getAccountSettings(user: AuthenticatedUser): Promise<AccountSettings> {
   await ensureAccountSchema();
-  const userId = await ensureExternalAccount(user);
+  const userId = await ensurePersistedUserId(user);
   const row = await getD1Database()
     .prepare(
       `SELECT u.email, u.display_name AS displayName,
@@ -420,7 +530,7 @@ export async function saveOnboarding(
   await ensureAccountSchema();
   if (user.mustChangePassword) throw new PasswordChangeRequiredError();
   const database = getD1Database();
-  const userId = await ensureExternalAccount(user);
+  const userId = await ensurePersistedUserId(user);
   const timestamp = new Date().toISOString();
   await database.batch([
     database.prepare(
@@ -504,7 +614,12 @@ export async function saveOnboarding(
 
 async function ensureJPhillipsTestAccount(): Promise<void> {
   const existing = await findUserRowByEmail(jPhillipsTestAccount.email);
-  if (existing && existing.passwordBootstrapVersion >= jPhillipsTestAccount.passwordBootstrapVersion) return;
+  if (
+    existing
+    && existing.passwordBootstrapVersion >= jPhillipsTestAccount.passwordBootstrapVersion
+    && existing.emailVerifiedAt
+    && existing.status === "ACTIVE"
+  ) return;
   const database = getD1Database();
   const password = await createPasswordRecord(jPhillipsTestAccount.password);
   const timestamp = new Date().toISOString();
@@ -512,13 +627,15 @@ async function ensureJPhillipsTestAccount(): Promise<void> {
     await database.batch([
       database.prepare(
         `UPDATE users SET password_hash = ?, password_salt = ?, password_iterations = ?,
-          must_change_password = 1, password_bootstrap_version = ?, updated_at = ?,
+          must_change_password = 1, password_bootstrap_version = ?, status = 'ACTIVE',
+          email_verified_at = COALESCE(email_verified_at, ?), updated_at = ?,
           version = version + 1 WHERE id = ?`,
       ).bind(
         password.hash,
         password.salt,
         password.iterations,
         jPhillipsTestAccount.passwordBootstrapVersion,
+        timestamp,
         timestamp,
         existing.id,
       ),
@@ -531,8 +648,8 @@ async function ensureJPhillipsTestAccount(): Promise<void> {
       `INSERT OR IGNORE INTO users
         (id, email, display_name, password_hash, password_salt, password_iterations,
          must_change_password, password_bootstrap_version, status, is_test_account,
-         created_at, updated_at, version)
-       VALUES (?, ?, ?, ?, ?, ?, 1, ?, 'ACTIVE', 1, ?, ?, 1)`,
+         email_verified_at, created_at, updated_at, version)
+       VALUES (?, ?, ?, ?, ?, ?, 1, ?, 'ACTIVE', 1, ?, ?, ?, 1)`,
     ).bind(
       jPhillipsTestAccount.id,
       jPhillipsTestAccount.email,
@@ -541,6 +658,7 @@ async function ensureJPhillipsTestAccount(): Promise<void> {
       password.salt,
       password.iterations,
       jPhillipsTestAccount.passwordBootstrapVersion,
+      timestamp,
       timestamp,
       timestamp,
     ),
@@ -569,17 +687,22 @@ async function ensureJPhillipsTestAccount(): Promise<void> {
 }
 
 async function ensureExternalAccount(user: AuthenticatedUser): Promise<string> {
+  const providerSubject = user.source === "chatgpt" ? user.id.replace(/^chatgpt:/u, "") : null;
+  if (providerSubject) {
+    const linked = await findUserRowByProviderSubject(providerSubject);
+    if (linked) return linked.id;
+  }
   const existing = await findUserRowByEmail(user.email);
-  if (existing) return existing.id;
+  if (existing) throw new ExternalIdentityLinkRequiredError();
   const database = getD1Database();
   const timestamp = new Date().toISOString();
   await database.batch([
     database.prepare(
       `INSERT OR IGNORE INTO users
         (id, email, display_name, auth_provider_subject, status, is_test_account,
-         created_at, updated_at, version)
-       VALUES (?, ?, ?, ?, 'ACTIVE', 0, ?, ?, 1)`,
-    ).bind(user.id, user.email.toLowerCase(), user.displayName, `${user.source}:${user.id}`, timestamp, timestamp),
+         email_verified_at, created_at, updated_at, version)
+       VALUES (?, ?, ?, ?, 'ACTIVE', 0, ?, ?, ?, 1)`,
+    ).bind(user.id, user.email.toLowerCase(), user.displayName, providerSubject, timestamp, timestamp, timestamp),
     database.prepare(
       `INSERT OR IGNORE INTO user_roles (user_id, role, organization_id, created_at, created_by)
        VALUES (?, 'PLAYER', NULL, ?, ?)`,
@@ -590,6 +713,11 @@ async function ensureExternalAccount(user: AuthenticatedUser): Promise<string> {
 
 export async function ensurePersistedUserId(user: AuthenticatedUser): Promise<string> {
   await ensureAccountSchema();
+  if (user.source === "password") {
+    const persisted = await findUserRowByEmail(user.email);
+    if (!persisted || persisted.id !== user.id) throw new Error("The authenticated account no longer exists.");
+    return persisted.id;
+  }
   return ensureExternalAccount(user);
 }
 
@@ -602,7 +730,9 @@ async function findUserRowByEmail(email: string): Promise<UserRow | null> {
         must_change_password AS mustChangePassword,
         password_bootstrap_version AS passwordBootstrapVersion, status,
         is_test_account AS isTestAccount,
-        onboarding_completed_at AS onboardingCompletedAt
+        onboarding_completed_at AS onboardingCompletedAt,
+        auth_provider_subject AS authProviderSubject,
+        email_verified_at AS emailVerifiedAt
        FROM users WHERE email = ? AND deleted_at IS NULL LIMIT 1`,
     )
     .bind(email.toLowerCase())
@@ -618,11 +748,28 @@ async function findUserRowById(id: string): Promise<UserRow | null> {
         must_change_password AS mustChangePassword,
         password_bootstrap_version AS passwordBootstrapVersion, status,
         is_test_account AS isTestAccount,
-        onboarding_completed_at AS onboardingCompletedAt
+        onboarding_completed_at AS onboardingCompletedAt,
+        auth_provider_subject AS authProviderSubject,
+        email_verified_at AS emailVerifiedAt
        FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1`,
     )
     .bind(id)
     .first<UserRow>();
+}
+
+async function findUserRowByProviderSubject(subject: string): Promise<UserRow | null> {
+  return getD1Database().prepare(
+    `SELECT id, email, display_name AS displayName,
+      password_hash AS passwordHash, password_salt AS passwordSalt,
+      password_iterations AS passwordIterations,
+      must_change_password AS mustChangePassword,
+      password_bootstrap_version AS passwordBootstrapVersion, status,
+      is_test_account AS isTestAccount,
+      onboarding_completed_at AS onboardingCompletedAt,
+      auth_provider_subject AS authProviderSubject,
+      email_verified_at AS emailVerifiedAt
+     FROM users WHERE auth_provider_subject = ? AND deleted_at IS NULL LIMIT 1`,
+  ).bind(subject).first<UserRow>();
 }
 
 async function rolesForUser(userId: string): Promise<Role[]> {
@@ -642,10 +789,11 @@ function accountUserFromRow(row: UserRow, roles: Role[]): AuthenticatedUser {
     email: row.email,
     displayName: row.displayName,
     roles,
-    source: "password",
+    source: row.authProviderSubject ? "chatgpt" : "password",
     onboardingComplete: Boolean(row.onboardingCompletedAt),
     isTestAccount: Boolean(row.isTestAccount),
     mustChangePassword: Boolean(row.mustChangePassword),
+    emailVerified: Boolean(row.emailVerifiedAt),
   };
 }
 

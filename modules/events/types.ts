@@ -17,6 +17,9 @@ export type EventRecord = {
   summary: string;
   description: string;
   courseId: string | null;
+  layoutId: string | null;
+  holeCount: number;
+  timeZone: string;
   venueName: string;
   addressLine1: string | null;
   city: string;

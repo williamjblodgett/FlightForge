@@ -3,6 +3,7 @@ import { getChatGPTUser } from "@/app/chatgpt-auth";
 import {
   ACCOUNT_SESSION_COOKIE,
   findAccountUserByEmail,
+  findAccountUserByProviderSubject,
   getAccountUserBySession,
 } from "./account-repository";
 import {
@@ -23,9 +24,10 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
 
   const chatGPTUser = await getChatGPTUser();
   if (chatGPTUser) {
-    const persisted = await findAccountUserByEmail(chatGPTUser.email).catch(() => null);
+    const persisted = await findAccountUserByProviderSubject(chatGPTUser.providerSubject).catch(() => null);
+    const emailCollision = persisted ? null : await findAccountUserByEmail(chatGPTUser.email).catch(() => null);
     return {
-      id: persisted?.id ?? `chatgpt:${chatGPTUser.email.toLowerCase()}`,
+      id: persisted?.id ?? `chatgpt:${chatGPTUser.providerSubject}`,
       email: chatGPTUser.email.toLowerCase(),
       displayName: persisted?.displayName ?? chatGPTUser.displayName,
       roles: mergeRoles(persisted?.roles ?? [], rolesForConfiguredEmail(chatGPTUser.email)),
@@ -33,6 +35,8 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
       onboardingComplete: persisted?.onboardingComplete ?? false,
       isTestAccount: false,
       mustChangePassword: persisted?.mustChangePassword ?? false,
+      emailVerified: true,
+      identityLinkRequired: Boolean(emailCollision),
     };
   }
 

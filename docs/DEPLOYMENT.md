@@ -16,6 +16,8 @@ The workflow derives the project-site base path from `GITHUB_REPOSITORY`. Do not
 
 `.openai/hosting.json` declares logical `DB` and `MEDIA` bindings. Sites creates the physical D1 database and private R2 bucket, injects identity, saves immutable versions, and builds the Vinext Cloudflare Worker output.
 
+`sites-deploy.yml` now follows a successful `main` CI run. Configure the protected production secret `SITES_DEPLOY_HOOK_URL` and variable `SITES_PRODUCTION_URL`; without both, automation fails closed instead of pretending a deployment happened. Each health response exposes a non-secret release identifier.
+
 Before publishing:
 
 1. Keep demo authentication disabled.
@@ -41,3 +43,5 @@ For a conventional Next.js deployment, port the active course/favorite/claim/eve
 ## Rollback
 
 GitHub Pages can be rolled back by reverting the source commit and rerunning the workflow. Sites versions are immutable and can be redeployed. Import batches retain IDs and applied/rolled-back timestamps in the PostgreSQL model. The Pages edition also demonstrates reversible device-local batches; it does not modify a shared catalog.
+
+Before the Supabase cutover, rehearse `pg_dump --format=custom`, restore that artifact into an isolated rehearsal database with `pg_restore --clean --if-exists`, run the migration journal and data-quality checks there, then record row counts and the tested release ID. Production restoration and rollback remain a launch gate until credentials and an isolated rehearsal target are available.

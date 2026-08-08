@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/modules/auth/current-user";
 import { listHoleHighlights, saveHoleHighlight } from "@/modules/highlights/highlight-repository";
 import { holeHighlightContextSchema } from "@/modules/highlights/validation";
 
-const supportedTypes = new Set(["video/mp4", "video/quicktime", "video/webm"]);
+const supportedTypes = new Set(["video/mp4", "video/quicktime"]);
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -28,11 +28,11 @@ export async function POST(request: Request) {
   try { form = await request.formData(); } catch { return apiError("INVALID_FORM", "Submit multipart form data.", 400); }
   const file = form.get("video");
   if (!(file instanceof File)) return apiError("VIDEO_REQUIRED", "Record or choose a video.", 422);
-  if (!supportedTypes.has(file.type)) return apiError("UNSUPPORTED_VIDEO", "Use an MP4, MOV, or WebM video.", 422);
+  if (!supportedTypes.has(file.type)) return apiError("UNSUPPORTED_VIDEO", "Use an MP4 or MOV video so duration can be verified server-side.", 422);
   if (file.size <= 0 || file.size > 25 * 1024 * 1024) return apiError("VIDEO_SIZE_INVALID", "Videos must be 25 MB or smaller.", 422);
   const parsed = holeHighlightContextSchema.safeParse({
     courseId: form.get("courseId"), eventId: form.get("eventId"), holeNumber: form.get("holeNumber"),
-    caption: form.get("caption") ?? "", durationSeconds: form.get("durationSeconds"),
+    caption: form.get("caption") ?? "", transcript: form.get("transcript") ?? "",
     rightsConfirmed: form.get("rightsConfirmed") === "true",
     participantConsentConfirmed: form.get("participantConsentConfirmed") === "true",
     containsMinor: form.get("containsMinor") === "true",

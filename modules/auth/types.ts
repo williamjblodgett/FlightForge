@@ -19,4 +19,6 @@ export type AuthenticatedUser = {
   onboardingComplete: boolean;
   isTestAccount: boolean;
   mustChangePassword: boolean;
+  emailVerified: boolean;
+  identityLinkRequired?: boolean;
 };

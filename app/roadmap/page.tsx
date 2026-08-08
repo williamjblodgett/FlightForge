@@ -13,7 +13,8 @@ const slices = [
   { id: "leagues", icon: Users, title: "Regional leagues", status: "Planned", body: "Multi-course seasons, points, handicaps, drop weeks, attendance, schedules, and member communication." },
   { id: "bag", icon: Disc3, title: "Digital bag", status: "Planned", body: "Disc inventory, duplicate molds, stability gaps, course-specific bags, and equipment-aware recommendations." },
   { id: "caddie", icon: Bot, title: "AI caddie & coaching", status: "Planned with safety gates", body: "Explainable shot recommendations, owned-disc alternatives, structured confidence, consented media analysis, and provider fallbacks." },
-  { id: "community", icon: Flag, title: "Community & learning", status: "Planned", body: "Public games, matchmaking controls, tutorials, drills, reviews, reporting, blocking, and moderation." },
+  { id: "learn", icon: Bot, title: "Learning center", status: "Planned", body: "Reviewed tutorials, drills, practice plans, accessible transcripts, and personalized learning paths." },
+  { id: "community", icon: Flag, title: "Player community", status: "Planned", body: "Public games, matchmaking controls, reviews, reporting, blocking, and moderation." },
 ];
 
 export default function RoadmapPage() {

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Bell, CalendarPlus2, MessageCircle, Search, ShieldCheck, UserRound } from "lucide-react";
+import { CalendarPlus2, Search, ShieldCheck, UserRound } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { can } from "@/modules/auth/permissions";
+import { NavLink } from "./NavLink";
 
 const primaryNavigation = [
   { label: "Discover", href: "/courses" },
@@ -24,7 +25,7 @@ export async function SiteHeader() {
         <BrandMark />
         <nav className="desktop-nav" aria-label="Primary navigation">
           {primaryNavigation.map((item) => (
-            <Link key={item.label} href={item.href}>{item.label}</Link>
+            <NavLink key={item.label} href={item.href}>{item.label}</NavLink>
           ))}
         </nav>
         <div className="header-actions">
@@ -42,12 +43,6 @@ export async function SiteHeader() {
           <Link className="icon-button" href="/courses" aria-label="Search courses">
             <Search aria-hidden="true" />
           </Link>
-          <button className="icon-button" type="button" aria-label="Notifications — coming soon" disabled>
-            <Bell aria-hidden="true" />
-          </button>
-          <button className="icon-button" type="button" aria-label="Messages — coming soon" disabled>
-            <MessageCircle aria-hidden="true" />
-          </button>
           {user ? (
             <details className="profile-menu">
               <summary aria-label={`Open profile menu for ${user.displayName}`}>
@@ -56,7 +51,9 @@ export async function SiteHeader() {
               <div className="profile-popover">
                 <strong>{user.displayName}</strong>
                 <span>{user.email}</span>
-                {user.mustChangePassword
+                {user.identityLinkRequired
+                  ? <Link href="/account/link">Securely link account</Link>
+                  : user.mustChangePassword
                   ? <Link href="/account/password">Secure account now</Link>
                   : !user.onboardingComplete
                     ? <Link href="/onboarding">Finish profile setup</Link>

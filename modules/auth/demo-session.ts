@@ -76,6 +76,7 @@ export async function verifyDemoSessionToken(
     onboardingComplete: true,
     isTestAccount: true,
     mustChangePassword: false,
+    emailVerified: true,
   };
 }
 

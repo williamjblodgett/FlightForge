@@ -82,11 +82,10 @@ test("keeps administrator claims protected", async () => {
 
 test("renders the highlight-enabled scorecard and protects video uploads", async () => {
   const scorecard = await render("/play");
-  assert.equal(scorecard.status, 200);
+  assert.equal(scorecard.status, 200, await scorecard.clone().text());
   const html = await scorecard.text();
   assert.match(html, /Scorecard &amp; moments/u);
-  assert.match(html, /Share moment/u);
-  assert.match(html, /Public videos are reviewed/u);
+  assert.match(html, /Share video from hole 1/u);
 
   const form = new FormData();
   form.set("courseId", "flightforge-demo-course");
@@ -103,11 +102,19 @@ test("creates a free player account and persists first-run privacy settings", as
     headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, "cf-connecting-ip": `player-${coordinatorRunId}` },
     body: JSON.stringify({ displayName: "Trail Tester", email, password: "TrailBasket2026!", acceptTerms: true }),
   });
-  assert.equal(signup.status, 201);
-  const cookie = signup.headers.get("set-cookie")?.split(";")[0];
-  assert.ok(cookie, "signup must issue a secure session cookie");
+  assert.equal(signup.status, 201, await signup.clone().text());
   const signupBody = await signup.json();
-  assert.equal(signupBody.next, "/onboarding");
+  assert.equal(signupBody.next, "/verify-email");
+  assert.ok(signupBody.verificationToken, "test delivery must expose a verification token");
+  const verification = await fetch(`${baseUrl}/api/auth/verify-email`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ token: signupBody.verificationToken }),
+  });
+  assert.equal(verification.status, 200);
+  const cookie = verification.headers.get("set-cookie")?.split(";")[0];
+  assert.ok(cookie, "verification must issue a secure session cookie");
+  assert.equal((await verification.json()).next, "/onboarding");
 
   const settings = await fetch(`${baseUrl}/api/account/onboarding`, {
     method: "PUT",
@@ -241,7 +248,7 @@ test("seeds the player-only JPhillips tester on first successful login", async (
     headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
     body: JSON.stringify({ email: "jphillips@demo.flightforge.app", password: "password1234" }),
   });
-  assert.equal(login.status, 200);
+  assert.equal(login.status, 200, await login.clone().text());
   const body = await login.json();
   assert.deepEqual(body.user.roles, ["PLAYER"]);
   assert.equal(body.user.onboardingComplete, false);
@@ -254,6 +261,7 @@ test("lets an authorized coordinator publish an idempotent event to the public b
   const coordinatorHeaders = {
     accept: "application/json", "content-type": "application/json", origin: baseUrl,
     "oai-authenticated-user-email": coordinatorEmail,
+    "oai-authenticated-user-id": `coordinator-${coordinatorRunId}`,
     "oai-authenticated-user-full-name": "Event%20Coordinator",
     "oai-authenticated-user-full-name-encoding": "percent-encoded-utf-8",
   };
@@ -262,8 +270,9 @@ test("lets an authorized coordinator publish an idempotent event to the public b
     organizationName: "Maine Fairway Club", eventType: "TOURNAMENT", title: `Pine Tree Integration Open ${coordinatorRunId}`,
     summary: "A clearly listed one-day disc golf event for integration testing.",
     description: "This organizer-owned event verifies the complete draft and public publishing path without external registration or payment claims.",
-    courseId: null, venueName: "Community Disc Golf Course", addressLine1: null,
+    courseId: null, layoutId: null, holeCount: 18, venueName: "Community Disc Golf Course", addressLine1: null,
     city: "Augusta", regionCode: "ME", countryCode: "US",
+    timeZone: "America/New_York",
     startsAt: "2100-06-15T13:00:00.000Z", endsAt: "2100-06-15T21:00:00.000Z",
     registrationOpensAt: null, registrationClosesAt: null, registrationUrl: null,
     contactEmail: coordinatorEmail, capacity: 90, entryFeeCents: 0,
@@ -279,7 +288,7 @@ test("lets an authorized coordinator publish an idempotent event to the public b
     body: JSON.stringify(eventInput),
   });
   const first = await publish();
-  assert.equal(first.status, 201);
+  assert.equal(first.status, 201, await first.clone().text());
   const firstEvent = (await first.json()).event;
   const duplicate = await publish();
   assert.equal(duplicate.status, 201);
