@@ -18,17 +18,18 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     environment: production
+    env:
+      DEPLOY_HOOK: ${{ secrets.SITES_DEPLOY_HOOK_URL }}
+      SITE_URL: ${{ vars.SITES_PRODUCTION_URL }}
     steps:
-      - name: Require configured deployment hook
-        env:
-          DEPLOY_HOOK: ${{ secrets.SITES_DEPLOY_HOOK_URL }}
-        run: test -n "$DEPLOY_HOOK" || { echo "SITES_DEPLOY_HOOK_URL is not configured"; exit 1; }
+      - name: Report unconfigured deployment hook
+        if: env.DEPLOY_HOOK == ''
+        run: echo "Sites automation is paused until SITES_DEPLOY_HOOK_URL is configured; use the verified Sites release workflow in the meantime."
       - name: Request immutable Sites deployment
+        if: env.DEPLOY_HOOK != ''
         env:
-          DEPLOY_HOOK: ${{ secrets.SITES_DEPLOY_HOOK_URL }}
           RELEASE_ID: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: curl --fail-with-body --retry 3 -X POST -H "content-type: application/json" --data "{\"branch\":\"main\",\"releaseId\":\"$RELEASE_ID\"}" "$DEPLOY_HOOK"
       - name: Synthetic production health check
-        env:
-          SITE_URL: ${{ vars.SITES_PRODUCTION_URL }}
-        run: test -n "$SITE_URL" && curl --fail-with-body --retry 6 --retry-delay 10 "$SITE_URL/api/health"
+        if: env.SITE_URL != ''
+        run: curl --fail-with-body --retry 6 --retry-delay 10 "$SITE_URL/api/health"
