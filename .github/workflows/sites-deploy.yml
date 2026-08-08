@@ -29,7 +29,11 @@ jobs:
         if: env.DEPLOY_HOOK != ''
         env:
           RELEASE_ID: ${{ github.event.workflow_run.head_sha || github.sha }}
-        run: curl --fail-with-body --retry 3 -X POST -H "content-type: application/json" --data "{\"branch\":\"main\",\"releaseId\":\"$RELEASE_ID\"}" "$DEPLOY_HOOK"
+        run: >-
+          curl --fail-with-body --retry 3 -X POST
+          -H "content-type: application/json"
+          --data "{\"branch\":\"main\",\"releaseId\":\"$RELEASE_ID\"}"
+          "$DEPLOY_HOOK"
       - name: Synthetic production health check
         if: env.SITE_URL != ''
         run: curl --fail-with-body --retry 6 --retry-delay 10 "$SITE_URL/api/health"
