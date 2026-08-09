@@ -8,7 +8,7 @@ const discs = [
 ];
 
 describe("AI caddie recommendation schema", () => {
-  it("prefers an owned wind-safe disc and explains its evidence limits", () => {
+  it("prefers an owned wind-safe disc and explains its confidence limits", () => {
     const result = recommendShot({
       distanceFeet: 315,
       windMph: 14,
@@ -25,7 +25,7 @@ describe("AI caddie recommendation schema", () => {
     expect(result.reasoning.some((reason) => reason.includes("14 mph headwind"))).toBe(true);
     expect(result.reasoning.some((reason) => reason.includes("catalog-based"))).toBe(true);
     expect(result.confidence).toBeLessThan(0.8);
-    expect(result.confidenceBasis).toContain("limited independent evidence");
+    expect(result.confidenceBasis).toContain("without a personal throw history yet");
     expect(result.modelVersion).toBe("flightforge-rules-2.0");
   });
 

@@ -45,7 +45,7 @@ export const authoritativeNewEnglandCourses: Course[] = records.map((record) => 
   recordType: record.record_type,
   slug: record.slug,
   name: record.name,
-  shortDescription: `Current factual listing for ${record.name}, reviewed against a course-operator or public-agency source.`,
+  shortDescription: `${record.name} is a disc golf course in ${record.city}, ${record.state}. Check current access, hours, and fees before visiting.`,
   city: record.city,
   state: record.state,
   countryCode: record.country_code,

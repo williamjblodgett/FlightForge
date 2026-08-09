@@ -21,9 +21,9 @@ export class ClaimEvidenceError extends Error {
 }
 
 export async function validateClaimEvidence(file: File): Promise<ValidatedEvidence> {
-  if (file.size <= 0) throw new ClaimEvidenceError("The evidence file is empty.");
+  if (file.size <= 0) throw new ClaimEvidenceError("The supporting file is empty.");
   if (file.size > MAX_CLAIM_EVIDENCE_BYTES) {
-    throw new ClaimEvidenceError("Evidence files must be 5 MB or smaller.");
+    throw new ClaimEvidenceError("Supporting files must be 5 MB or smaller.");
   }
 
   const bytes = await file.arrayBuffer();
@@ -32,11 +32,11 @@ export async function validateClaimEvidence(file: File): Promise<ValidatedEviden
   const reportedExtension = file.name.split(".").at(-1)?.toLowerCase();
   const reportedContentType = file.type.toLowerCase();
   if (!reportedExtension || !(reportedExtension in allowedExtensions)) {
-    throw new ClaimEvidenceError("The evidence filename must end in .pdf, .png, .jpg, or .jpeg.");
+    throw new ClaimEvidenceError("The supporting filename must end in .pdf, .png, .jpg, or .jpeg.");
   }
   const expectedContentType = allowedExtensions[reportedExtension as keyof typeof allowedExtensions];
   if (reportedContentType !== detected.contentType || expectedContentType !== detected.contentType) {
-    throw new ClaimEvidenceError("The evidence filename, MIME type, and file signature do not match.");
+    throw new ClaimEvidenceError("The supporting filename, file type, and file signature do not match.");
   }
   return detected;
 }

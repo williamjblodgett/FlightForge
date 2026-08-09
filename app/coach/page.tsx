@@ -7,7 +7,7 @@ import { isFeatureEnabled } from "@/modules/config/feature-flags";
 import { listCoachingUploads } from "@/modules/media-analysis/coaching-repository";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Camera coach and rangefinder", description: "Private guided throw recording, evidence-aware practice guidance, and GPS distance estimates." };
+export const metadata: Metadata = { title: "Camera coach and rangefinder", description: "Private guided throw recording, research-informed practice guidance, and GPS distance estimates." };
 
 export default async function CoachPage() {
   const user = await getCurrentUser();

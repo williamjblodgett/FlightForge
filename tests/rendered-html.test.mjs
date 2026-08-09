@@ -68,7 +68,7 @@ test("server-renders a canonical course detail with its unclaimed notice", async
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Sabattus Disc Golf/);
-  assert.match(html, /This listing has not yet been claimed or verified by the course operator/);
+  assert.match(html, /This course has not joined FlightForge yet/);
   assert.match(html, /application\/ld\+json/);
 });
 
@@ -81,7 +81,7 @@ test("keeps administrator claims protected", async () => {
 });
 
 test("renders the highlight-enabled scorecard and protects video uploads", async () => {
-  const scorecard = await render("/play");
+  const scorecard = await render("/play?eventId=flightforge-demo-event");
   assert.equal(scorecard.status, 200, await scorecard.clone().text());
   const html = await scorecard.text();
   assert.match(html, /Scorecard &amp; moments/u);

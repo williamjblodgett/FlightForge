@@ -27,7 +27,7 @@ export default async function ClaimCoursePage({ params }: Props) {
         <div className="access-card">
           <BadgeCheck aria-hidden="true" />
           <h1>This listing is already verified.</h1>
-          <p>If management changed, contact support so the ownership transfer can be audited.</p>
+          <p>If management has changed, contact support so we can safely transfer access.</p>
           <Link className="button button-primary" href={`/courses/${course.slug}`}>Return to course</Link>
         </div>
       </main>
@@ -51,7 +51,7 @@ export default async function ClaimCoursePage({ params }: Props) {
         <div className="access-card">
           <ShieldCheck aria-hidden="true" />
           <h2>Sign in before submitting a claim</h2>
-          <p>Your authenticated identity becomes part of the claim’s audit trail.</p>
+          <p>Your signed-in account is recorded with the application for security.</p>
           <Link className="button button-primary" href={`/sign-in?return_to=${encodeURIComponent(`/courses/${course.slug}/claim`)}`}>Sign in to continue</Link>
         </div>
       ) : (

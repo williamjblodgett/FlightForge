@@ -24,7 +24,7 @@ export function CourseLocator({ course }: { course: Course }) {
           Open full map <ExternalLink aria-hidden="true" />
         </a>
       </div>
-      <p>Coordinates are approximate until verified. GPS distances are estimates and are not for emergency navigation.</p>
+      <p>Map pins may be approximate. GPS distances are estimates and are not for emergency navigation.</p>
     </div>
   );
 }

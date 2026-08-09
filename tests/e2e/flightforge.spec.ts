@@ -10,7 +10,7 @@ test("course discovery keeps filters in the URL and opens an interactive map", a
 });
 
 test("guest score survives refresh and offline scoring announces changes", async ({ page, context }) => {
-  await page.goto("/play");
+  await page.goto("/play?eventId=flightforge-demo-event");
   await page.getByRole("button", { name: "Ace" }).click();
   await expect(page.getByText("Hole 1: 1 strokes", { exact: false })).toBeAttached();
   await page.reload();
@@ -33,7 +33,7 @@ test("email verification precedes onboarding", async ({ page, request }) => {
 });
 
 test("video dialog traps context and closes with Escape", async ({ page }) => {
-  await page.goto("/play");
+  await page.goto("/play?eventId=flightforge-demo-event");
   const trigger = page.getByRole("button", { name: "Share video from hole 1" });
   await trigger.click();
   await expect(page.getByRole("dialog")).toBeVisible();

@@ -11,11 +11,11 @@ export function UnclaimedNotice({ courseSlug, compact = false }: Props) {
     <div className={`unclaimed-notice${compact ? " unclaimed-compact" : ""}`}>
       <BadgeInfo aria-hidden="true" />
       <div>
-        <strong>This listing has not yet been claimed or verified by the course operator.</strong>
+        <strong>This course has not joined FlightForge yet.</strong>
         {!compact ? (
           <p>
-            Facts are source-attributed and intentionally limited. Are you authorized to manage this course?{" "}
-            <Link href={`/courses/${courseSlug}/claim`}>Start a verified claim</Link>.
+            Some details may be limited until the course team takes over the page. Are you authorized to manage this course?{" "}
+            <Link href={`/courses/${courseSlug}/claim`}>Claim this course</Link>.
           </p>
         ) : null}
       </div>

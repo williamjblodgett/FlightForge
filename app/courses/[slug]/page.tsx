@@ -41,11 +41,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!course) return {};
   return {
     title: course.name,
-    description: `${course.name} in ${course.city}, ${course.state}: source-attributed location, availability evidence, access, and course facts.`,
+    description: `${course.name} in ${course.city}, ${course.state}: location, access, course details, and planning information.`,
     alternates: { canonical: `/courses/${course.slug}` },
     openGraph: {
       title: `${course.name} · ${brand.productName}`,
-      description: `Review source evidence for ${course.name} in ${course.city}, ${course.state}.`,
+      description: `Plan a round at ${course.name} in ${course.city}, ${course.state}.`,
     },
   };
 }
@@ -104,11 +104,11 @@ export default async function CourseDetailPage({ params }: Props) {
             {course.verifiedBadge ? (
               <span className="verified-badge"><BadgeCheck aria-hidden="true" /> Verified operator</span>
             ) : course.verificationLevel === "OPERATOR_SOURCE_REVIEWED" ? (
-              <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Primary source reviewed</span>
+              <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Official details checked</span>
             ) : course.verificationLevel === "DIRECTORY_CROSS_CHECKED" ? (
-              <span className="source-badge"><Database aria-hidden="true" /> Two directories matched</span>
+              <span className="source-badge"><Database aria-hidden="true" /> Listing cross-checked</span>
             ) : (
-              <span className="source-badge"><Database aria-hidden="true" /> One directory source</span>
+              <span className="source-badge"><Database aria-hidden="true" /> Directory listing</span>
             )}
             <span className={`status-chip status-${course.operationalStatus.toLowerCase()}`}>
               {course.operationalStatus === "UNAVAILABLE_REPORTED" ? <TriangleAlert aria-hidden="true" /> : null}
@@ -128,7 +128,7 @@ export default async function CourseDetailPage({ params }: Props) {
             />
             <ShareCourseButton courseName={course.name} />
             <a className="button button-tertiary" href={course.sourceUrl} target="_blank" rel="noreferrer">
-              View primary source <ExternalLink aria-hidden="true" />
+              Visit course information <ExternalLink aria-hidden="true" />
             </a>
           </div>
         </div>
@@ -146,10 +146,10 @@ export default async function CourseDetailPage({ params }: Props) {
               <h2 id="course-overview-heading">Plan the right kind of round</h2>
             </div>
             <div className="facts-grid">
-              <article><Flag aria-hidden="true" /><span>Course size</span><strong>{course.holeCount > 0 ? `${course.holeCount} holes` : "Not confirmed"}</strong><small>Directory factual field</small></article>
-              <article><Trees aria-hidden="true" /><span>Difficulty</span><strong>{course.difficulty === "UNRATED" ? "Not source-verified" : titleCase(course.difficulty)}</strong><small>No rating inferred from reviews</small></article>
+              <article><Flag aria-hidden="true" /><span>Course size</span><strong>{course.holeCount > 0 ? `${course.holeCount} holes` : "Not confirmed"}</strong><small>Confirm current layout before playing</small></article>
+              <article><Trees aria-hidden="true" /><span>Difficulty</span><strong>{course.difficulty === "UNRATED" ? "Not yet rated" : titleCase(course.difficulty)}</strong><small>Difficulty can vary by layout</small></article>
               <article><Footprints aria-hidden="true" /><span>Access</span><strong>{course.access ?? "Not confirmed"}</strong><small>{course.availabilityType ?? "Schedule not confirmed"}</small></article>
-              <article><CloudSun aria-hidden="true" /><span>Same-day condition</span><strong>Check before travel</strong><small>Availability evidence is not live weather or closure data</small></article>
+              <article><CloudSun aria-hidden="true" /><span>Same-day condition</span><strong>Check before travel</strong><small>Weather, closures, and access can change</small></article>
             </div>
           </section>
 
@@ -163,7 +163,7 @@ export default async function CourseDetailPage({ params }: Props) {
                 {course.amenities.map((amenity) => <span key={amenity}><Check aria-hidden="true" />{amenity}</span>)}
               </div>
             ) : (
-              <div className="inline-empty-state"><Database aria-hidden="true" /><div><strong>Amenities not imported</strong><p>FlightForge does not infer amenities from reviews. An operator can add and verify them after claiming this listing.</p></div></div>
+              <div className="inline-empty-state"><Database aria-hidden="true" /><div><strong>Amenities not listed yet</strong><p>The course team can add restrooms, rentals, food, accessibility details, and other amenities after claiming this page.</p></div></div>
             )}
           </section>
 
@@ -174,8 +174,8 @@ export default async function CourseDetailPage({ params }: Props) {
             </div>
             <div className="layout-list">
               <article>
-                <div><span>01</span><div><strong>Directory course record</strong><p>{course.holeCount > 0 ? `${course.holeCount} holes reported` : "Hole count not confirmed"} · hole-level maps require operator verification.</p></div></div>
-                <span className="layout-status">Awaiting operator map</span>
+                <div><span>01</span><div><strong>Course layout</strong><p>{course.holeCount > 0 ? `${course.holeCount} holes listed` : "Hole count not confirmed"} · detailed hole maps are not available yet.</p></div></div>
+                <span className="layout-status">Map coming soon</span>
               </article>
             </div>
           </section>
@@ -191,24 +191,22 @@ export default async function CourseDetailPage({ params }: Props) {
           <section className="source-panel" aria-labelledby="source-heading">
             <ShieldCheck aria-hidden="true" />
             <div>
-              <h2 id="source-heading">Source and data status</h2>
-              <p>{brand.productName} stores factual fields and source links. It does not copy third-party reviews, photographs, maps, ratings, or protected descriptions.</p>
+              <h2 id="source-heading">Course information</h2>
+              <p>Use these links to check current details directly with the course, facility, public agency, or directory that published them.</p>
               <div className="source-evidence-list">
                 {course.sources.map((source) => (
                   <article key={`${source.type}-${source.url}`}>
-                    <div><strong>{source.name}</strong><span>{source.authoritative ? source.type === "PUBLIC_AGENCY" ? "Public-agency source" : "Operator / facility source" : source.type === "PDGA_DIRECTORY" ? "Independent directory cross-check" : "Current directory record"}</span></div>
-                    <p>{source.observation ?? "Factual listing fields reviewed."}</p>
-                    {source.supports?.length ? <small>Supports: {source.supports.map((field) => field.toLowerCase()).join(", ")}</small> : null}
-                    <a href={source.url} target="_blank" rel="noreferrer">Inspect source <ExternalLink aria-hidden="true" /></a>
+                    <div><strong>{source.name}</strong><span>{source.authoritative ? source.type === "PUBLIC_AGENCY" ? "Public information" : "Course or facility information" : source.type === "PDGA_DIRECTORY" ? "Course directory" : "Course directory"}</span></div>
+                    <p>{source.observation ?? "Listing details checked."}</p>
+                    <a href={source.url} target="_blank" rel="noreferrer">View information <ExternalLink aria-hidden="true" /></a>
                   </article>
                 ))}
               </div>
               <dl>
-                <div><dt>Last reviewed</dt><dd>{new Date(course.lastReviewedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</dd></div>
-                <div><dt>Location precision</dt><dd>{course.locationPrecision.replaceAll("_", " ").toLowerCase()}</dd></div>
-                {course.nextReviewDueAt ? <div><dt>Review due</dt><dd>{new Date(course.nextReviewDueAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</dd></div> : null}
-                <div><dt>Evidence level</dt><dd>{verificationLabel(course)}</dd></div>
-                <div><dt>Availability</dt><dd>{operationalLabel(course)}; same-day status not guaranteed</dd></div>
+                <div><dt>Details checked</dt><dd>{new Date(course.lastReviewedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</dd></div>
+                <div><dt>Map location</dt><dd>{locationLabel(course)}</dd></div>
+                <div><dt>Listing type</dt><dd>{verificationLabel(course)}</dd></div>
+                <div><dt>Availability</dt><dd>{operationalLabel(course)}; confirm before traveling</dd></div>
               </dl>
             </div>
           </section>
@@ -216,19 +214,19 @@ export default async function CourseDetailPage({ params }: Props) {
 
         <aside className="booking-panel" aria-label="Availability and primary actions">
           <span className="eyebrow">Tee time</span>
-          <div className="booking-price"><strong>{formatCoursePrice(course)}</strong><span>source note; confirm before travel</span></div>
+          <div className="booking-price"><strong>{formatCoursePrice(course)}</strong><span>confirm current pricing with the course</span></div>
           {course.nextAvailableAt ? (
             <div className="next-time"><CalendarClock aria-hidden="true" /><div><span>Next availability</span><strong>{course.nextAvailableAt}</strong></div></div>
           ) : (
-            <div className="next-time is-muted"><Clock3 aria-hidden="true" /><div><span>Reservations</span><strong>Not connected</strong></div></div>
+            <div className="next-time is-muted"><Clock3 aria-hidden="true" /><div><span>Reservations</span><strong>Online booking coming soon</strong></div></div>
           )}
-          <Link className="button button-primary button-wide" href="/roadmap#booking">
-            {course.nextAvailableAt ? "Preview tee times" : "Booking roadmap"}
-          </Link>
+          <a className="button button-primary button-wide" href={course.sourceUrl} target="_blank" rel="noreferrer">
+            Check with the course <ExternalLink aria-hidden="true" />
+          </a>
           {course.claimStatus !== "VERIFIED" ? (
             <Link className="button button-secondary button-wide" href={`/courses/${course.slug}/claim`}>Claim this course</Link>
           ) : null}
-          <p className="booking-fineprint">FlightForge reservations are not connected to this operator. Availability evidence above is informational, not a reservation.</p>
+          <p className="booking-fineprint">Online reservations are not available through FlightForge for this course yet. Confirm access directly before traveling.</p>
           <Link className="text-link" href={`/support/course-correction?courseId=${encodeURIComponent(course.id)}&courseName=${encodeURIComponent(course.name)}`}>Report incorrect course information</Link>
         </aside>
       </div>
@@ -242,17 +240,24 @@ function titleCase(value: string): string {
 
 function operationalLabel(course: NonNullable<ReturnType<typeof getCourseBySlug>>): string {
   switch (course.operationalStatus) {
-    case "OPERATOR_CONFIRMED_AVAILABLE": return "Primary source reports available";
-    case "OPERATOR_CONFIRMED_SEASONAL": return "Primary source reports seasonally available";
-    case "AVAILABLE_REPORTED": return "Directory reports available";
-    case "SEASONAL_AVAILABLE": return "Directory reports seasonally available";
-    case "UNAVAILABLE_REPORTED": return "Directory reports unavailable";
-    default: return "Current status not confirmed";
+    case "OPERATOR_CONFIRMED_AVAILABLE": return "Listed as available";
+    case "OPERATOR_CONFIRMED_SEASONAL": return "Seasonal availability";
+    case "AVAILABLE_REPORTED": return "Listed as available";
+    case "SEASONAL_AVAILABLE": return "Seasonal availability";
+    case "UNAVAILABLE_REPORTED": return "Reported unavailable";
+    default: return "Confirm before visiting";
   }
 }
 
 function verificationLabel(course: NonNullable<ReturnType<typeof getCourseBySlug>>): string {
-  if (course.verificationLevel === "OPERATOR_SOURCE_REVIEWED") return "Operator, facility, or public-agency source reviewed";
-  if (course.verificationLevel === "DIRECTORY_CROSS_CHECKED") return "Two independent directory records matched";
-  return "One current directory record; manual review still required";
+  if (course.verificationLevel === "OPERATOR_SOURCE_REVIEWED") return "Course, facility, or public listing";
+  if (course.verificationLevel === "DIRECTORY_CROSS_CHECKED") return "Cross-checked directory listing";
+  return "Course directory listing";
+}
+
+function locationLabel(course: NonNullable<ReturnType<typeof getCourseBySlug>>): string {
+  if (course.locationPrecision === "ENTRANCE_GEOCODED") return "Course entrance";
+  if (course.locationPrecision === "FACILITY_GEOCODED") return "Course facility";
+  if (course.locationPrecision === "FACILITY_APPROXIMATE") return "Approximate course location";
+  return "Approximate directory location";
 }

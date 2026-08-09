@@ -41,14 +41,14 @@ export function CourseCard({ course, favorite, signedIn, selected, onSelect }: P
           {course.verifiedBadge ? (
             <span className="verified-badge"><BadgeCheck aria-hidden="true" /> Verified operator</span>
           ) : course.verificationLevel === "OPERATOR_SOURCE_REVIEWED" ? (
-            <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Primary source reviewed</span>
+            <span className="verified-badge source-reviewed"><BadgeCheck aria-hidden="true" /> Official details checked</span>
           ) : course.verificationLevel === "DIRECTORY_CROSS_CHECKED" ? (
-            <span className="source-badge"><Database aria-hidden="true" /> 2 sources matched</span>
+            <span className="source-badge"><Database aria-hidden="true" /> Listing cross-checked</span>
           ) : (
-            <span className="source-badge"><Database aria-hidden="true" /> 1 directory source</span>
+            <span className="source-badge"><Database aria-hidden="true" /> Directory listing</span>
           )}
           <span>{locationPrecisionLabel(course.locationPrecision)}</span>
-          <span className={`review-state review-${course.evidenceStatus.toLowerCase()}`}>{course.evidenceStatus === "CURRENT" ? "Evidence current" : course.evidenceStatus === "REVIEW_DUE" ? "Evidence review due" : "Evidence stale"}</span>
+          <span className={`review-state review-${course.evidenceStatus.toLowerCase()}`}>{course.evidenceStatus === "CURRENT" ? "Details checked" : course.evidenceStatus === "REVIEW_DUE" ? "Update recommended" : "Details may be outdated"}</span>
         </div>
 
         <div className={`evidence-status status-${course.operationalStatus.toLowerCase()}`}>
@@ -65,7 +65,7 @@ export function CourseCard({ course, favorite, signedIn, selected, onSelect }: P
         {course.nextAvailableAt ? (
           <div className="availability-row"><Clock3 aria-hidden="true" /><span>Next tee time</span><strong>{course.nextAvailableAt}</strong></div>
         ) : (
-          <div className="availability-row is-muted"><Clock3 aria-hidden="true" /><span>Booking not connected</span></div>
+          <div className="availability-row is-muted"><Clock3 aria-hidden="true" /><span>Online booking coming soon</span></div>
         )}
         {course.currentCondition ? (
           <div className="condition-row"><span className="condition-dot" />{course.currentCondition}</div>
@@ -82,12 +82,12 @@ function friendlyDifficulty(value: Course["difficulty"]): string {
 
 function operationalLabel(course: Course): string {
   switch (course.operationalStatus) {
-    case "OPERATOR_CONFIRMED_AVAILABLE": return "Primary source reports available";
-    case "OPERATOR_CONFIRMED_SEASONAL": return "Seasonal · primary source reports available";
-    case "AVAILABLE_REPORTED": return "Directory reports available";
-    case "SEASONAL_AVAILABLE": return "Seasonal · directory reports available";
-    case "UNAVAILABLE_REPORTED": return "Directory reports unavailable";
-    default: return "Current status not confirmed";
+    case "OPERATOR_CONFIRMED_AVAILABLE": return "Listed as available";
+    case "OPERATOR_CONFIRMED_SEASONAL": return "Seasonal availability";
+    case "AVAILABLE_REPORTED": return "Listed as available";
+    case "SEASONAL_AVAILABLE": return "Seasonal availability";
+    case "UNAVAILABLE_REPORTED": return "Reported unavailable";
+    default: return "Confirm before visiting";
   }
 }
 

@@ -56,7 +56,7 @@ export function CourseExplorer({
       if (difficulty !== "ALL") params.set("difficulty", difficulty);
       if (priceType !== "ALL") params.set("price", priceType);
       if (holes !== "ALL") params.set("holes", holes);
-      if (evidence !== "ALL") params.set("evidence", evidence);
+      if (evidence !== "ALL") params.set("source", evidence);
       if (viewMode !== "split") params.set("view", viewMode);
       if (page > 1) params.set("page", String(page));
       router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
@@ -102,10 +102,10 @@ export function CourseExplorer({
           <div className="hero-grid-overlay" />
           <div className="hero-content page-shell">
             <div className="hero-copy">
-              <span className="eyebrow">New England field index · evidence attached</span>
+              <span className="eyebrow">New England course finder</span>
               <h1>Know before<br /><span>you throw.</span></h1>
               <p>
-                A regional course ledger that shows who supports each fact, when it was checked, and whether availability came from an operator or a directory.
+                Find courses across all six New England states, compare the essentials, and plan your next round with confidence.
               </p>
               <div className="hero-actions">
                 <a className="button button-primary" href="#course-results">Explore New England <ArrowRight aria-hidden="true" /></a>
@@ -131,13 +131,13 @@ export function CourseExplorer({
               </figure>
               <div className="hero-signal-card" aria-label={`${brand.productName} launch snapshot`}>
                 <div className="signal-orbit"><MapPinned aria-hidden="true" /></div>
-                <span className="signal-kicker">Regional evidence audit · Aug 7, 2026</span>
+                <span className="signal-kicker">Across all six New England states</span>
                 <strong>{courses.length} listings</strong>
-                <p>Public factual fields only. Every operational claim stays attached to its source.</p>
+                <p>Clear course details, useful filters, and direct links for checking current conditions before you go.</p>
                 <div className="signal-stats">
-                  <div><b>{courses.filter((course) => course.verificationLevel === "DIRECTORY_CROSS_CHECKED").length}</b><span>double-sourced</span></div>
-                  <div><b>{courses.filter((course) => course.verificationLevel === "OPERATOR_SOURCE_REVIEWED").length}</b><span>operator-sourced</span></div>
-                  <div><b>{courses.filter((course) => course.operationalStatus === "UNAVAILABLE_REPORTED").length}</b><span>unavailable</span></div>
+                  <div><b>{courses.filter((course) => course.verificationLevel === "DIRECTORY_CROSS_CHECKED").length}</b><span>cross-checked</span></div>
+                  <div><b>{courses.filter((course) => course.verificationLevel === "OPERATOR_SOURCE_REVIEWED").length}</b><span>official listings</span></div>
+                  <div><b>{courses.filter((course) => course.operationalStatus === "UNAVAILABLE_REPORTED").length}</b><span>reported unavailable</span></div>
                 </div>
               </div>
             </div>
@@ -148,7 +148,7 @@ export function CourseExplorer({
           <div>
             <span className="eyebrow">Course discovery</span>
             <h1>Choose the round that fits today.</h1>
-            <p>Search Maine’s working directory plus verified launch records across Massachusetts, New Hampshire, Vermont, Connecticut, and Rhode Island.</p>
+            <p>Search courses across Maine, Massachusetts, New Hampshire, Vermont, Connecticut, and Rhode Island.</p>
           </div>
           <div className="directory-stat"><strong>{totalMatches ?? courses.length}</strong><span>matching listings</span></div>
         </section>
@@ -208,11 +208,11 @@ export function CourseExplorer({
             </select>
           </label>
           <label>
-            <span>Evidence</span>
+            <span>Listing source</span>
             <select value={evidence} onChange={(event) => { setEvidence(event.target.value as typeof evidence); setVisibleCount(12); }}>
-              <option value="ALL">All evidence levels</option>
-              <option value="AUTHORITATIVE">Operator or public agency</option>
-              <option value="DIRECTORY">Directory review pending</option>
+              <option value="ALL">All listings</option>
+              <option value="AUTHORITATIVE">Course or public listing</option>
+              <option value="DIRECTORY">Course directory listing</option>
             </select>
           </label>
           <label>
@@ -252,7 +252,7 @@ export function CourseExplorer({
             <span className="eyebrow">New England field index</span>
             <h2 id="results-heading">{totalMatches ?? filteredCourses.length} {(totalMatches ?? filteredCourses.length) === 1 ? "course" : "courses"} ready to explore</h2>
           </div>
-          <p>Every location shows its evidence level; same-day conditions still require operator confirmation.</p>
+          <p>Course details can change. Confirm current hours, fees, and conditions before traveling.</p>
         </div>
 
         <div className={`explorer-layout view-${viewMode}`}>
@@ -303,7 +303,7 @@ export function CourseExplorer({
   function pageHref(nextPage: number) {
     const params = new URLSearchParams();
     if (query) params.set("q", query); if (state !== "ALL") params.set("state", state); if (difficulty !== "ALL") params.set("difficulty", difficulty);
-    if (priceType !== "ALL") params.set("price", priceType); if (holes !== "ALL") params.set("holes", holes); if (evidence !== "ALL") params.set("evidence", evidence); if (viewMode !== "split") params.set("view", viewMode);
+    if (priceType !== "ALL") params.set("price", priceType); if (holes !== "ALL") params.set("holes", holes); if (evidence !== "ALL") params.set("source", evidence); if (viewMode !== "split") params.set("view", viewMode);
     if (nextPage > 1) params.set("page", String(nextPage)); return `${pathname}?${params}`;
   }
 }

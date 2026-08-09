@@ -56,7 +56,7 @@ export function ProfileSetupForm({ initial, firstRun }: Props) {
       {form.isTestAccount ? (
         <div className="tester-account-warning">
           <ShieldCheck aria-hidden="true" />
-          <div><strong>JPhillips shared tester</strong><p>Use fictional details only. This player account has no staff, payment, or administrative permissions.</p></div>
+          <div><strong>Privacy reminder</strong><p>Choose what other players can see. Precise home addresses are never shown on your public profile.</p></div>
         </div>
       ) : null}
 

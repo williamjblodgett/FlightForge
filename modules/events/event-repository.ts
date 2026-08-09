@@ -337,11 +337,11 @@ async function seedFictionalEvent(): Promise<void> {
          'demo-course-forge-ridge', 'flightforge-demo-layout', 18, 'America/New_York',
          'FlightForge demonstration course', 'Augusta', 'ME', 'US', '2099-08-08T13:00:00.000Z',
          '2099-08-08T21:00:00.000Z', 'demo@flightforge.invalid', 0, 'USD', 'One demonstration round',
-         '["Demonstration"]', 'PUBLISHED', 'PUBLIC', ?, ?, ?, 1)
+         '["Demonstration"]', 'PUBLISHED', 'UNLISTED', ?, ?, ?, 1)
        ON CONFLICT(id) DO UPDATE SET
          course_id = excluded.course_id, title = excluded.title, layout_id = excluded.layout_id,
          hole_count = excluded.hole_count, time_zone = excluded.time_zone,
-         status = 'PUBLISHED', visibility = 'PUBLIC', updated_at = excluded.updated_at`,
+         status = 'PUBLISHED', visibility = 'UNLISTED', updated_at = excluded.updated_at`,
     ).bind(createdAt, createdAt, createdAt),
     database.prepare(
       `INSERT OR IGNORE INTO event_participants

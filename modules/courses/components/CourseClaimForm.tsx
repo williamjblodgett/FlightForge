@@ -89,7 +89,7 @@ export function CourseClaimForm({ course, user }: Props) {
       </div>
 
       <div className="form-section-heading">
-        <span>2</span><div><h2>Verification evidence</h2><p>Share enough context for a manual review without uploading unnecessary personal information.</p></div>
+        <span>2</span><div><h2>Confirm your role</h2><p>Share enough information for our team to confirm that you are authorized to manage this course.</p></div>
       </div>
       <label className="form-textarea">
         <span>How are you authorized to manage this course?</span>
@@ -105,13 +105,13 @@ export function CourseClaimForm({ course, user }: Props) {
       </label>
       <label className="file-drop">
         <FileCheck2 aria-hidden="true" />
-        <span><strong>Attach supporting evidence</strong><small>Optional PDF, PNG, or JPEG · 5 MB maximum</small></span>
+        <span><strong>Attach a supporting document</strong><small>Optional PDF, PNG, or JPEG · 5 MB maximum</small></span>
         <input name="supportingDocument" type="file" accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg" />
       </label>
 
       <div className="claim-security-note">
         <LockKeyhole aria-hidden="true" />
-        <p>Evidence is stored privately and can be downloaded only through an administrator-authorized route. Files are signature-checked and never exposed by a public bucket URL.</p>
+        <p>Supporting documents are kept private, checked for valid file types, and available only to authorized FlightForge reviewers.</p>
       </div>
       <label className="checkbox-field">
         <input type="checkbox" required />

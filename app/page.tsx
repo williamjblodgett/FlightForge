@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Find your next round",
-  description: `Discover source-attributed New England disc golf listings in ${brand.productName}.`,
+  description: `Discover disc golf courses across New England with ${brand.productName}.`,
 };
 
 export default async function Home() {

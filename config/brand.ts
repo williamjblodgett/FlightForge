@@ -2,7 +2,7 @@ export const brand = {
   productName: "FlightForge",
   shortProductName: "Forge",
   appStoreName: "FlightForge Disc Golf",
-  legalEntityName: "FlightForge, Inc. (working title)",
+  legalEntityName: "FlightForge",
   supportEmail: "",
   domain: "flightforge-maine-launch.williamjblodgett.chatgpt.site",
   logo: {

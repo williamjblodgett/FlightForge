@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Discover courses",
-  description: `Search ${brand.productName}'s source-attributed New England course collection.`,
+  description: `Search ${brand.productName}'s New England disc golf course collection.`,
   alternates: { canonical: "/courses" },
 };
 
@@ -23,7 +23,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
     difficulty: enumValue(scalar(query.difficulty), ["ALL", "UNRATED", "BEGINNER", "RECREATIONAL", "INTERMEDIATE", "ADVANCED"] as const, "ALL") as CourseDifficulty | "ALL",
     priceType: enumValue(scalar(query.price), ["ALL", "FREE", "PAID", "MIXED"] as const, "ALL") as CoursePriceType | "ALL",
     holes: enumValue(scalar(query.holes), ["ALL", "9", "18", "36"] as const, "ALL"),
-    evidence: enumValue(scalar(query.evidence), ["ALL", "AUTHORITATIVE", "DIRECTORY"] as const, "ALL"),
+    evidence: enumValue(scalar(query.source) || scalar(query.evidence), ["ALL", "AUTHORITATIVE", "DIRECTORY"] as const, "ALL"),
     view: enumValue(scalar(query.view), ["split", "list", "map"] as const, "split"),
   };
   const matches = rankCoursesForDiscovery(filterCourses(courses, {

@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, KeyRound, ShieldCheck, UserRoundPlus } from "lucide-react";
+import { ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
 import { brand } from "@/config/brand";
-import { jPhillipsTestAccount } from "@/modules/auth/test-account";
 
 type Props = {
   returnTo: string;
@@ -49,12 +48,6 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
     }
   }
 
-  function useTesterAccount() {
-    setEmail(jPhillipsTestAccount.email);
-    setPassword(jPhillipsTestAccount.password);
-    setError(null);
-  }
-
   return (
     <div className="account-entry-grid">
       <form className="auth-card account-form" onSubmit={submit}>
@@ -93,21 +86,6 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
         </a>
       </form>
 
-      <aside className="tester-pass">
-        <div className="tester-pass-number">TEST PASS · 01</div>
-        <UserRoundPlus aria-hidden="true" />
-        <span className="eyebrow">Built for JPhillips</span>
-        <h2>A ready-to-use player account.</h2>
-        <p>This non-privileged test account starts private and requires JPhillips to replace the temporary password before profile setup.</p>
-        <dl>
-          <div><dt>Email</dt><dd>{jPhillipsTestAccount.email}</dd></div>
-          <div><dt>Password</dt><dd>{jPhillipsTestAccount.password}</dd></div>
-        </dl>
-        <button className="button button-ink button-wide" type="button" onClick={useTesterAccount}>
-          Fill JPhillips credentials
-        </button>
-        <small>The starter password works only until JPhillips creates a private replacement.</small>
-      </aside>
     </div>
   );
 }

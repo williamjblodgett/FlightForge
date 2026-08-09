@@ -29,14 +29,14 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase,
     title: { default: `${brand.productName} — Find your next round`, template: `%s · ${brand.productName}` },
-    description: "Discover evidence-backed disc golf courses, save favorites, and connect with course operators across New England.",
+    description: "Discover disc golf courses, save favorites, and connect with course operators across New England.",
     icons: { icon: brand.favicon, shortcut: brand.favicon },
     openGraph: {
       type: "website", siteName: brand.productName, title: `${brand.productName} — Find your next round`,
-      description: "Find evidence-backed New England courses, plan a round, and build your game.",
+      description: "Find New England courses, plan a round, and build your game.",
       images: [{ url: socialImage, width: 1734, height: 907, alt: `${brand.productName} — Find your line. Forge your game.` }],
     },
-    twitter: { card: "summary_large_image", title: `${brand.productName} — Find your next round`, description: "Find evidence-backed New England courses, plan a round, and build your game.", images: [socialImage] },
+    twitter: { card: "summary_large_image", title: `${brand.productName} — Find your next round`, description: "Find New England courses, plan a round, and build your game.", images: [socialImage] },
     manifest: "/manifest.webmanifest",
   };
 }

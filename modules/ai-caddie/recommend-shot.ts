@@ -96,7 +96,7 @@ export function recommendShot(input: CaddieInput): ShotRecommendation {
       ? `Profile-adjusted from ${selected?.sampleCount ?? 0} recorded throws plus the manufacturer baseline.`
       : selected?.ratingSource
         ? `Catalog baseline from ${selected.ratingSource}; no personal flight sample yet.`
-        : "User-entered flight numbers with limited independent evidence.",
+        : "User-entered flight numbers without a personal throw history yet.",
     missingInformation,
     modelVersion: CADDIE_MODEL_VERSION,
   };
@@ -210,7 +210,7 @@ function executionCueFor(input: CaddieInput, releaseAngle: string): string {
 }
 
 function mainRiskFor(input: CaddieInput, disc?: PlayerDisc): string {
-  if (!disc) return "The caddie has no owned-disc evidence for this recommendation.";
+  if (!disc) return "Add discs to your bag for a more personalized recommendation.";
   if (input.windDirection === "HEADWIND" && (disc.observedTurn ?? disc.turn) < -1) return "Unexpected high-speed turn could carry the disc away from the intended line.";
   if (input.hazardLevel === "HIGH") return "A full-power miss may bring the primary hazard into play.";
   if ((disc.sampleCount ?? 0) < 3) return "The selected disc has too little personal history to predict its finish confidently.";

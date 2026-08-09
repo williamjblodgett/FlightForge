@@ -120,7 +120,7 @@ export function EventPublisherForm({ organizerEmail, courses, initial }: Props) 
     <form className="event-editor" onSubmit={submit}>
       <div className="event-editor-intro">
         <ShieldCheck aria-hidden="true" />
-        <div><strong>Coordinator publishing</strong><p>Drafts stay private. Publishing makes the event immediately visible on the public Events page and records an audit event.</p></div>
+        <div><strong>Coordinator publishing</strong><p>Drafts stay private. Publishing makes the event immediately visible on the public Events page.</p></div>
       </div>
 
       <section className="editor-section">

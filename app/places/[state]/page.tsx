@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!selected) return {};
   return {
     title: `Disc golf courses in ${selected.name}`,
-    description: `Explore source-attributed disc golf courses in ${selected.name}.`,
+    description: `Explore disc golf courses in ${selected.name}.`,
     alternates: { canonical: `/places/${state}` },
   };
 }

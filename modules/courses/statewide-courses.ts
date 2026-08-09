@@ -91,7 +91,7 @@ export const statewideCourses: Course[] = records.map((record) => {
     slug: record.slug,
     name: displayName,
     shortDescription: authoritative
-      ? `Current factual listing for ${displayName}, reviewed against an operator or facility-owner page.`
+      ? `${displayName} is a disc golf course in ${record.city}, Maine. Check current access, hours, and fees before visiting.`
       : sharedVenueDescription(record.slug, record.city),
     city: record.city,
     state: record.state,
@@ -151,7 +151,7 @@ function sharedVenueDescription(slug: string, city: string): string {
   if (slug === "devil-s-grove-disc-golf-demon") {
     return "One of two separately listed 18-hole courses at the Devil’s Grove property. This record represents the Demon course.";
   }
-  return `Source-attributed ${city} listing. Course details remain concise until the operator claims and verifies them.`;
+  return `Disc golf course in ${city}. Check current hours, access, and fees with the course before visiting.`;
 }
 
 function priceType(costNote: string | null): CoursePriceType {
