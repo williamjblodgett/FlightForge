@@ -9,7 +9,7 @@ const contentSecurityPolicy = [
   "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://*.supabase.co",
   "media-src 'self' blob:",
   "worker-src 'self' blob:",
-  "frame-src 'self'",
+  "frame-src 'self' https://www.google.com",
   "frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",
   "form-action 'self'",
   "manifest-src 'self'",
@@ -34,7 +34,7 @@ export function withSecurityHeaders(request: Request, response: Response): Respo
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set(
     "Permissions-Policy",
-    "accelerometer=(), camera=(self), geolocation=(self), gyroscope=(), microphone=(), payment=(), usb=()",
+    "accelerometer=(), camera=(self), geolocation=(self), gyroscope=(), microphone=(self), payment=(), usb=()",
   );
 
   const url = new URL(request.url);

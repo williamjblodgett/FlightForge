@@ -9,6 +9,8 @@ describe("withSecurityHeaders", () => {
     );
     expect(secured.headers.get("content-security-policy")).toContain("object-src 'none'");
     expect(secured.headers.get("content-security-policy")).toContain("frame-ancestors");
+    expect(secured.headers.get("content-security-policy")).toContain("frame-src 'self' https://www.google.com");
+    expect(secured.headers.get("permissions-policy")).toContain("microphone=(self)");
     expect(secured.headers.get("strict-transport-security")).toBe("max-age=31536000");
     expect(secured.headers.get("x-content-type-options")).toBe("nosniff");
     expect(await secured.text()).toBe("ok");

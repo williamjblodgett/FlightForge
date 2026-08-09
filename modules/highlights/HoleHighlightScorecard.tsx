@@ -120,7 +120,7 @@ export function HoleHighlightScorecard({ courseId, eventId, eventTitle, courseNa
     <header className="round-hud">
       <div><span>Hole {currentHole}/{holeCount}</span><strong>{relative === 0 ? "E" : relative > 0 ? `+${relative}` : relative}</strong><small>{online ? pending.length ? `${pending.length} syncing` : "Saved" : `${pending.length} offline`}</small></div>
       <div className="round-hud-title"><b>{eventTitle}</b><span>{courseName}</span></div>
-      <div className="round-hud-actions"><Link href="/bag" aria-label="Open disc bag"><Backpack aria-hidden="true" /></Link><Link href="/coach" aria-label="Open camera coach"><Sparkles aria-hidden="true" /></Link><button type="button" onClick={() => setUploadHole(currentHole)} aria-label={`Share video from hole ${currentHole}`}><Camera aria-hidden="true" /></button><button type="button" disabled={currentHole === holeCount} onClick={() => setCurrentHole((hole) => Math.min(holeCount, hole + 1))} aria-label="Next hole"><ChevronRight aria-hidden="true" /></button></div>
+      <div className="round-hud-actions"><Link href="/bag#caddie-chat" aria-label="Open disc bag and caddie"><Backpack aria-hidden="true" /></Link><Link href="/coach" aria-label="Open camera coach"><Sparkles aria-hidden="true" /></Link><button type="button" onClick={() => setUploadHole(currentHole)} aria-label={`Share video from hole ${currentHole}`}><Camera aria-hidden="true" /></button><button type="button" disabled={currentHole === holeCount} onClick={() => setCurrentHole((hole) => Math.min(holeCount, hole + 1))} aria-label="Next hole"><ChevronRight aria-hidden="true" /></button></div>
     </header>
 
     {message ? <div className="round-message" role="status"><Check aria-hidden="true" />{message}</div> : null}

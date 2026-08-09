@@ -3611,6 +3611,72 @@ td a svg {
   .view-toggle button:first-child { display: none; }
 }
 
+.detail-satellite-map {
+  min-height: 310px;
+  overflow: hidden;
+  border-radius: 18px 18px 0 0;
+  background: #d7dfd2;
+}
+
+.detail-satellite-map iframe {
+  display: block;
+  width: 100%;
+  min-height: 310px;
+  border: 0;
+}
+
+/* Private field conversation: compact enough to use between throws. */
+.caddie-chat {
+  margin-top: 28px;
+  padding: clamp(18px, 3vw, 32px);
+  border: 1px solid color-mix(in srgb, var(--border), var(--accent) 20%);
+  border-radius: 24px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface), #e6f0e8 35%), var(--surface));
+  box-shadow: 0 20px 55px rgb(28 49 39 / 9%);
+}
+
+.caddie-chat > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.caddie-chat > header h2 { margin: 6px 0; font-size: clamp(1.65rem, 4vw, 2.35rem); }
+.caddie-chat > header p { max-width: 690px; margin: 0; color: var(--muted); }
+.caddie-privacy { display: flex; flex: 0 0 auto; gap: 9px; align-items: center; padding: 10px 13px; border-radius: 14px; background: rgb(20 64 47 / 8%); color: var(--accent-dark); font-size: .75rem; font-weight: 750; line-height: 1.25; }
+.caddie-privacy svg { width: 19px; }
+.caddie-transcript { display: grid; gap: 12px; max-height: 470px; min-height: 170px; margin: 22px 0 12px; padding: 16px; overflow: auto; border: 1px solid var(--border); border-radius: 18px; background: color-mix(in srgb, var(--surface), transparent 4%); }
+.caddie-message { width: min(82%, 720px); padding: 12px 15px; border-radius: 16px; }
+.caddie-message > span { display: block; margin-bottom: 4px; font-size: .72rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.caddie-message p { margin: 0; line-height: 1.55; white-space: pre-wrap; }
+.caddie-message small { display: block; margin-top: 7px; color: var(--muted); }
+.caddie-message.is-user { justify-self: end; border-bottom-right-radius: 4px; background: var(--accent-dark); color: white; }
+.caddie-message.is-assistant { justify-self: start; border: 1px solid var(--border); border-bottom-left-radius: 4px; background: var(--surface); }
+.caddie-chat-empty { display: grid; place-content: center; gap: 8px; min-height: 140px; text-align: center; }
+.caddie-chat-empty button { border: 0; background: transparent; color: var(--accent-dark); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.caddie-chat-form { display: grid; grid-template-columns: 1fr 52px; gap: 9px; }
+.caddie-chat-form textarea { min-height: 58px; resize: vertical; padding: 12px 14px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); color: var(--text); font: inherit; }
+.caddie-chat-form button { display: grid; min-width: 52px; min-height: 52px; place-items: center; align-self: end; border: 0; border-radius: 15px; background: var(--accent); color: #10271e; cursor: pointer; }
+.caddie-chat-form button:disabled { cursor: not-allowed; opacity: .5; }
+.caddie-voice-row { display: flex; min-height: 54px; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; }
+.caddie-voice-row label { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .86rem; font-weight: 700; }
+.caddie-voice-row label input { width: 20px; height: 20px; }
+.caddie-voice-row svg { width: 18px; }
+.voice-not-configured { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: .8rem; }
+.voice-hold { min-height: 48px; padding: 0 18px; border: 1px solid var(--accent-dark); border-radius: 999px; background: var(--surface); color: var(--accent-dark); font-weight: 800; cursor: pointer; touch-action: none; }
+.voice-hold.is-listening { background: #9f3428; border-color: #9f3428; color: white; transform: scale(.98); }
+.caddie-chat-status { min-height: 1.3em; margin: 8px 0 0; color: var(--muted); font-size: .82rem; }
+.caddie-knowledge-sources { margin-top: 12px; color: var(--muted); font-size: .82rem; }
+.caddie-knowledge-sources summary { color: var(--accent-dark); font-weight: 800; cursor: pointer; }
+.caddie-knowledge-sources ul { display: grid; gap: 10px; padding-left: 20px; }
+.caddie-knowledge-sources li span { display: block; margin-top: 2px; }
+.caddie-knowledge-sources a { color: var(--accent-dark); font-weight: 750; }
+.caddie-safety-note { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: .78rem; }
+
+@media (max-width: 680px) {
+  .caddie-chat { padding: 16px; border-radius: 18px; }
+  .caddie-chat > header { display: block; }
+  .caddie-privacy { display: inline-flex; margin-top: 12px; }
+  .caddie-message { width: 92%; }
+  .caddie-voice-row { align-items: stretch; flex-direction: column; }
+  .caddie-voice-row .button, .voice-hold { width: 100%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .system-state-skeleton { animation: none; }
   .map-pan-layer { transition: none; }

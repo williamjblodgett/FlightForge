@@ -169,6 +169,19 @@ test("creates a free player account and persists first-run privacy settings", as
   assert.equal(caddie.recommendation.primaryDiscId, addedDisc.id);
   assert.match(caddie.recommendation.confidenceBasis, /catalog baseline/i);
 
+  const chatResponse = await fetch(`${baseUrl}/api/caddie/chat`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie },
+    body: JSON.stringify({ message: "What changes in an 8 mph headwind?", conversationId: null }),
+  });
+  assert.equal(chatResponse.status, 201);
+  const chat = await chatResponse.json();
+  assert.equal(chat.mode, "FIELD_GUIDE");
+  assert.match(chat.messages[1].content, /relative airspeed/i);
+  const chatHistory = await fetch(`${baseUrl}/api/caddie/chat?conversationId=${chat.conversationId}`, { headers: { accept: "application/json", cookie } });
+  assert.equal(chatHistory.status, 200);
+  assert.equal((await chatHistory.json()).messages.length, 2);
+
   const feedback = await fetch(`${baseUrl}/api/caddie/recommendations/${caddie.id}/feedback`, {
     method: "POST",
     headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie },

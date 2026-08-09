@@ -4,6 +4,8 @@
 
 FlightForge begins as a TypeScript modular monolith using the Next.js App Router, React server/client components, Vinext, Cloudflare Workers compatibility, Zod contracts, Drizzle schemas, and domain-focused modules. The application avoids microservices while keeping provider boundaries explicit.
 
+The virtual caddie is hybrid: deterministic owned-disc shot recommendations remain available without AI, while a provider-abstracted conversation layer can explain rules, flight, technique, and strategy using server-supplied bag context. See [CADDIE_AND_MAPS.md](./CADDIE_AND_MAPS.md) for provider, privacy, and deployment details.
+
 ```mermaid
 flowchart LR
   Browser[Responsive web client] --> App[Next.js App Router modular monolith]
