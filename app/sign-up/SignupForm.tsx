@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, LockKeyhole, Shield } from "lucide-react";
 import { brand } from "@/config/brand";
 
-export function SignupForm({ returnTo = "/onboarding" }: { returnTo?: string }) {
+export function SignupForm({ returnTo = "/onboarding", registrationReady = true }: { returnTo?: string; registrationReady?: boolean }) {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,6 +13,19 @@ export function SignupForm({ returnTo = "/onboarding" }: { returnTo?: string }) 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(false);
+
+  if (!registrationReady) {
+    return (
+      <section className="auth-card account-form" role="status">
+        <LockKeyhole aria-hidden="true" />
+        <span className="eyebrow">Registration paused</span>
+        <h2>Already have a FlightForge account?</h2>
+        <p>Sign in normally. New accounts are not accepted until the verification and support channels are ready.</p>
+        <Link className="button button-primary button-wide" href={`/sign-in?return_to=${encodeURIComponent(returnTo)}`}>Sign in <ArrowRight size={18} aria-hidden="true" /></Link>
+        <Link className="button button-secondary button-wide" href="/courses">Explore courses</Link>
+      </section>
+    );
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

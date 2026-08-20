@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SignupForm } from "./SignupForm";
 import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
+import { isPublicRegistrationReady } from "@/config/public-launch";
 
 export const metadata: Metadata = {
   title: "Create a free account",
@@ -10,14 +11,15 @@ export const metadata: Metadata = {
 export default async function SignupPage({ searchParams }: { searchParams: Promise<{ return_to?: string }> }) {
   const query = await searchParams;
   const returnTo = safeRelativeReturnPath(query.return_to || "/onboarding");
+  const registrationReady = isPublicRegistrationReady();
   return (
     <main className="auth-page page-shell">
       <div className="auth-heading">
-        <span className="eyebrow">Free player account · no card required</span>
-        <h1>Make the course yours.</h1>
-        <p>Create the account now; tune skill details, social preferences, and privacy on the next screen.</p>
+        <span className="eyebrow">Player accounts</span>
+        <h1>{registrationReady ? "Make the course yours." : "New account registration is temporarily unavailable."}</h1>
+        <p>{registrationReady ? "Create the account now; tune skill details, social preferences, and privacy on the next screen." : "Existing players can still sign in. Registration will reopen when verified account-support and email-delivery channels are active."}</p>
       </div>
-      <SignupForm returnTo={returnTo} />
+      <SignupForm returnTo={returnTo} registrationReady={registrationReady} />
     </main>
   );
 }
