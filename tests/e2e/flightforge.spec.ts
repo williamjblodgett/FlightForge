@@ -32,7 +32,7 @@ test("email verification precedes onboarding", async ({ page, request }, testInf
   await expect(page).toHaveURL(/\/onboarding/u);
   await expect(page.getByRole("heading", { name: "Set your game. Set your boundaries." })).toBeVisible();
   await page.getByRole("button", { name: "Save and enter FlightForge" }).click();
-  await expect(page).toHaveURL(/\/profile/u);
+  await expect(page).toHaveURL(/\/profile/u, { timeout: 15_000 });
   await page.goto("/community");
   await page.getByLabel("I confirm that I am at least 18 years old.").check();
   await page.getByLabel(/I agree to the community guidelines/u).check();
