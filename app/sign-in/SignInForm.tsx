@@ -83,7 +83,7 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
         <p className="auth-switch">New here? <Link href={`/sign-up?return_to=${encodeURIComponent(returnTo)}`}>Create a free account</Link></p>
         <div className="hosted-auth-divider"><span>or</span></div>
         <a className="button button-secondary button-wide" href={hostedSignInPath}>
-          <ShieldCheck size={18} aria-hidden="true" /> Continue with hosted identity
+          <ShieldCheck size={18} aria-hidden="true" /> Continue with secure sign-in
         </a>
       </form>
 

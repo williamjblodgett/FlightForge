@@ -80,7 +80,7 @@
   font-size: clamp(3.9rem, 7.5vw, 8rem);
   font-weight: 900;
   letter-spacing: -0.08em;
-  line-height: 0.83;
+  line-height: 0.94;
 }
 
 .heroCopy h1 em {
@@ -116,14 +116,20 @@
 .dangerButton,
 .contextLink {
   display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  height: auto;
   min-height: 46px;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  padding: 0 18px;
+  padding: 10px 18px;
   border: 1px solid var(--community-ink);
   border-radius: 4px;
   font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-align: center;
   cursor: pointer;
 }
 
@@ -234,6 +240,8 @@
 .inboxSearch svg { width: 19px; color: var(--community-green); }
 .communitySearch input,
 .inboxSearch input { width: 100%; min-width: 0; border: 0; background: transparent; outline: 0; }
+.communitySearch:focus-within,
+.inboxSearch:focus-within { outline: 3px solid var(--community-orange); outline-offset: 2px; }
 
 .notice {
   margin: 0 0 20px;
@@ -312,7 +320,7 @@
 .channelCopy > div > b { padding: 3px 6px; background: #ffd5b6; color: #7c2d07; font-size: 0.58rem; }
 .channelCopy h3 { margin: 4px 0 3px; overflow: hidden; font-size: 0.94rem; text-overflow: ellipsis; white-space: nowrap; }
 .channelCopy p { margin: 0; overflow: hidden; color: #68747e; font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
-.channelCard > button { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid #9d9485; background: transparent; cursor: pointer; }
+.channelCard > button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #9d9485; background: transparent; cursor: pointer; }
 .channelCard > button:hover:not(:disabled) { border-color: var(--community-ink); background: var(--community-orange); }
 .channelCard > button svg { width: 17px; }
 
@@ -358,7 +366,7 @@
 .threadActions > button,
 .threadActions summary {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 6px;
@@ -373,7 +381,7 @@
 .playerActions svg,
 .threadActions svg { width: 15px; height: 15px; }
 .connected,
-.pending { display: inline-flex; min-height: 36px; align-items: center; gap: 5px; padding: 0 9px; color: var(--community-green); font-size: 0.66rem; font-weight: 800; }
+.pending { display: inline-flex; min-height: 44px; align-items: center; gap: 5px; padding: 0 9px; color: var(--community-green); font-size: 0.66rem; font-weight: 800; }
 .connected svg { width: 15px; }
 
 .playerMenu,
@@ -399,7 +407,7 @@
 .playerMenu > div button,
 .threadActions details > div button {
   display: flex;
-  min-height: 38px;
+  min-height: 44px;
   align-items: center;
   gap: 8px;
   padding: 7px 9px;
@@ -518,7 +526,7 @@
 .dialogPanel { position: relative; max-height: min(82dvh, 760px); overflow: auto; border: 2px solid var(--community-ink); background: var(--community-paper); padding: clamp(24px, 5vw, 40px); box-shadow: 9px 9px 0 var(--community-orange); }
 .dialogPanel h2 { margin: 0 40px 8px 0; font-size: clamp(1.6rem, 4vw, 2.3rem); letter-spacing: -0.05em; }
 .dialogPanel > p { margin: 0 0 22px; color: #65727c; line-height: 1.5; }
-.dialogClose { position: absolute; top: 14px; right: 14px; display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid #9d9485; background: transparent; cursor: pointer; }
+.dialogClose { position: absolute; top: 14px; right: 14px; display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #9d9485; background: transparent; cursor: pointer; }
 .dialogClose svg { width: 19px; }
 .dialogForm { display: grid; gap: 16px; }
 .dialogForm > label { display: grid; gap: 7px; }
@@ -579,7 +587,7 @@
 }
 
 .inboxHeader h1 { margin: 3px 0 0; font-size: 2rem; letter-spacing: -0.06em; }
-.inboxHeader button { display: grid; width: 43px; height: 43px; place-items: center; border: 1px solid var(--community-ink); background: var(--community-orange); cursor: pointer; box-shadow: 3px 3px 0 var(--community-ink); }
+.inboxHeader button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid var(--community-ink); background: var(--community-orange); cursor: pointer; box-shadow: 3px 3px 0 var(--community-ink); }
 .inboxHeader button svg { width: 19px; }
 .inboxSearch { margin: 12px; min-height: 44px; box-shadow: none; }
 .inboxMeta { display: flex; justify-content: space-between; gap: 15px; padding: 1px 15px 11px; color: #69747c; font-size: 0.64rem; }
@@ -626,7 +634,7 @@
   background-size: 100% 42px;
 }
 
-.loadOlder { display: flex; min-height: 37px; align-items: center; gap: 7px; margin: 0 auto 22px; padding: 0 12px; border: 1px solid #aaa191; background: var(--community-paper); font-size: 0.67rem; font-weight: 760; cursor: pointer; }
+.loadOlder { display: flex; min-height: 44px; align-items: center; gap: 7px; margin: 0 auto 22px; padding: 0 12px; border: 1px solid #aaa191; background: var(--community-paper); font-size: 0.67rem; font-weight: 760; cursor: pointer; }
 .loadOlder svg { width: 15px; }
 .messageStack { display: grid; gap: 12px; }
 .messageBubble { max-width: min(660px, 82%); justify-self: start; padding: 11px 13px; border: 1px solid #c2b9a9; border-radius: 3px 13px 13px 13px; background: #f2eddf; box-shadow: 2px 2px 0 rgb(7 31 57 / 8%); }
@@ -636,21 +644,21 @@
 .messageMeta strong { font-size: 0.66rem; }
 .messageMeta time { color: #788087; font-size: 0.58rem; }
 .messageMeta > span { color: #788087; font-size: 0.55rem; font-style: italic; }
-.messageMeta button { display: grid; width: 28px; height: 28px; place-items: center; margin: -7px -6px -7px auto; border: 0; background: transparent; color: #798186; cursor: pointer; }
+.messageMeta button { display: grid; width: 44px; height: 44px; place-items: center; margin: -14px -10px -14px auto; border: 0; background: transparent; color: #798186; cursor: pointer; }
 .messageMeta button:hover { color: #9d2c2c; }
 .messageMeta button svg { width: 13px; }
 .messageBubble p { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.82rem; line-height: 1.48; }
 .messageBubble > small { display: block; margin-top: 6px; color: #69757b; font-size: 0.58rem; }
 .messageBubble .tombstone { color: #747b7e; font-style: italic; }
 .ownMessageActions { display: flex; gap: 10px; margin-top: 7px; }
-.ownMessageActions button { min-height: 28px; padding: 0; border: 0; background: transparent; color: var(--community-green); font-size: 0.59rem; font-weight: 800; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.ownMessageActions button { min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: var(--community-green); font-size: 0.59rem; font-weight: 800; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .ownMessageActions button:last-child { color: #8c2b2b; }
 .inlineEditor { display: grid; gap: 7px; }
 .inlineEditor textarea { width: min(540px, 100%); resize: vertical; border: 1px solid #7f887f; background: #fffef9; padding: 8px; font-size: 0.79rem; }
 .inlineEditor > span,
 .inlineError { color: #8c2b2b !important; font-size: 0.63rem; }
 .inlineEditor > div { display: flex; justify-content: flex-end; gap: 6px; }
-.inlineEditor button { min-height: 32px; border: 1px solid #7f887f; background: #fffef9; padding: 0 9px; font-size: 0.63rem; font-weight: 800; cursor: pointer; }
+.inlineEditor button { min-height: 44px; border: 1px solid #7f887f; background: #fffef9; padding: 0 9px; font-size: 0.63rem; font-weight: 800; cursor: pointer; }
 .inlineEditor button:last-child { border-color: var(--community-ink); background: var(--community-orange); }
 .threadEmpty { display: grid; min-height: 100%; place-items: center; align-content: center; gap: 9px; padding: 30px; color: #69757d; text-align: center; }
 .threadEmpty svg { width: 31px; color: var(--community-green); }
@@ -707,7 +715,7 @@
 .headerMessageLink svg { width: 19px; }
 .headerMessageLink > span { position: absolute; top: -1px; right: -3px; display: grid; min-width: 19px; height: 19px; place-items: center; padding: 0 4px; border: 2px solid var(--community-paper); border-radius: 999px; background: var(--community-orange); color: var(--community-ink); font-size: 0.54rem; font-weight: 900; }
 
-.contextLinkWrap { display: inline-grid; gap: 5px; }
+.contextLinkWrap { display: inline-grid; width: max-content; max-width: 100%; min-width: 0; gap: 5px; }
 .contextLink { background: var(--community-paper); }
 .contextLinkError { max-width: 280px; color: #8c2b2b; font-size: 0.68rem; line-height: 1.35; }
 
@@ -726,7 +734,7 @@
 
 @media (max-width: 780px) {
   .heroInner { min-height: auto; grid-template-columns: 1fr; padding-block: 56px 74px; }
-  .heroCopy h1 { font-size: clamp(3.7rem, 17vw, 6.2rem); }
+  .heroCopy h1 { font-size: clamp(3.2rem, 15vw, 5.4rem); }
   .fieldNote { max-width: 520px; transform: none; }
   .boardHeader { grid-template-columns: 1fr; gap: 20px; }
   .playerList { grid-template-columns: 1fr; }
@@ -746,14 +754,14 @@
   .noThread .threadPanel { display: none; }
   .inboxHeader { min-height: 82px; }
   .inboxHeader h1 { font-size: 1.7rem; }
-  .threadHeader { min-height: 72px; grid-template-columns: 42px 40px minmax(0, 1fr) auto; gap: 8px; padding: 10px; }
-  .mobileInboxBack { display: grid; width: 42px; height: 42px; place-items: center; }
+  .threadHeader { min-height: 72px; grid-template-columns: 44px 40px minmax(0, 1fr) auto; gap: 8px; padding: 10px; }
+  .mobileInboxBack { display: grid; width: 44px; height: 44px; place-items: center; }
   .mobileInboxBack svg { width: 23px; }
   .threadAvatar { width: 38px; height: 38px; }
   .threadHeader p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .threadActions > button { width: 40px; padding: 0; }
+  .threadActions > button { width: 44px; padding: 0; }
   .threadActions > button span { display: none; }
-  .threadActions summary { width: 40px; padding: 0; }
+  .threadActions summary { width: 44px; padding: 0; }
   .threadActions details > div { right: 0; }
   .transcript { padding: 20px 12px; }
   .messageBubble { max-width: 89%; }
@@ -771,10 +779,12 @@
   .heroActions > *,
   .signedOutPanel > div:last-child > *,
   .dialogActions > * { width: 100%; }
+  .contextLinkWrap,
+  .contextLinkWrap > * { width: 100%; }
   .fieldNote { padding: 23px; box-shadow: 7px 7px 0 var(--community-orange); }
   .fieldNote > svg { margin-top: 35px; }
   .sectionHeading { align-items: flex-start; flex-direction: column; }
-  .channelCard { grid-template-columns: 41px minmax(0, 1fr) 40px; padding-inline: 12px; }
+  .channelCard { grid-template-columns: 41px minmax(0, 1fr) 44px; padding-inline: 12px; }
   .channelIcon { width: 40px; height: 40px; }
   .playerActions { padding-left: 0; }
   .signedOutPanel { grid-template-columns: 1fr; }

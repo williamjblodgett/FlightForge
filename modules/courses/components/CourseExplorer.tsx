@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, List, Map, MapPinned, Search, SlidersHorizontal } from "lucide-react";
@@ -46,6 +46,14 @@ export function CourseExplorer({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+  const deferredQuery = useDeferredValue(query);
+  const [isNavigating, startNavigation] = useTransition();
+  const localFiltersDiffer = query !== (initialFilters?.query ?? "")
+    || difficulty !== (initialFilters?.difficulty ?? "ALL")
+    || priceType !== (initialFilters?.priceType ?? "ALL")
+    || holes !== (initialFilters?.holes ?? "ALL")
+    || state !== (initialFilters?.state ?? "ALL")
+    || evidence !== (initialFilters?.evidence ?? "ALL");
 
   useEffect(() => {
     if (variant !== "directory") return;
@@ -58,18 +66,27 @@ export function CourseExplorer({
       if (holes !== "ALL") params.set("holes", holes);
       if (evidence !== "ALL") params.set("source", evidence);
       if (viewMode !== "split") params.set("view", viewMode);
-      if (page > 1) params.set("page", String(page));
-      router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
-    }, 250);
+      if (page > 1 && !localFiltersDiffer) params.set("page", String(page));
+      const nextUrl = `${pathname}${params.size ? `?${params}` : ""}`;
+      if (`${window.location.pathname}${window.location.search}` === nextUrl) return;
+      startNavigation(() => router.replace(nextUrl, { scroll: false }));
+    }, 450);
     return () => window.clearTimeout(timer);
-  }, [difficulty, evidence, holes, page, pathname, priceType, query, router, state, variant, viewMode]);
+  }, [difficulty, evidence, holes, localFiltersDiffer, page, pathname, priceType, query, router, startNavigation, state, variant, viewMode]);
+
+  useEffect(() => {
+    if (viewMode !== "map" || !window.matchMedia("(max-width: 800px)").matches) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [viewMode]);
 
   const favoriteIds = useMemo(() => new Set(initialFavoriteIds), [initialFavoriteIds]);
   const filteredCourses = useMemo(
     () =>
       rankCoursesForDiscovery(
         filterCourses(courses, {
-          query,
+          query: deferredQuery,
           difficulty,
           priceType,
           minimumHoles: holes === "ALL" ? null : Number(holes),
@@ -77,9 +94,10 @@ export function CourseExplorer({
           evidence,
         }).filter((course) => !mapBounds || (course.latitude <= mapBounds.north && course.latitude >= mapBounds.south && course.longitude <= mapBounds.east && course.longitude >= mapBounds.west)),
       ),
-    [courses, difficulty, evidence, holes, mapBounds, priceType, query, state],
+    [courses, deferredQuery, difficulty, evidence, holes, mapBounds, priceType, state],
   );
   const visibleCourses = filteredCourses.slice(0, visibleCount);
+  const displayedMatchCount = localFiltersDiffer ? filteredCourses.length : (totalMatches ?? filteredCourses.length);
   const effectiveSelectedCourseId = filteredCourses.some((course) => course.id === selectedCourseId)
     ? selectedCourseId
     : (filteredCourses[0]?.id ?? null);
@@ -109,21 +127,23 @@ export function CourseExplorer({
               </p>
               <div className="hero-actions">
                 <a className="button button-primary" href="#course-results">Explore New England <ArrowRight aria-hidden="true" /></a>
-                <Link className="button button-ghost-on-dark" href="/sign-up">Create a free field book</Link>
+                <Link className="button button-ghost-on-dark" href="/roadmap">Explore player tools</Link>
               </div>
             </div>
             <div className="hero-visual-stack">
               <figure className="hero-photo">
                 {/* This original artwork is intentionally not presented as a photograph of a listed course. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/brand/flightforge-maine-hero-v2.webp"
-                  alt="A disc golfer throwing across a pine and granite fairway toward a basket"
-                  width="1672"
-                  height="941"
-                  decoding="async"
-                  fetchPriority="high"
-                />
+                <picture>
+                  <source media="(max-width: 760px)" srcSet="/brand/flightforge-maine-hero-mobile.webp" />
+                  <img
+                    src="/brand/flightforge-maine-hero-v2.webp"
+                    alt="A disc golfer throwing across a pine and granite fairway toward a basket"
+                    width="1672"
+                    height="941"
+                    decoding="async"
+                    fetchPriority="high"
+                  />
+                </picture>
                 <figcaption>
                   <span>Illustrative field scene</span>
                   <strong>Pines, granite, and the line ahead.</strong>
@@ -155,7 +175,7 @@ export function CourseExplorer({
       )}
 
       <nav className="regional-state-strip page-shell" aria-label="Browse courses by state">
-        <Link href="/places/new-england">New England overview</Link>
+        <Link href="/places/new-england" aria-label="New England overview">All</Link>
         <Link href="/places/maine">ME</Link>
         <Link href="/places/massachusetts">MA</Link>
         <Link href="/places/new-hampshire">NH</Link>
@@ -164,7 +184,7 @@ export function CourseExplorer({
         <Link href="/places/rhode-island">RI</Link>
       </nav>
 
-      <section id="course-results" className="explorer-shell page-shell" aria-labelledby="results-heading">
+      <section id="course-results" className={`explorer-shell page-shell${viewMode === "map" ? " is-map-open" : ""}`} aria-labelledby="results-heading">
         <div className="explorer-topbar">
           <div className="search-field">
             <Search aria-hidden="true" />
@@ -250,7 +270,7 @@ export function CourseExplorer({
         <div className="results-summary">
           <div>
             <span className="eyebrow">New England field index</span>
-            <h2 id="results-heading">{totalMatches ?? filteredCourses.length} {(totalMatches ?? filteredCourses.length) === 1 ? "course" : "courses"} ready to explore</h2>
+            <h2 id="results-heading">{displayedMatchCount} {displayedMatchCount === 1 ? "course" : "courses"} {localFiltersDiffer || isNavigating ? "shown while the full directory updates" : "ready to explore"}</h2>
           </div>
           <p>Course details can change. Confirm current hours, fees, and conditions before traveling.</p>
         </div>
@@ -278,7 +298,13 @@ export function CourseExplorer({
                 </button>
               </div>
             ) : null}
-            {filteredCourses.length === 0 ? (
+            {filteredCourses.length === 0 && (localFiltersDiffer || isNavigating) ? (
+              <div className="empty-state" role="status">
+                <Search aria-hidden="true" />
+                <h3>Searching the full directory</h3>
+                <p>Checking every course, not only the listings already on this page.</p>
+              </div>
+            ) : filteredCourses.length === 0 ? (
               <div className="empty-state">
                 <MapPinned aria-hidden="true" />
                 <h3>No courses match those filters</h3>

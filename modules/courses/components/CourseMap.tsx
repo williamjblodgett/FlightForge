@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { LocateFixed, MapPin, Minus, Plus, Search, X } from "lucide-react";
 import type { Course } from "../types";
 
@@ -14,16 +14,26 @@ export function CourseMap({ courses, selectedCourseId, onSelect, onSearchArea, o
   const [zoom, setZoom] = useState(1);
   const [locationMessage, setLocationMessage] = useState("Pan or zoom, then search this area.");
   const drag = useRef<{ x: number; y: number; center: typeof center } | null>(null);
-  const clusters = clusterCourses(courses);
+  const pendingCenter = useRef<typeof center | null>(null);
+  const animationFrame = useRef<number | null>(null);
+  const clusters = useMemo(() => clusterCourses(courses), [courses]);
   const offsetX = ((REGION.west + REGION.east) / 2 - center.longitude) * 12 * zoom;
   const offsetY = (center.latitude - (REGION.south + REGION.north) / 2) * 12 * zoom;
+
+  useEffect(() => () => { if (animationFrame.current != null) window.cancelAnimationFrame(animationFrame.current); }, []);
 
   function pointerDown(event: ReactPointerEvent<HTMLDivElement>) { drag.current = { x: event.clientX, y: event.clientY, center }; event.currentTarget.setPointerCapture(event.pointerId); }
   function pointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     if (!drag.current) return;
     const longitude = drag.current.center.longitude - (event.clientX - drag.current.x) * (REGION.east - REGION.west) / (700 * zoom);
     const latitude = drag.current.center.latitude + (event.clientY - drag.current.y) * (REGION.north - REGION.south) / (500 * zoom);
-    setCenter({ latitude: clamp(latitude, REGION.south, REGION.north), longitude: clamp(longitude, REGION.west, REGION.east) });
+    pendingCenter.current = { latitude: clamp(latitude, REGION.south, REGION.north), longitude: clamp(longitude, REGION.west, REGION.east) };
+    if (animationFrame.current != null) return;
+    animationFrame.current = window.requestAnimationFrame(() => {
+      if (pendingCenter.current) setCenter(pendingCenter.current);
+      pendingCenter.current = null;
+      animationFrame.current = null;
+    });
   }
   function locate() {
     if (!navigator.geolocation) return setLocationMessage("Location is not supported by this browser.");
@@ -37,7 +47,7 @@ export function CourseMap({ courses, selectedCourseId, onSelect, onSearchArea, o
     <div className="map-canvas" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={() => { drag.current = null; }} onWheel={(event) => { event.preventDefault(); setZoom((value) => clamp(value + (event.deltaY < 0 ? .4 : -.4), 1, 8)); }}>
       <div className="map-pan-layer" style={{ transform: `translate(${offsetX}%, ${offsetY}%) scale(${zoom})` }}>
         <span className="map-region-label map-region-west">NY border</span><span className="map-region-label map-region-coast">Atlantic</span><span className="map-region-label map-region-north">Northern Maine</span>
-        {clusters.map((cluster, index) => { const selected = cluster.courses.some((course) => course.id === selectedCourseId); const target = selected ? cluster.courses.find((course) => course.id === selectedCourseId) ?? cluster.courses[0] : cluster.courses[0]; return <button key={cluster.key} type="button" className={`map-pin${selected ? " is-selected" : ""}${cluster.courses.length > 1 ? " is-cluster" : ""}`} style={{ left: `${cluster.x}%`, top: `${cluster.y}%`, transform: `translate(-50%, -50%) scale(${1 / zoom})` }} aria-label={cluster.courses.length > 1 ? `Select one of ${cluster.courses.length} nearby course listings` : `Select ${target.name} in ${target.city}`} aria-pressed={selected} onPointerDown={(event) => event.stopPropagation()} onClick={() => onSelect(target.id)}><span>{cluster.courses.length > 1 ? cluster.courses.length : index + 1}</span></button>; })}
+        {clusters.map((cluster, index) => { const selected = cluster.courses.some((course) => course.id === selectedCourseId); const target = selected ? cluster.courses.find((course) => course.id === selectedCourseId) ?? cluster.courses[0] : cluster.courses[0]; return <button key={cluster.key} type="button" className={`map-pin${selected ? " is-selected" : ""}${cluster.courses.length > 1 ? " is-cluster" : ""}`} style={{ left: `${cluster.x}%`, top: `${cluster.y}%`, transform: `translate(-50%, -50%) scale(${1 / zoom}) rotate(-45deg)` }} aria-label={cluster.courses.length > 1 ? `Select one of ${cluster.courses.length} nearby course listings` : `Select ${target.name} in ${target.city}`} aria-pressed={selected} onPointerDown={(event) => event.stopPropagation()} onClick={() => onSelect(target.id)}><span>{cluster.courses.length > 1 ? cluster.courses.length : index + 1}</span></button>; })}
       </div>
       <div className="map-zoom" aria-label="Map zoom controls"><button type="button" onClick={() => setZoom((value) => clamp(value + .5, 1, 8))} aria-label="Zoom in"><Plus /></button><button type="button" onClick={() => setZoom((value) => clamp(value - .5, 1, 8))} aria-label="Zoom out"><Minus /></button></div>
       {onSearchArea ? <button className="search-area-button" type="button" onClick={() => onSearchArea(bounds())}><Search aria-hidden="true" /> Search this area</button> : null}

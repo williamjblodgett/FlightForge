@@ -40,7 +40,7 @@ export function CommunityChannelLink({ contextType, contextId, label = "Open com
 
   if (!signedIn) {
     const returnTo = `/community?context=${contextType.toLowerCase()}&id=${encodeURIComponent(contextId)}`;
-    return <span className={styles.contextLinkWrap}><Link className={className ?? styles.contextLink} href={`/sign-in?return_to=${encodeURIComponent(returnTo)}`}><MessageCircle aria-hidden="true" />Sign in for community chat</Link></span>;
+    return <span className={styles.contextLinkWrap}><Link className={className ?? styles.contextLink} href={`/sign-in?return_to=${encodeURIComponent(returnTo)}`}><MessageCircle aria-hidden="true" />Sign in for chat</Link></span>;
   }
   return <span className={styles.contextLinkWrap}><button className={className ?? styles.contextLink} type="button" onClick={() => void open()} disabled={busy}>{busy ? <LoaderCircle className={styles.spin} aria-hidden="true" /> : <MessageCircle aria-hidden="true" />}{busy ? "Opening…" : label}</button>{error ? <span className={styles.contextLinkError} role="alert">{error}</span> : null}</span>;
 }

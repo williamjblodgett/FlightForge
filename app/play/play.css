@@ -259,7 +259,7 @@
 }
 
 .play-page .sync-summary button {
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 10px;
   border: 1px solid currentColor;
   background: transparent;
@@ -346,7 +346,7 @@
   }
 
   .play-page .round-hud-score {
-    min-width: 72px;
+    min-width: 0;
     column-gap: 6px;
   }
 
@@ -373,8 +373,8 @@
   .play-page .round-hud-actions a,
   .play-page .round-hud-actions button {
     display: grid;
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
   }
 
   .play-page .round-hud-actions .hud-secondary {
@@ -461,11 +461,30 @@
   }
 
   .play-page .round-hud {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .play-page .round-hud > .round-hud-score {
+    min-width: 0;
   }
 
   .play-page .round-hud-actions {
     justify-content: end;
+  }
+}
+
+@media (max-width: 360px) {
+  .play-page .round-hud {
+    gap: 5px;
+    padding-inline: 7px;
+  }
+
+  .play-page .round-hud-actions {
+    gap: 2px;
+  }
+
+  .play-page .round-hud-score {
+    column-gap: 4px;
   }
 }
 

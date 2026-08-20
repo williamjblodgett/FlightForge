@@ -2,11 +2,28 @@ import { expect, test } from "@playwright/test";
 
 test("course discovery keeps filters in the URL and opens an interactive map", async ({ page }) => {
   await page.goto("/courses");
-  await page.getByLabel("Search by course, city, or amenity").fill("Sabattus");
+  const search = page.getByLabel("Search by course, city, or amenity");
+  await search.fill("Sabattus");
   await expect(page).toHaveURL(/q=Sabattus/u);
+  await expect(search).toHaveValue("Sabattus");
   await page.getByRole("button", { name: "Map view" }).click();
   await expect(page.getByRole("region", { name: "Interactive map of course results" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Search this area" })).toBeVisible();
+});
+
+test("tablet discovery gives course cards the full content width", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto("/courses");
+  const firstCard = page.locator(".course-card").first();
+  await expect(firstCard).toBeVisible();
+  const cardBounds = await firstCard.boundingBox();
+  expect(cardBounds).not.toBeNull();
+  expect(cardBounds!.width).toBeGreaterThan(400);
+  const dimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
 });
 
 test("guest score survives refresh and offline scoring announces changes", async ({ page, context }) => {
@@ -56,4 +73,50 @@ test("video dialog traps context and closes with Escape", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
   await expect(trigger).toBeFocused();
+});
+
+test("phone discovery controls stay readable and the map drawer stays above app chrome", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/courses");
+
+  const overview = page.getByRole("link", { name: "New England overview" });
+  await expect(overview).toBeVisible();
+  expect(await overview.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+
+  await page.getByRole("button", { name: "Map view" }).click();
+  const closeMap = page.getByRole("button", { name: "Close map" });
+  await expect(closeMap).toBeVisible();
+  const closeBounds = await closeMap.boundingBox();
+  expect(closeBounds).not.toBeNull();
+  expect(closeBounds!.y).toBeGreaterThanOrEqual(0);
+  expect(closeBounds!.y + closeBounds!.height).toBeLessThanOrEqual(700);
+  await closeMap.click();
+
+  const dimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+});
+
+test("phone round HUD keeps the next action visible and upload dialogs use the light theme", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/play?eventId=flightforge-demo-event");
+
+  const nextHole = page.getByRole("button", { name: "Next hole" });
+  await expect(nextHole).toBeVisible();
+  const nextBounds = await nextHole.boundingBox();
+  expect(nextBounds).not.toBeNull();
+  expect(nextBounds!.x + nextBounds!.width).toBeLessThanOrEqual(320);
+
+  const dimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+
+  await page.getByRole("button", { name: "Share video from hole 1" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog).not.toHaveClass(/viewer/u);
 });
