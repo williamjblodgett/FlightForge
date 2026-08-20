@@ -17,6 +17,9 @@
 - [x] Dependency audit gate, CodeQL scan workflow, and Dependabot updates
 - [x] Provider-aware logout, visible desktop/mobile sign-out, and return-path hardening
 - [x] Production response security headers and authenticated no-store behavior
+- [x] Supabase Auth adapter with verified-email signup, PKCE callback, recovery, and explicit identity linking
+- [x] App-bound hosted consent records, one-time password recovery intents, and fail-closed multi-provider session handling
+- [x] Community-safe session requirements that reject unverified or incompletely linked identities
 
 ## Maine discovery vertical slice
 
@@ -87,6 +90,19 @@
 - [x] Responsive event publisher, event board, inventory workspace, and caddie UI
 - [x] D1 migrations, schema verification, authorization/validation tests, lint, typecheck, and production build
 
+## Community and field scoring
+
+- [x] Adult-attested Community hub with New England and six state clubhouses
+- [x] Direct messages, private groups, course/event channels, connections, unread state, mute, leave, and drafts
+- [x] Two-way blocks, message privacy, local safety screening, reports, moderation queue, reasons, and audit records
+- [x] Server-enforced message membership, per-user idempotency, pagination, rate limits, and feature flag
+- [x] Responsive Messages workspace, accessible dialogs, mobile thread navigation, and active-round chat access
+- [x] IndexedDB-first score persistence with a local-storage journal and guest-device fallback
+- [x] Cross-device score synchronization, optimistic versions, conflict surfacing, and correction history
+- [x] Aces, scores through 99, penalty strokes, accessible announcements, compact mobile HUD, and resume-round cards
+- [x] Idempotent Finish Round transition with full-hole, synchronization, and completion-audit requirements
+- [x] D1 community and scoring migration plus prepared Supabase/PostgreSQL tables and non-recursive RLS policies
+
 ## Remaining production launch gates
 
 - [x] Guided camera capture, saved-video fallback, evidence-aware practice guide, and honest confidence limits
@@ -97,8 +113,8 @@
 - [x] Initialize Supabase PostGIS/security foundation and seed the 135 reviewed public course records
 - [ ] Configure server-only Supabase credentials and transaction-pooler `DATABASE_URL`
 - [ ] Prove full D1/PostgreSQL repository parity, identity linking, backup, rollback, and cutover rehearsal
-- [ ] Public account creation and social OAuth outside Sites
-- [ ] Persist booking, group, round, and full import-review apply/rollback workflows across devices
+- [ ] Activate production Supabase SMTP/contact settings and rehearse verified-email recovery; social OAuth and MFA remain provider work
+- [ ] Persist booking, group, and full import-review apply/rollback workflows across devices (round scoring is now persistent)
 - [ ] Connect verified course inventory, email/push delivery, and operator calendars
 - [ ] Add Stripe Connect sandbox, marketplace ledger, payouts, tax, refunds, and disputes
 - [ ] Add third-party malware scanning, isolated transcoding, and a scheduled global retention sweep (per-user expiry cleanup is active)

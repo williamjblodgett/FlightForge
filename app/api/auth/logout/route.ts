@@ -6,6 +6,7 @@ import {
   revokeAccountSession,
 } from "@/modules/auth/account-repository";
 import { isSameOriginMutation } from "@/lib/security/request-security";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function DELETE(request: Request) {
   if (!isSameOriginMutation(request)) {
@@ -14,6 +15,8 @@ export async function DELETE(request: Request) {
   const cookieHeader = request.headers.get("cookie") ?? "";
   const accountToken = readCookie(cookieHeader, ACCOUNT_SESSION_COOKIE);
   if (accountToken) await revokeAccountSession(accountToken).catch(() => undefined);
+  const supabase = await createSupabaseServerClient().catch(() => null);
+  if (supabase) await supabase.auth.signOut().catch(() => undefined);
 
   const response = NextResponse.json({ signedOut: true });
   for (const name of [ACCOUNT_SESSION_COOKIE, DEMO_SESSION_COOKIE]) {

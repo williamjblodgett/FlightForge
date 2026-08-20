@@ -17,7 +17,7 @@
     "test:unit": "vitest run",
     "test:server": "node scripts/run-rendered-tests.mjs",
     "test:pages": "npm run pages:build && node --test tests/pages-build.test.mjs",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/run-e2e.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern pages-dist",
     "db:generate": "drizzle-kit generate",
     "db:validate": "node --experimental-sqlite scripts/validate-d1-migrations.mjs",
@@ -75,6 +75,7 @@
   "overrides": {
     "esbuild": "0.28.1",
     "undici": "7.29.0",
+    "nanoid": "3.3.18",
     "next": {
       "postcss": "8.5.25",
       "sharp": "0.35.3"

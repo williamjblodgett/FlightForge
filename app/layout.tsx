@@ -25,7 +25,7 @@ function resolveRequestOrigin(requestHeaders: Headers): URL {
 
 export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = resolveRequestOrigin(await headers());
-  const socialImage = new URL("/og-new-england.webp", metadataBase).toString();
+  const socialImage = new URL("/og-community.webp", metadataBase).toString();
   return {
     metadataBase,
     title: { default: `${brand.productName} — Find your next round`, template: `%s · ${brand.productName}` },
@@ -47,7 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <a className="skip-link" href="#main-content">Skip to main content</a>
         <SiteHeader />
-        <div id="main-content" className="site-content">{children}</div>
+        <div id="main-content" className="site-content" tabIndex={-1}>{children}</div>
         <SiteFooter />
         <MobileNav />
         <ServiceWorkerRegistration />

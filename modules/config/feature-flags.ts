@@ -1,6 +1,6 @@
 import { getD1Database } from "@/db/runtime";
 
-export const productionFeatureKeys = ["digital_bag", "ai_caddie", "event_publishing", "camera_coach"] as const;
+export const productionFeatureKeys = ["digital_bag", "ai_caddie", "event_publishing", "camera_coach", "community_chat"] as const;
 export type ProductionFeatureKey = (typeof productionFeatureKeys)[number];
 
 const descriptions: Record<ProductionFeatureKey, string> = {
@@ -8,6 +8,7 @@ const descriptions: Record<ProductionFeatureKey, string> = {
   ai_caddie: "Explainable owned-disc recommendation rules engine",
   event_publishing: "Coordinator-owned event draft and publication workflow",
   camera_coach: "Private guided throw capture, evidence-based coaching, and GPS rangefinding",
+  community_chat: "Adult community channels and private player messaging",
 };
 
 let featureInitialization: Promise<void> | null = null;

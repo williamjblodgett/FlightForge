@@ -8,9 +8,13 @@ import {
   verifyPassword,
 } from "./password";
 import { jPhillipsTestAccount } from "./test-account";
+import { legalPolicyVersions } from "@/config/public-launch";
+import { rolesForConfiguredEmail } from "./configured-roles";
 
 export const ACCOUNT_SESSION_COOKIE = "flightforge_session";
+export const PASSWORD_RECOVERY_INTENT_COOKIE = "flightforge_recovery_intent";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 14;
+const PASSWORD_RECOVERY_INTENT_SECONDS = 15 * 60;
 
 type UserRow = {
   id: string;
@@ -70,6 +74,13 @@ export class ExternalIdentityLinkRequiredError extends Error {
   }
 }
 
+export class RegistrationConsentRequiredError extends Error {
+  constructor() {
+    super("Create this hosted account through the FlightForge sign-up form before continuing.");
+    this.name = "RegistrationConsentRequiredError";
+  }
+}
+
 let schemaInitialization: Promise<void> | null = null;
 
 const accountSchemaStatements = [
@@ -95,6 +106,19 @@ const accountSchemaStatements = [
   `CREATE UNIQUE INDEX IF NOT EXISTS auth_sessions_token_hash_unique ON auth_sessions(token_hash)`,
   `CREATE INDEX IF NOT EXISTS auth_sessions_user_idx ON auth_sessions(user_id)`,
   `CREATE INDEX IF NOT EXISTS auth_sessions_expiry_idx ON auth_sessions(expires_at)`,
+  `CREATE TABLE IF NOT EXISTS hosted_signup_intents (
+    nonce TEXT PRIMARY KEY, email TEXT NOT NULL, terms_version TEXT NOT NULL,
+    privacy_version TEXT NOT NULL, accepted_at TEXT NOT NULL, expires_at TEXT NOT NULL,
+    auth_user_id TEXT, consumed_at TEXT
+  )`,
+  `CREATE INDEX IF NOT EXISTS hosted_signup_intents_email_expiry_idx
+    ON hosted_signup_intents(email, expires_at)`,
+  `CREATE TABLE IF NOT EXISTS password_recovery_intents (
+    token_hash TEXT PRIMARY KEY, auth_user_id TEXT NOT NULL,
+    created_at TEXT NOT NULL, expires_at TEXT NOT NULL, consumed_at TEXT
+  )`,
+  `CREATE INDEX IF NOT EXISTS password_recovery_intents_user_expiry_idx
+    ON password_recovery_intents(auth_user_id, expires_at)`,
   `CREATE TABLE IF NOT EXISTS user_roles (
     user_id TEXT NOT NULL, role TEXT NOT NULL, organization_id TEXT,
     created_at TEXT NOT NULL, created_by TEXT
@@ -169,6 +193,86 @@ async function initializeSchema(): Promise<void> {
   if (additions.length) await database.batch(additions);
 }
 
+export async function createHostedSignupIntent(emailInput: string): Promise<string> {
+  await ensureAccountSchema();
+  const versions = legalPolicyVersions();
+  if (!versions) throw new Error("Legal policy versions are not configured.");
+  const nonce = crypto.randomUUID();
+  const acceptedAt = new Date();
+  const expiresAt = new Date(acceptedAt.getTime() + 48 * 60 * 60_000);
+  await getD1Database().prepare(
+    `INSERT INTO hosted_signup_intents
+      (nonce, email, terms_version, privacy_version, accepted_at, expires_at)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+  ).bind(nonce, emailInput.trim().toLowerCase(), versions.terms, versions.privacy,
+    acceptedAt.toISOString(), expiresAt.toISOString()).run();
+  return nonce;
+}
+
+export async function abandonHostedSignupIntent(nonce: string): Promise<void> {
+  await ensureAccountSchema();
+  await getD1Database().prepare(
+    "DELETE FROM hosted_signup_intents WHERE nonce = ? AND consumed_at IS NULL",
+  ).bind(nonce).run();
+}
+
+export async function createPasswordRecoveryIntent(authUserId: string): Promise<string> {
+  await ensureAccountSchema();
+  const token = randomToken(32);
+  const tokenHash = await sha256Text(token);
+  const createdAt = new Date();
+  const expiresAt = new Date(createdAt.getTime() + PASSWORD_RECOVERY_INTENT_SECONDS * 1000);
+  const database = getD1Database();
+  await database.batch([
+    database.prepare(
+      `UPDATE password_recovery_intents SET consumed_at = ?
+       WHERE auth_user_id = ? AND consumed_at IS NULL`,
+    ).bind(createdAt.toISOString(), authUserId),
+    database.prepare(
+      `INSERT INTO password_recovery_intents
+        (token_hash, auth_user_id, created_at, expires_at)
+       VALUES (?, ?, ?, ?)`,
+    ).bind(tokenHash, authUserId, createdAt.toISOString(), expiresAt.toISOString()),
+  ]);
+  return token;
+}
+
+export async function consumePasswordRecoveryIntent(input: {
+  token: string;
+  authUserId: string;
+}): Promise<boolean> {
+  await ensureAccountSchema();
+  const tokenHash = await sha256Text(input.token);
+  const consumedAt = new Date().toISOString();
+  const result = await getD1Database().prepare(
+    `UPDATE password_recovery_intents SET consumed_at = ?
+     WHERE token_hash = ? AND auth_user_id = ? AND consumed_at IS NULL AND expires_at > ?`,
+  ).bind(consumedAt, tokenHash, input.authUserId, consumedAt).run();
+  return Boolean(result.meta.changes);
+}
+
+async function claimHostedSignupIntent(input: { nonce: string | null; email: string; authUserId: string }) {
+  if (!input.nonce) throw new RegistrationConsentRequiredError();
+  const versions = legalPolicyVersions();
+  if (!versions) throw new RegistrationConsentRequiredError();
+  const now = new Date().toISOString();
+  const result = await getD1Database().prepare(
+    `UPDATE hosted_signup_intents SET auth_user_id = ?, consumed_at = ?
+     WHERE nonce = ? AND email = ? AND terms_version = ? AND privacy_version = ?
+       AND consumed_at IS NULL AND expires_at > ?`,
+  ).bind(input.authUserId, now, input.nonce, input.email, versions.terms, versions.privacy, now).run();
+  if (!result.meta.changes) throw new RegistrationConsentRequiredError();
+  return { termsVersion: versions.terms, privacyVersion: versions.privacy, recordedAt: now };
+}
+
+async function releaseHostedSignupIntent(nonce: string | null, authUserId: string): Promise<void> {
+  if (!nonce) return;
+  await getD1Database().prepare(
+    `UPDATE hosted_signup_intents SET auth_user_id = NULL, consumed_at = NULL
+     WHERE nonce = ? AND auth_user_id = ?`,
+  ).bind(nonce, authUserId).run().catch(() => undefined);
+}
+
 export async function createAccount(input: {
   displayName: string;
   email: string;
@@ -181,6 +285,8 @@ export async function createAccount(input: {
 
   const id = crypto.randomUUID();
   const timestamp = new Date().toISOString();
+  const versions = legalPolicyVersions();
+  if (!versions) throw new Error("Legal policy versions are not configured.");
   const password = await createPasswordRecord(input.password);
   try {
     await database.batch([
@@ -223,8 +329,13 @@ export async function createAccount(input: {
       database.prepare(
         `INSERT INTO consent_records
           (id, user_id, consent_type, policy_version, granted, recorded_at)
-         VALUES (?, ?, 'TERMS_AND_PRIVACY', '2026-08-03', 1, ?)`,
-      ).bind(crypto.randomUUID(), id, timestamp),
+         VALUES (?, ?, 'TERMS', ?, 1, ?)`,
+      ).bind(crypto.randomUUID(), id, versions.terms, timestamp),
+      database.prepare(
+        `INSERT INTO consent_records
+          (id, user_id, consent_type, policy_version, granted, recorded_at)
+         VALUES (?, ?, 'PRIVACY', ?, 1, ?)`,
+      ).bind(crypto.randomUUID(), id, versions.privacy, timestamp),
       auditStatement(database, id, "ACCOUNT_CREATED", "user", id, timestamp),
     ]);
   } catch (error) {
@@ -398,6 +509,111 @@ export async function findAccountUserByProviderSubject(subject: string): Promise
   await ensureAccountSchema();
   const row = await findUserRowByProviderSubject(subject);
   return row ? accountUserFromRow(row, await rolesForUser(row.id)) : null;
+}
+
+export async function resolveSupabaseAccount(input: {
+  authUserId: string;
+  email: string;
+  displayName: string;
+  emailVerified: boolean;
+  registrationNonce?: string | null;
+}): Promise<AuthenticatedUser> {
+  await ensureAccountSchema();
+  if (!input.emailVerified) throw new EmailVerificationRequiredError();
+  const subject = `supabase:${input.authUserId}`;
+  const linked = await findUserRowByProviderSubject(subject);
+  if (linked) {
+    await persistConfiguredRoles(linked.id, input.email);
+    const resolved = accountUserFromRow(linked, await rolesForUser(linked.id));
+    return { ...resolved, source: "supabase", emailVerified: true };
+  }
+
+  const email = input.email.trim().toLowerCase();
+  const collision = await findUserRowByEmail(email);
+  if (collision) {
+    return {
+      id: subject,
+      email,
+      displayName: input.displayName,
+      roles: ["PLAYER"],
+      source: "supabase",
+      onboardingComplete: false,
+      isTestAccount: false,
+      mustChangePassword: false,
+      emailVerified: input.emailVerified,
+      identityLinkRequired: true,
+    };
+  }
+
+  const database = getD1Database();
+  const id = crypto.randomUUID();
+  const timestamp = new Date().toISOString();
+  const consent = await claimHostedSignupIntent({ nonce: input.registrationNonce ?? null, email, authUserId: input.authUserId });
+  const configuredRoles = rolesForConfiguredEmail(email);
+  try {
+    await database.batch([
+      database.prepare(
+        `INSERT INTO users
+          (id, email, display_name, auth_provider_subject, status, is_test_account,
+           email_verified_at, created_at, updated_at, version)
+         VALUES (?, ?, ?, ?, 'ACTIVE', 0, ?, ?, ?, 1)`,
+      ).bind(id, email, input.displayName, subject, timestamp, timestamp, timestamp),
+      ...configuredRoles.map((role) => database.prepare(
+        `INSERT INTO user_roles (user_id, role, organization_id, created_at, created_by)
+         VALUES (?, ?, NULL, ?, ?)`,
+      ).bind(id, role, timestamp, id)),
+      database.prepare(
+        `INSERT INTO player_profiles (user_id, created_at, updated_at, version)
+         VALUES (?, ?, ?, 1)`,
+      ).bind(id, timestamp, timestamp),
+      database.prepare(
+        `INSERT INTO player_preferences
+          (user_id, social_matchmaking, ai_recommendations, tournament_notifications,
+           units, created_at, updated_at)
+         VALUES (?, 0, 1, 0, 'IMPERIAL', ?, ?)`,
+      ).bind(id, timestamp, timestamp),
+      database.prepare(
+        `INSERT INTO player_privacy_settings
+          (user_id, profile_visibility, show_home_city, show_round_history, show_bag,
+           allow_messages, allow_game_invites, analytics_opt_in, ai_training_opt_in,
+           created_at, updated_at)
+         VALUES (?, 'PRIVATE', 0, 0, 0, 'CONNECTIONS', 1, 0, 0, ?, ?)`,
+      ).bind(id, timestamp, timestamp),
+      database.prepare(
+        `INSERT INTO consent_records (id, user_id, consent_type, policy_version, granted, recorded_at)
+         VALUES (?, ?, 'TERMS', ?, 1, ?)`,
+      ).bind(crypto.randomUUID(), id, consent.termsVersion, consent.recordedAt),
+      database.prepare(
+        `INSERT INTO consent_records (id, user_id, consent_type, policy_version, granted, recorded_at)
+         VALUES (?, ?, 'PRIVACY', ?, 1, ?)`,
+      ).bind(crypto.randomUUID(), id, consent.privacyVersion, consent.recordedAt),
+      auditStatement(database, id, "SUPABASE_ACCOUNT_CREATED", "user", id, timestamp),
+      ...configuredRoles.filter((role) => role !== "PLAYER").map((role) =>
+        auditStatement(database, id, "HOSTED_ROLE_GRANTED", "user_role", `${id}:${role}`, timestamp, role)),
+    ]);
+  } catch (error) {
+    await releaseHostedSignupIntent(input.registrationNonce ?? null, input.authUserId);
+    throw error;
+  }
+  const created = await findUserRowById(id);
+  if (!created) throw new Error("The Supabase account could not be provisioned.");
+  const resolved = accountUserFromRow(created, await rolesForUser(id));
+  return { ...resolved, source: "supabase", emailVerified: true };
+}
+
+async function persistConfiguredRoles(userId: string, email: string): Promise<void> {
+  const existing = new Set(await rolesForUser(userId));
+  const missing = rolesForConfiguredEmail(email).filter((role) => !existing.has(role));
+  if (!missing.length) return;
+  const database = getD1Database();
+  const timestamp = new Date().toISOString();
+  await database.batch(missing.flatMap((role) => [
+    database.prepare(
+      `INSERT OR IGNORE INTO user_roles (user_id, role, organization_id, created_at, created_by)
+       VALUES (?, ?, NULL, ?, ?)`,
+    ).bind(userId, role, timestamp, userId),
+    auditStatement(database, userId, "HOSTED_ROLE_GRANTED", "user_role", `${userId}:${role}`, timestamp, role),
+  ]));
 }
 
 export async function linkHostedIdentity(input: {
@@ -718,6 +934,12 @@ export async function ensurePersistedUserId(user: AuthenticatedUser): Promise<st
     if (!persisted || persisted.id !== user.id) throw new Error("The authenticated account no longer exists.");
     return persisted.id;
   }
+  if (user.source === "supabase") {
+    if (user.identityLinkRequired) throw new ExternalIdentityLinkRequiredError();
+    const persisted = await findUserRowById(user.id);
+    if (!persisted) throw new Error("The authenticated Supabase account no longer exists.");
+    return persisted.id;
+  }
   return ensureExternalAccount(user);
 }
 
@@ -804,12 +1026,13 @@ function auditStatement(
   resourceType: string,
   resourceId: string,
   createdAt: string,
+  reason: string | null = null,
 ): D1PreparedStatement {
   return database.prepare(
     `INSERT INTO audit_logs
-      (id, actor_user_id, action, resource_type, resource_id, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  ).bind(crypto.randomUUID(), actorUserId, action, resourceType, resourceId, createdAt);
+      (id, actor_user_id, action, resource_type, resource_id, reason, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  ).bind(crypto.randomUUID(), actorUserId, action, resourceType, resourceId, reason, createdAt);
 }
 
 function isRole(value: string): value is Role {

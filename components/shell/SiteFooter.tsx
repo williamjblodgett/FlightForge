@@ -16,8 +16,9 @@ export function SiteFooter() {
           <Link href="/roadmap">What’s coming</Link>
           <Link href="/legal/privacy">Privacy</Link>
           <Link href="/legal/terms">Terms</Link>
+          <Link href="/legal/community-guidelines">Community guidelines</Link>
           <Link href="/support/course-correction">Correct a course listing</Link>
-          {contacts.supportEmail ? <a href={`mailto:${contacts.supportEmail}`}>Support</a> : <Link href="/support/course-correction">Support</Link>}
+          {contacts.supportEmail ? <a href={`mailto:${contacts.supportEmail}`}>Support</a> : null}
         </div>
         <p className="footer-legal">
           Course details can change. Confirm current access, fees, and conditions with the course before traveling. No partnership with listed courses or directories is implied.

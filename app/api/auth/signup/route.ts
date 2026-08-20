@@ -1,8 +1,10 @@
 import { apiError } from "@/lib/http/api-response";
 import {
+  abandonHostedSignupIntent,
   AccountEmailTakenError,
   createAccount,
   createEmailVerificationToken,
+  createHostedSignupIntent,
 } from "@/modules/auth/account-repository";
 import { isEmailVerificationDeliveryConfigured, sendEmailVerification } from "@/modules/notifications/email-verification";
 import { isPublicRegistrationReady } from "@/config/public-launch";
@@ -13,6 +15,9 @@ import {
   requestClientKey,
 } from "@/lib/security/request-security";
 import { logError } from "@/lib/observability/logger";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) {
@@ -21,7 +26,7 @@ export async function POST(request: Request) {
   if (!isPublicRegistrationReady()) {
     return apiError("REGISTRATION_NOT_READY", "Public registration is paused until verified support, privacy, and email-delivery contacts are configured.", 503);
   }
-  if (!isEmailVerificationDeliveryConfigured()) {
+  if (!isSupabaseConfigured() && !isEmailVerificationDeliveryConfigured()) {
     return apiError("EMAIL_DELIVERY_NOT_READY", "Email verification is temporarily unavailable, so no account was created.", 503);
   }
   try {
@@ -53,6 +58,40 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (isSupabaseConfigured() && process.env.EMAIL_DELIVERY_MODE !== "test") {
+      const supabase = await createSupabaseServerClient();
+      if (!supabase) throw new Error("Supabase authentication is unavailable.");
+      const registrationNonce = await createHostedSignupIntent(parsed.data.email);
+      const returnTo = typeof body === "object" && body && "returnTo" in body
+        ? safeRelativeReturnPath(String(body.returnTo))
+        : "/onboarding";
+      const origin = new URL(request.url).origin;
+      const { data, error } = await supabase.auth.signUp({
+        email: parsed.data.email,
+        password: parsed.data.password,
+        options: {
+          data: {
+            display_name: parsed.data.displayName,
+            flightforge_registration_nonce: registrationNonce,
+          },
+          emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(returnTo)}`,
+        },
+      });
+      if (error) {
+        await abandonHostedSignupIntent(registrationNonce).catch(() => undefined);
+        if (/already|registered|exists/iu.test(error.message)) throw new AccountEmailTakenError();
+        throw error;
+      }
+      if (!data.user) {
+        await abandonHostedSignupIntent(registrationNonce).catch(() => undefined);
+        throw new Error("Supabase did not create an authentication identity.");
+      }
+      return Response.json({
+        user: data.user ? { email: parsed.data.email, displayName: parsed.data.displayName } : null,
+        next: data.session ? returnTo : "/verify-email",
+        requiresEmailVerification: !data.session,
+      }, { status: 201, headers: { "Cache-Control": "private, no-store" } });
+    }
     const user = await createAccount(parsed.data);
     const verificationToken = await createEmailVerificationToken(user.id);
     await sendEmailVerification({

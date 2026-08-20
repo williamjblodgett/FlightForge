@@ -6,6 +6,7 @@ import type { ShotRecommendation } from "@/modules/ai-caddie/recommend-shot";
 import { analyzeBag, type PlayerDisc } from "@/modules/bags/bag-intelligence";
 import type { CatalogDisc, PlayerDiscRecord } from "@/modules/bags/bag-repository";
 import { CaddieChat } from "@/components/caddie/CaddieChat";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type Props = {
   initialDiscs: PlayerDiscRecord[];
@@ -64,6 +65,8 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
   const [feedbackResult, setFeedbackResult] = useState("SUCCESS");
   const [flightAdjustment, setFlightAdjustment] = useState("AS_EXPECTED");
   const [actualDistance, setActualDistance] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<PlayerDiscRecord | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const caddieDiscs = useMemo(() => discs.map(toPlayerDisc), [discs]);
   const analysis = useMemo(() => analyzeBag(caddieDiscs), [caddieDiscs]);
   const activeCount = discs.filter((disc) => disc.status === "IN_BAG").length;
@@ -90,13 +93,14 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
   }
 
   async function removeDisc(disc: PlayerDiscRecord) {
-    if (!window.confirm(`Remove ${disc.nickname || disc.moldName} from your collection? Recorded throw profiles for this disc will no longer appear in your bag.`)) return;
+    setDeleteBusy(true);
     setDiscError(null);
     try {
       const response = await fetch(`/api/bag/${disc.id}`, { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ version: disc.version }) });
       if (!response.ok) { const body = await response.json() as { error?: { message?: string } }; setDiscError(body.error?.message ?? "The disc could not be removed."); return; }
-      await refreshBag();
+      await refreshBag(); setPendingDelete(null);
     } catch { setDiscError("The bag service could not be reached."); }
+    finally { setDeleteBusy(false); }
   }
 
   async function refreshBag() {
@@ -161,7 +165,7 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
     {discError && !showEditor ? <div className="form-error" role="alert">{discError}</div> : null}
     <section className="bag-caddie-layout">
       <div className="owned-disc-panel"><div className="panel-heading"><div><span className="eyebrow">Physical inventory</span><h2>{activeCount ? `${activeCount} ready for the course` : "Build your active bag"}</h2></div><button type="button" aria-label="Refresh bag" onClick={() => refreshBag().catch(() => setDiscError("The bag could not be refreshed."))}><RefreshCw aria-hidden="true" /></button></div>
-        {discs.length ? <div className="owned-disc-list">{discs.map((disc) => { const profile = disc.profiles.find((item) => item.throwType === "BACKHAND"); return <article key={disc.id} className={disc.status !== "IN_BAG" ? "inactive-disc" : ""}><div className={`physical-disc ${disc.stability.toLowerCase()}`}><span>{disc.speed}</span></div><div className="owned-disc-copy"><div><span>{disc.nickname || disc.moldName}</span><b>{disc.status.replaceAll("_", " ").toLowerCase()}</b></div><strong>{disc.manufacturerName} · {disc.moldName}</strong><p>{[disc.plastic, disc.weightGrams ? `${disc.weightGrams}g` : null, `${disc.condition.toLowerCase()} · wear ${disc.wearRating}/10`].filter(Boolean).join(" · ")}</p><div className="disc-flight-line"><span>{disc.speed}</span><span>{disc.glide}</span><span>{profile?.observedTurn ?? disc.turn}</span><span>{profile?.observedFade ?? disc.fade}</span><small>{profile?.sampleCount ? `${profile.sampleCount} personal throws` : disc.ratingSource ? "manufacturer baseline" : "self-entered"}</small></div></div><div className="owned-disc-actions"><button type="button" onClick={() => startEdit(disc)} aria-label={`Edit ${disc.moldName}`}><Edit3 aria-hidden="true" /></button><button type="button" onClick={() => removeDisc(disc)} aria-label={`Remove ${disc.moldName}`}><Trash2 aria-hidden="true" /></button></div></article>; })}</div> : <div className="bag-empty"><Disc3 aria-hidden="true" /><strong>No discs in your collection yet.</strong><p>Add one physical disc. Catalog ratings prefill the baseline, and your own throws can refine it later.</p><button className="button button-primary" type="button" onClick={startAdd}>Add your first disc</button></div>}
+        {discs.length ? <div className="owned-disc-list">{discs.map((disc) => { const profile = disc.profiles.find((item) => item.throwType === "BACKHAND"); return <article key={disc.id} className={disc.status !== "IN_BAG" ? "inactive-disc" : ""}><div className={`physical-disc ${disc.stability.toLowerCase()}`}><span>{disc.speed}</span></div><div className="owned-disc-copy"><div><span>{disc.nickname || disc.moldName}</span><b>{disc.status.replaceAll("_", " ").toLowerCase()}</b></div><strong>{disc.manufacturerName} · {disc.moldName}</strong><p>{[disc.plastic, disc.weightGrams ? `${disc.weightGrams}g` : null, `${disc.condition.toLowerCase()} · wear ${disc.wearRating}/10`].filter(Boolean).join(" · ")}</p><div className="disc-flight-line"><span>{disc.speed}</span><span>{disc.glide}</span><span>{profile?.observedTurn ?? disc.turn}</span><span>{profile?.observedFade ?? disc.fade}</span><small>{profile?.sampleCount ? `${profile.sampleCount} personal throws` : disc.ratingSource ? "manufacturer baseline" : "self-entered"}</small></div></div><div className="owned-disc-actions"><button type="button" onClick={() => startEdit(disc)} aria-label={`Edit ${disc.moldName}`}><Edit3 aria-hidden="true" /></button><button type="button" onClick={() => setPendingDelete(disc)} aria-label={`Remove ${disc.moldName}`}><Trash2 aria-hidden="true" /></button></div></article>; })}</div> : <div className="bag-empty"><Disc3 aria-hidden="true" /><strong>No discs in your collection yet.</strong><p>Add one physical disc. Catalog ratings prefill the baseline, and your own throws can refine it later.</p><button className="button button-primary" type="button" onClick={startAdd}>Add your first disc</button></div>}
         {discs.length ? <div className="bag-analysis"><div><CheckCircle2 aria-hidden="true" /><span><strong>{analysis.coverage}% starter-role coverage</strong><small>A simple coverage check—not a judgment of overall bag quality.</small></span></div>{analysis.missingSlots.length ? <div><AlertTriangle aria-hidden="true" /><span><strong>Open roles</strong><small>{analysis.missingSlots.join(" · ")}</small></span></div> : null}{analysis.overlaps.length ? <div><Disc3 aria-hidden="true" /><span><strong>Possible overlap</strong><small>{analysis.overlaps.map((pair) => pair.join(" + ")).join(" · ")}</small></span></div> : null}</div> : null}
       </div>
 
@@ -172,6 +176,7 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
       </div>
     </section>
     {caddieEnabled ? <CaddieChat /> : null}
+    <ConfirmDialog open={Boolean(pendingDelete)} title="Remove this disc?" description={pendingDelete ? `${pendingDelete.nickname || pendingDelete.moldName} will leave your collection. Its recorded throw profiles will no longer appear in your bag.` : ""} confirmLabel="Remove disc" destructive busy={deleteBusy} onCancel={() => setPendingDelete(null)} onConfirm={() => pendingDelete ? removeDisc(pendingDelete) : undefined} />
   </div>;
 }
 

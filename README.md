@@ -6,7 +6,7 @@ The server-backed application delivers a complete account-to-discovery-to-course
 
 - replaceable global brand configuration;
 - original rights-safe hero and social imagery, with illustrative scenes labeled separately from real course records;
-- free password signup/login, first-run player setup, and granular privacy preferences;
+- free verified-email signup/login through Supabase when configured, a safe D1 migration fallback, first-run player setup, recovery, and granular privacy preferences;
 - visible sign-out in the desktop header and mobile profile/setup flows, with correct hosted-identity logout;
 - a player-only JPhillips shared tester plus hosted identity and gated local demo sessions;
 - centralized roles and server-side authorization;
@@ -22,6 +22,8 @@ The server-backed application delivers a complete account-to-discovery-to-course
 - moderated hole-by-hole community video uploads embedded in an active scorecard;
 - persistent per-user physical disc collections backed by a reviewed, source-attributed, versioned catalog;
 - an explainable owned-disc caddie with physical-disc adjustments, calibrated confidence, representative throw feedback, and private learning profiles;
+- an adult-attested Community hub with curated regional/course/event channels, direct messages, private groups, connections, blocks, reports, and audited moderation;
+- offline-first live scorecards with IndexedDB persistence, cross-device synchronization, penalties, correction history, visible conflict handling, and an audited Finish Round transition;
 - unit, rendered integration, type, lint, and production-build validation.
 
 The GitHub Pages edition adds working, device-local versions of previously deferred flows:
@@ -36,7 +38,7 @@ The GitHub Pages edition adds working, device-local versions of previously defer
 - an installable PWA shell, responsive collapsible map/list discovery, route-level code splitting, and complete mobile navigation;
 - a shared editorial field-atlas interface with photographic hero art and trustworthy topographic course placeholders.
 
-All fabricated booking, event, group, round, and operator records in the static Pages edition are pinned to the fictional Forge Ridge fixture and fail closed if a real course is supplied. All mutable Pages data stays in that browser. The server-backed application now has separate production event, bag, and caddie repositories; the static edition still cannot create real reservations, payments, registrations, course publications, or AI media analyses.
+All fabricated booking, event, group, round, and operator records in the static Pages edition are pinned to the fictional Forge Ridge fixture and fail closed if a real course is supplied. All mutable Pages data stays in that browser. The server-backed application now has separate production event, bag, caddie, community, moderation, and active-round repositories; the static edition still cannot create real reservations, payments, registrations, course publications, or AI media analyses.
 
 ## Quick start
 
@@ -110,6 +112,7 @@ npm run test:unit
 npm run build
 npm run test:pages
 npm test
+npm run test:e2e
 npm audit
 ```
 
@@ -146,4 +149,4 @@ The workflow at `.github/workflows/pages.yml` validates and deploys `pages-dist/
 
 ## Honest scope boundary
 
-The Pages edition is a functional product demonstration, not a write-enabled production service. The server-backed Sites deployment supports accounts, profiles/privacy, discovery, favorites, claims, event publishing, physical bags, and the deterministic caddie. Shared booking/scoring, marketplace payments, private media processing, external-provider AI, notification delivery, independent security operations, and attorney approval require further code or external evidence and remain deliberately gated. See [release scope](docs/RELEASE_SCOPE.md) for the exact boundary and next production slice.
+The Pages edition is a functional product demonstration, not a write-enabled production service. The server-backed Sites deployment supports accounts, profiles/privacy, discovery, favorites, claims, event publishing, physical bags, the deterministic caddie, community messaging/moderation, and synchronized active-event scoring. Shared booking inventory, casual non-event cloud rounds, marketplace payments, production media sanitization, external-provider AI, notification delivery, independent security operations, and attorney approval remain deliberately gated. See [release scope](docs/RELEASE_SCOPE.md) for the exact boundary and next production slice.

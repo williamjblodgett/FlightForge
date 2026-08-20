@@ -5,6 +5,7 @@ import { Activity, Camera, Crosshair, ExternalLink, LocateFixed, ShieldCheck, Sq
 import { coachingObservation, coachingSources, throwGuides, type CameraAngle, type ThrowType } from "@/modules/media-analysis/coaching-knowledge";
 import type { CoachingUpload } from "@/modules/media-analysis/coaching-repository";
 import { summarizePose, type PoseSummary } from "@/modules/media-analysis/pose-analysis";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type Props = { initialUploads: CoachingUpload[] };
 type Position = { latitude: number; longitude: number; accuracy: number };
@@ -31,6 +32,8 @@ export function CameraCoachWorkspace({ initialUploads }: Props) {
   const poseCanvasRef = useRef<HTMLCanvasElement>(null);
   const [poseState, setPoseState] = useState<"idle" | "loading" | "complete" | "failed">("idle");
   const [poseSummary, setPoseSummary] = useState<PoseSummary | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const guide = throwGuides[throwType];
   const observation = coachingObservation(throwType, result);
 
@@ -101,9 +104,10 @@ export function CameraCoachWorkspace({ initialUploads }: Props) {
     } catch { setPoseState("failed"); setMessage("Pose extraction could not run on this device or network. Your clip was not uploaded by this attempt."); }
   }
   async function remove(id: string) {
-    if (!window.confirm("Permanently delete this private video and its guidance?")) return;
+    setDeleteBusy(true);
     const response = await fetch(`/api/coaching/${encodeURIComponent(id)}`, { method: "DELETE" });
-    if (response.ok) setUploads((items) => items.filter((item) => item.id !== id)); else setMessage("Deletion failed. Nothing was hidden locally; please retry.");
+    if (response.ok) { setUploads((items) => items.filter((item) => item.id !== id)); setPendingDeleteId(null); } else setMessage("Deletion failed. Nothing was hidden locally; please retry.");
+    setDeleteBusy(false);
   }
   function locate() {
     setLocationError(null);
@@ -135,8 +139,9 @@ export function CameraCoachWorkspace({ initialUploads }: Props) {
         <section className="rangefinder panel"><div className="panel-title"><div><span>03 / RANGE</span><h2>GPS rangefinder</h2></div><Crosshair/></div><button className="button button-secondary" type="button" onClick={locate}><LocateFixed/> Use my location</button>{position ? <p className="accuracy">Fix accuracy: ±{Math.round(position.accuracy)} m. GPS is an estimate.</p> : null}{locationError ? <p className="form-error">{locationError}</p> : null}<div className="target-grid"><label>Target latitude<input value={targetLat} onChange={(e) => setTargetLat(e.target.value)} inputMode="decimal" placeholder="44.1000"/></label><label>Target longitude<input value={targetLng} onChange={(e) => setTargetLng(e.target.value)} inputMode="decimal" placeholder="-70.2000"/></label></div>{range ? <div className="range-result"><strong>{Math.round(range.feet)} ft</strong><span>{Math.round(range.meters)} m · bearing {Math.round(range.bearing)}°</span></div> : <p className="empty-copy">Use owner-verified basket coordinates for the best result.</p>}{target ? <a className="satellite-link" target="_blank" rel="noreferrer" href={`https://www.google.com/maps/@?api=1&map_action=map&center=${target.latitude},${target.longitude}&zoom=19&basemap=satellite`}>Open satellite view <ExternalLink/></a> : null}<p className="limitation">Satellite imagery is for orientation only. Camera-only distance measurement is not claimed, and this is not emergency navigation.</p></section>
       </aside>
     </div>
-    <section className="coach-history"><div className="section-heading"><span className="eyebrow">Private field notebook</span><h2>Saved sessions</h2></div>{uploads.length ? <div className="session-list">{uploads.map((item) => <article key={item.id}><div><span>{item.throwType} · {item.cameraAngle}</span><strong>{item.fileName}</strong><small>Expires {new Date(item.expiresAt).toLocaleDateString()} · {formatBytes(item.byteSize)}</small></div><p>{item.guidance.priority}</p><button aria-label={`Delete ${item.fileName}`} onClick={() => remove(item.id)}><Trash2/></button></article>)}</div> : <div className="empty-state"><Video/><h3>No saved sessions</h3><p>Record your first throw above. Nothing is uploaded until you submit the consent form.</p></div>}</section>
+    <section className="coach-history"><div className="section-heading"><span className="eyebrow">Private field notebook</span><h2>Saved sessions</h2></div>{uploads.length ? <div className="session-list">{uploads.map((item) => <article key={item.id}><div><span>{item.throwType} · {item.cameraAngle}</span><strong>{item.fileName}</strong><small>Expires {new Date(item.expiresAt).toLocaleDateString()} · {formatBytes(item.byteSize)}</small></div><p>{item.guidance.priority}</p><button aria-label={`Delete ${item.fileName}`} onClick={() => setPendingDeleteId(item.id)}><Trash2/></button></article>)}</div> : <div className="empty-state"><Video/><h3>No saved sessions</h3><p>Record your first throw above. Nothing is uploaded until you submit the consent form.</p></div>}</section>
     <section className="coach-sources"><h2>Training references</h2><p>Practice guidance is linked to published references. It does not scrape coaching videos or diagnose injuries.</p><div>{coachingSources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer"><span>{source.kind}</span><strong>{source.title}</strong><ExternalLink/></a>)}</div></section>
+    <ConfirmDialog open={Boolean(pendingDeleteId)} title="Delete this private session?" description="The video and its coaching guidance will be permanently removed." confirmLabel="Delete session" destructive busy={deleteBusy} onCancel={() => setPendingDeleteId(null)} onConfirm={() => pendingDeleteId ? remove(pendingDeleteId) : undefined} />
   </>;
 }
 

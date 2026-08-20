@@ -50,11 +50,15 @@ export const users = pgTable(
     email: text("email").notNull(),
     displayName: text("display_name").notNull(),
     authProviderSubject: text("auth_provider_subject"),
+    supabaseAuthUserId: uuid("supabase_auth_user_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
-  (table) => [uniqueIndex("users_email_unique").on(table.email)],
+  (table) => [
+    uniqueIndex("users_email_unique").on(table.email),
+    uniqueIndex("users_supabase_auth_user_unique").on(table.supabaseAuthUserId),
+  ],
 );
 
 export const roles = pgTable(
@@ -438,3 +442,189 @@ export const auditLogs = pgTable(
     index("audit_logs_actor_created_idx").on(table.actorUserId, table.createdAt),
   ],
 );
+
+export const hostedSignupIntents = pgTable(
+  "hosted_signup_intents",
+  {
+    nonce: uuid("nonce").primaryKey(),
+    email: text("email").notNull(),
+    termsVersion: text("terms_version").notNull(),
+    privacyVersion: text("privacy_version").notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    authUserId: uuid("auth_user_id"),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  },
+  (table) => [index("hosted_signup_intents_email_expiry_idx").on(table.email, table.expiresAt)],
+);
+
+export const passwordRecoveryIntents = pgTable(
+  "password_recovery_intents",
+  {
+    tokenHash: text("token_hash").primaryKey(),
+    authUserId: uuid("auth_user_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  },
+  (table) => [index("password_recovery_intents_user_expiry_idx").on(table.authUserId, table.expiresAt)],
+);
+
+export const playerPrivacySettings = pgTable("player_privacy_settings", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  profileVisibility: text("profile_visibility").default("PRIVATE").notNull(),
+  showHomeCity: boolean("show_home_city").default(false).notNull(),
+  showRoundHistory: boolean("show_round_history").default(false).notNull(),
+  showBag: boolean("show_bag").default(false).notNull(),
+  allowMessages: text("allow_messages").default("CONNECTIONS").notNull(),
+  allowGameInvites: boolean("allow_game_invites").default(true).notNull(),
+  analyticsOptIn: boolean("analytics_opt_in").default(false).notNull(),
+  aiTrainingOptIn: boolean("ai_training_opt_in").default(false).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const consentRecords = pgTable("consent_records", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  consentType: text("consent_type").notNull(),
+  policyVersion: text("policy_version").notNull(),
+  granted: boolean("granted").notNull(),
+  recordedAt: timestamp("recorded_at", { withTimezone: true }).defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+}, (table) => [index("consent_records_user_type_idx").on(table.userId, table.consentType)]);
+
+export const communityUserStatus = pgTable("community_user_status", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  adultAttestedAt: timestamp("adult_attested_at", { withTimezone: true }),
+  guidelinesVersion: text("guidelines_version"),
+  guidelinesAcceptedAt: timestamp("guidelines_accepted_at", { withTimezone: true }),
+  status: text("status").default("ACTIVE").notNull(),
+  mutedUntil: timestamp("muted_until", { withTimezone: true }),
+  suspendedUntil: timestamp("suspended_until", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [index("community_user_status_state_idx").on(table.status, table.suspendedUntil)]);
+
+export const playerConnections = pgTable("player_connections", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  requesterUserId: uuid("requester_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  addresseeUserId: uuid("addressee_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  pairKey: text("pair_key").notNull(),
+  status: text("status").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("player_connections_pair_key_unique").on(table.pairKey),
+  index("player_connections_requester_status_idx").on(table.requesterUserId, table.status),
+  index("player_connections_addressee_status_idx").on(table.addresseeUserId, table.status),
+]);
+
+export const blockedUsers = pgTable("blocked_users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  blockerUserId: uuid("blocker_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  blockedUserId: uuid("blocked_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("blocked_users_pair_unique").on(table.blockerUserId, table.blockedUserId),
+  index("blocked_users_blocked_idx").on(table.blockedUserId, table.blockerUserId),
+]);
+
+export const conversations = pgTable("conversations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  conversationType: text("conversation_type").notNull(),
+  subject: text("subject"),
+  visibility: text("visibility").default("PRIVATE").notNull(),
+  contextType: text("context_type"),
+  contextId: text("context_id"),
+  status: text("status").default("ACTIVE").notNull(),
+  createdBy: uuid("created_by").notNull().references(() => users.id, { onDelete: "restrict" }),
+  lastMessageAt: timestamp("last_message_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  version: integer("version").default(1).notNull(),
+}, (table) => [
+  uniqueIndex("conversations_public_context_unique").on(table.contextType, table.contextId),
+  index("conversations_public_updated_idx").on(table.conversationType, table.status, table.updatedAt),
+]);
+
+export const conversationMembers = pgTable("conversation_members", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  conversationId: uuid("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").default("MEMBER").notNull(),
+  joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),
+  leftAt: timestamp("left_at", { withTimezone: true }),
+  lastReadAt: timestamp("last_read_at", { withTimezone: true }),
+  lastReadMessageId: uuid("last_read_message_id"),
+  notificationsMuted: boolean("notifications_muted").default(false).notNull(),
+}, (table) => [
+  uniqueIndex("conversation_members_unique").on(table.conversationId, table.userId),
+  index("conversation_members_user_active_idx").on(table.userId, table.leftAt),
+]);
+
+export const messages = pgTable("messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  conversationId: uuid("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  senderUserId: uuid("sender_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  body: text("body").notNull(),
+  clientMessageId: text("client_message_id"),
+  moderationStatus: text("moderation_status").default("PUBLISHED").notNull(),
+  moderationReason: text("moderation_reason"),
+  replyToMessageId: uuid("reply_to_message_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  editedAt: timestamp("edited_at", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  version: integer("version").default(1).notNull(),
+}, (table) => [
+  uniqueIndex("messages_sender_client_unique").on(table.senderUserId, table.clientMessageId),
+  index("messages_conversation_cursor_idx").on(table.conversationId, table.createdAt, table.id),
+  index("messages_moderation_idx").on(table.moderationStatus, table.createdAt),
+]);
+
+export const reports = pgTable("reports", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reporterUserId: uuid("reporter_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  targetType: text("target_type").notNull(),
+  targetId: text("target_id").notNull(),
+  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "set null" }),
+  category: text("category").notNull(),
+  details: text("details"),
+  status: text("status").default("OPEN").notNull(),
+  resolvedBy: uuid("resolved_by").references(() => users.id),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  resolutionReason: text("resolution_reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("reports_status_created_idx").on(table.status, table.createdAt),
+  index("reports_target_idx").on(table.targetType, table.targetId),
+]);
+
+export const moderationActions = pgTable("moderation_actions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reportId: uuid("report_id").references(() => reports.id, { onDelete: "set null" }),
+  moderatorUserId: uuid("moderator_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  action: text("action").notNull(),
+  targetType: text("target_type").notNull(),
+  targetId: text("target_id").notNull(),
+  reason: text("reason").notNull(),
+  metadata: jsonb("metadata_json").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [index("moderation_actions_target_created_idx").on(table.targetType, table.targetId, table.createdAt)]);
+
+export const rounds = pgTable("rounds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  courseId: uuid("course_id").notNull().references(() => courses.id),
+  layoutId: text("layout_id"),
+  eventId: uuid("event_id"),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  status: text("status").notNull(),
+  scoringFormat: text("scoring_format").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  clientSyncId: text("client_sync_id").unique(),
+  lastMutationId: text("last_mutation_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  version: integer("version").default(1).notNull(),
+});

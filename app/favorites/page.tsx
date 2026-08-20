@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Heart, Search } from "lucide-react";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { CourseCard } from "@/modules/courses/components/CourseCard";
@@ -22,6 +23,7 @@ export default async function FavoritesPage() {
       </main>
     );
   }
+  if (user.identityLinkRequired) redirect("/account/link");
   let ids: string[] = [];
   let unavailable = false;
   try {

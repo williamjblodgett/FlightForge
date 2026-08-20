@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable(
@@ -132,6 +133,184 @@ export const consentRecords = sqliteTable(
     revokedAt: text("revoked_at"),
   },
   (table) => [index("consent_records_user_type_idx").on(table.userId, table.consentType)],
+);
+
+export const hostedSignupIntents = sqliteTable(
+  "hosted_signup_intents",
+  {
+    nonce: text("nonce").primaryKey(),
+    email: text("email").notNull(),
+    termsVersion: text("terms_version").notNull(),
+    privacyVersion: text("privacy_version").notNull(),
+    acceptedAt: text("accepted_at").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    authUserId: text("auth_user_id"),
+    consumedAt: text("consumed_at"),
+  },
+  (table) => [index("hosted_signup_intents_email_expiry_idx").on(table.email, table.expiresAt)],
+);
+
+export const passwordRecoveryIntents = sqliteTable(
+  "password_recovery_intents",
+  {
+    tokenHash: text("token_hash").primaryKey(),
+    authUserId: text("auth_user_id").notNull(),
+    createdAt: text("created_at").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    consumedAt: text("consumed_at"),
+  },
+  (table) => [index("password_recovery_intents_user_expiry_idx").on(table.authUserId, table.expiresAt)],
+);
+
+export const communityUserStatus = sqliteTable(
+  "community_user_status",
+  {
+    userId: text("user_id").primaryKey(),
+    adultAttestedAt: text("adult_attested_at"),
+    guidelinesVersion: text("guidelines_version"),
+    guidelinesAcceptedAt: text("guidelines_accepted_at"),
+    status: text("status").default("ACTIVE").notNull(),
+    mutedUntil: text("muted_until"),
+    suspendedUntil: text("suspended_until"),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [index("community_user_status_state_idx").on(table.status, table.suspendedUntil)],
+);
+
+export const playerConnections = sqliteTable(
+  "player_connections",
+  {
+    id: text("id").primaryKey(),
+    requesterUserId: text("requester_user_id").notNull(),
+    addresseeUserId: text("addressee_user_id").notNull(),
+    pairKey: text("pair_key").notNull(),
+    status: text("status").notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("player_connections_pair_key_unique").on(table.pairKey),
+    index("player_connections_requester_status_idx").on(table.requesterUserId, table.status),
+    index("player_connections_addressee_status_idx").on(table.addresseeUserId, table.status),
+  ],
+);
+
+export const blockedUsers = sqliteTable(
+  "blocked_users",
+  {
+    id: text("id").primaryKey(),
+    blockerUserId: text("blocker_user_id").notNull(),
+    blockedUserId: text("blocked_user_id").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("blocked_users_pair_unique").on(table.blockerUserId, table.blockedUserId),
+    index("blocked_users_blocked_idx").on(table.blockedUserId, table.blockerUserId),
+  ],
+);
+
+export const conversations = sqliteTable(
+  "conversations",
+  {
+    id: text("id").primaryKey(),
+    conversationType: text("conversation_type").notNull(),
+    subject: text("subject"),
+    visibility: text("visibility").default("PRIVATE").notNull(),
+    contextType: text("context_type"),
+    contextId: text("context_id"),
+    status: text("status").default("ACTIVE").notNull(),
+    createdBy: text("created_by").notNull(),
+    lastMessageAt: text("last_message_at"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    version: integer("version").default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex("conversations_public_context_unique").on(table.contextType, table.contextId)
+      .where(sql`${table.conversationType} = 'PUBLIC_CHANNEL' AND ${table.status} = 'ACTIVE'`),
+    index("conversations_public_updated_idx").on(table.conversationType, table.status, table.updatedAt),
+  ],
+);
+
+export const conversationMembers = sqliteTable(
+  "conversation_members",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id").notNull(),
+    userId: text("user_id").notNull(),
+    role: text("role").default("MEMBER").notNull(),
+    joinedAt: text("joined_at").notNull(),
+    leftAt: text("left_at"),
+    lastReadAt: text("last_read_at"),
+    lastReadMessageId: text("last_read_message_id"),
+    notificationsMuted: integer("notifications_muted", { mode: "boolean" }).default(false).notNull(),
+  },
+  (table) => [
+    uniqueIndex("conversation_members_unique").on(table.conversationId, table.userId),
+    index("conversation_members_user_active_idx").on(table.userId, table.leftAt),
+  ],
+);
+
+export const messages = sqliteTable(
+  "messages",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id").notNull(),
+    senderUserId: text("sender_user_id").notNull(),
+    body: text("body").notNull(),
+    clientMessageId: text("client_message_id"),
+    moderationStatus: text("moderation_status").default("PUBLISHED").notNull(),
+    moderationReason: text("moderation_reason"),
+    replyToMessageId: text("reply_to_message_id"),
+    createdAt: text("created_at").notNull(),
+    editedAt: text("edited_at"),
+    deletedAt: text("deleted_at"),
+    version: integer("version").default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex("messages_sender_client_unique").on(table.senderUserId, table.clientMessageId),
+    index("messages_conversation_cursor_idx").on(table.conversationId, table.createdAt, table.id),
+    index("messages_moderation_idx").on(table.moderationStatus, table.createdAt),
+  ],
+);
+
+export const reports = sqliteTable(
+  "reports",
+  {
+    id: text("id").primaryKey(),
+    reporterUserId: text("reporter_user_id").notNull(),
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    conversationId: text("conversation_id"),
+    category: text("category").notNull(),
+    details: text("details"),
+    status: text("status").default("OPEN").notNull(),
+    resolvedBy: text("resolved_by"),
+    resolvedAt: text("resolved_at"),
+    resolutionReason: text("resolution_reason"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    index("reports_status_created_idx").on(table.status, table.createdAt),
+    index("reports_target_idx").on(table.targetType, table.targetId),
+  ],
+);
+
+export const moderationActions = sqliteTable(
+  "moderation_actions",
+  {
+    id: text("id").primaryKey(),
+    reportId: text("report_id"),
+    moderatorUserId: text("moderator_user_id").notNull(),
+    action: text("action").notNull(),
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    reason: text("reason").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [index("moderation_actions_target_created_idx").on(table.targetType, table.targetId, table.createdAt)],
 );
 
 export const courses = sqliteTable(
@@ -734,4 +913,29 @@ export const eventAuditEvents = sqliteTable(
     createdAt: text("created_at").notNull(),
   },
   (table) => [index("event_audit_event_created_idx").on(table.eventId, table.createdAt)],
+);
+
+export const rounds = sqliteTable(
+  "rounds",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id").notNull(),
+    layoutId: text("layout_id"),
+    eventId: text("event_id"),
+    createdBy: text("created_by").notNull(),
+    status: text("status").notNull(),
+    scoringFormat: text("scoring_format").notNull(),
+    startedAt: text("started_at"),
+    completedAt: text("completed_at"),
+    clientSyncId: text("client_sync_id"),
+    lastMutationId: text("last_mutation_id"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    version: integer("version").default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex("rounds_user_event_active_unique")
+      .on(table.createdBy, table.eventId)
+      .where(sql`${table.status} = 'IN_PROGRESS'`),
+  ],
 );

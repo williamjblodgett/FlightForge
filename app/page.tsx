@@ -14,8 +14,9 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const user = await getCurrentUser();
+  const accountReady = Boolean(user && !user.identityLinkRequired);
   let favoriteIds: string[] = [];
-  if (user) {
+  if (user && accountReady) {
     favoriteIds = await getFavoriteCourseIds(user.email).catch(() => []);
   }
 
@@ -24,7 +25,7 @@ export default async function Home() {
       <CourseExplorer
         courses={courses}
         initialFavoriteIds={favoriteIds}
-        signedIn={Boolean(user)}
+        signedIn={accountReady}
         variant="home"
       />
       <section className="platform-strip page-shell" id="platform">

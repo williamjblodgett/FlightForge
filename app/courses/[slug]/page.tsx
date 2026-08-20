@@ -26,6 +26,7 @@ import { FavoriteButton } from "@/modules/courses/components/FavoriteButton";
 import { ShareCourseButton } from "@/modules/courses/components/ShareCourseButton";
 import { UnclaimedNotice } from "@/modules/courses/components/UnclaimedNotice";
 import { brand } from "@/config/brand";
+import { CommunityChannelLink } from "@/components/community/CommunityChannelLink";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${course.name} · ${brand.productName}`,
       description: `Plan a round at ${course.name} in ${course.city}, ${course.state}.`,
+      images: [],
+    },
+    twitter: {
+      card: "summary",
+      title: `${course.name} · ${brand.productName}`,
+      description: `Plan a round at ${course.name} in ${course.city}, ${course.state}.`,
+      images: [],
     },
   };
 }
@@ -56,7 +64,8 @@ export default async function CourseDetailPage({ params }: Props) {
   if (!course) notFound();
 
   const user = await getCurrentUser();
-  const favoriteIds = user
+  const accountReady = Boolean(user && !user.identityLinkRequired);
+  const favoriteIds = user && accountReady
     ? await getFavoriteCourseIds(user.email).catch(() => [])
     : [];
   const isFavorite = favoriteIds.includes(course.id);
@@ -123,10 +132,11 @@ export default async function CourseDetailPage({ params }: Props) {
               courseId={course.id}
               courseName={course.name}
               initialFavorite={isFavorite}
-              signedIn={Boolean(user)}
+              signedIn={accountReady}
               showLabel
             />
             <ShareCourseButton courseName={course.name} />
+            <CommunityChannelLink contextType="COURSE" contextId={course.id} signedIn={Boolean(user)} label="Course community" className="button button-secondary" />
             <a className="button button-tertiary" href={course.sourceUrl} target="_blank" rel="noreferrer">
               Visit course information <ExternalLink aria-hidden="true" />
             </a>
@@ -175,7 +185,7 @@ export default async function CourseDetailPage({ params }: Props) {
             <div className="layout-list">
               <article>
                 <div><span>01</span><div><strong>Course layout</strong><p>{course.holeCount > 0 ? `${course.holeCount} holes listed` : "Hole count not confirmed"} · detailed hole maps are not available yet.</p></div></div>
-                <span className="layout-status">Map coming soon</span>
+                <span className="layout-status">Course map unavailable</span>
               </article>
             </div>
           </section>
@@ -218,7 +228,7 @@ export default async function CourseDetailPage({ params }: Props) {
           {course.nextAvailableAt ? (
             <div className="next-time"><CalendarClock aria-hidden="true" /><div><span>Next availability</span><strong>{course.nextAvailableAt}</strong></div></div>
           ) : (
-            <div className="next-time is-muted"><Clock3 aria-hidden="true" /><div><span>Reservations</span><strong>Online booking coming soon</strong></div></div>
+            <div className="next-time is-muted"><Clock3 aria-hidden="true" /><div><span>Reservations</span><strong>Contact the course for booking details</strong></div></div>
           )}
           <a className="button button-primary button-wide" href={course.sourceUrl} target="_blank" rel="noreferrer">
             Check with the course <ExternalLink aria-hidden="true" />

@@ -2,6 +2,7 @@ export type HoleScore = {
   hole: number;
   par: number;
   score: number | null;
+  penalties?: number;
   updatedAt: string | null;
 };
 
@@ -36,6 +37,7 @@ export function createRound(
       hole: index + 1,
       par,
       score: null,
+      penalties: 0,
       updatedAt: null,
     })),
   };
@@ -47,12 +49,16 @@ export function recordHoleScore(
   score: number,
   expectedVersion: number,
   updatedAt = new Date(),
+  penalties = 0,
 ): RoundSnapshot {
   if (expectedVersion !== round.version) {
     throw new Error("ROUND_VERSION_CONFLICT");
   }
-  if (!Number.isInteger(score) || score < 1 || score > 20) {
+  if (!Number.isInteger(score) || score < 1 || score > 99) {
     throw new Error("INVALID_HOLE_SCORE");
+  }
+  if (!Number.isInteger(penalties) || penalties < 0 || penalties > 20) {
+    throw new Error("INVALID_PENALTY_SCORE");
   }
   if (!round.holes.some((hole) => hole.hole === holeNumber)) {
     throw new Error("UNKNOWN_HOLE");
@@ -60,7 +66,7 @@ export function recordHoleScore(
 
   const holes = round.holes.map((hole) =>
     hole.hole === holeNumber
-      ? { ...hole, score, updatedAt: updatedAt.toISOString() }
+      ? { ...hole, score, penalties, updatedAt: updatedAt.toISOString() }
       : hole,
   );
   return {
@@ -81,7 +87,7 @@ export function mergeRoundSnapshots(
   const resolvedHoles: number[] = [];
   const holes = local.holes.map((localHole) => {
     const remoteHole = remote.holes.find((hole) => hole.hole === localHole.hole);
-    if (!remoteHole || localHole.score === remoteHole.score) {
+    if (!remoteHole || (localHole.score === remoteHole.score && (localHole.penalties ?? 0) === (remoteHole.penalties ?? 0))) {
       return localHole;
     }
     const localTime = localHole.updatedAt ? Date.parse(localHole.updatedAt) : 0;
@@ -105,10 +111,11 @@ export function summarizeRound(round: RoundSnapshot): RoundSummary {
   return round.holes.reduce<RoundSummary>(
     (summary, hole) => {
       if (hole.score == null) return summary;
-      const relative = hole.score - hole.par;
+      const total = hole.score + (hole.penalties ?? 0);
+      const relative = total - hole.par;
       return {
         completedHoles: summary.completedHoles + 1,
-        totalStrokes: summary.totalStrokes + hole.score,
+        totalStrokes: summary.totalStrokes + total,
         relativeToPar: summary.relativeToPar + relative,
         birdies: summary.birdies + (relative < 0 ? 1 : 0),
         pars: summary.pars + (relative === 0 ? 1 : 0),

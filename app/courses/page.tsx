@@ -33,7 +33,8 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
   const page = Math.max(1, Number.parseInt(scalar(query.page) || "1", 10) || 1);
   const pageSize = 24;
   const pageCourses = matches.slice((page - 1) * pageSize, page * pageSize);
-  const favoriteIds = user
+  const accountReady = Boolean(user && !user.identityLinkRequired);
+  const favoriteIds = user && accountReady
     ? await getFavoriteCourseIds(user.email).catch(() => [])
     : [];
   return (
@@ -45,7 +46,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
         pageSize={pageSize}
         initialFilters={initialFilters}
         initialFavoriteIds={favoriteIds}
-        signedIn={Boolean(user)}
+        signedIn={accountReady}
         variant="directory"
       />
     </main>

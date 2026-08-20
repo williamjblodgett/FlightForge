@@ -3,7 +3,7 @@ import { BarChart3, Database, Film, Flag, ShieldCheck, SlidersHorizontal, Users 
 import { brand } from "@/config/brand";
 
 type Props = {
-  active: "claims" | "imports" | "highlights";
+  active: "claims" | "imports" | "highlights" | "reports";
   children: React.ReactNode;
 };
 
@@ -11,6 +11,7 @@ const adminLinks = [
   { key: "claims", label: "Claim review", href: "/admin/claims", icon: ShieldCheck },
   { key: "imports", label: "Import review", href: "/admin/imports", icon: Database },
   { key: "highlights", label: "Hole videos", href: "/admin/highlights", icon: Film },
+  { key: "reports", label: "Community reports", href: "/admin/reports", icon: Flag },
 ] as const;
 
 export function AdminShell({ active, children }: Props) {
@@ -28,7 +29,6 @@ export function AdminShell({ active, children }: Props) {
               return <Link key={item.key} className={active === item.key ? "is-active" : ""} href={item.href}><Icon aria-hidden="true" />{item.label}</Link>;
             })}
             <span aria-disabled="true"><Users aria-hidden="true" />User management <small>Later</small></span>
-            <span aria-disabled="true"><Flag aria-hidden="true" />Reports <small>Later</small></span>
             <span aria-disabled="true"><SlidersHorizontal aria-hidden="true" />Feature flags <small>Later</small></span>
             <span aria-disabled="true"><BarChart3 aria-hidden="true" />Analytics <small>Later</small></span>
           </nav>

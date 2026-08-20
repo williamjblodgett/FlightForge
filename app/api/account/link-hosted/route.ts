@@ -2,10 +2,17 @@ import { apiError } from "@/lib/http/api-response";
 import { getChatGPTUser } from "@/app/chatgpt-auth";
 import { InvalidCurrentPasswordError, linkHostedIdentity } from "@/modules/auth/account-repository";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
+import { getSupabaseIdentity } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return apiError("ORIGIN_REJECTED", "The account-linking origin was rejected.", 403);
-  const hosted = await getChatGPTUser();
+  const chatGPT = await getChatGPTUser();
+  const supabase = chatGPT ? null : await getSupabaseIdentity().catch(() => null);
+  const hosted = chatGPT
+    ? { email: chatGPT.email, providerSubject: chatGPT.providerSubject }
+    : supabase?.emailVerified
+      ? { email: supabase.email, providerSubject: `supabase:${supabase.id}` }
+      : null;
   if (!hosted) return apiError("HOSTED_IDENTITY_REQUIRED", "Continue with hosted identity before linking an account.", 401);
   const limit = await checkRateLimit("hosted-identity-link", hosted.providerSubject, 5, 900).catch(() => null);
   if (!limit?.allowed) return apiError("RATE_LIMITED", "Too many account-linking attempts. Try again later.", 429);

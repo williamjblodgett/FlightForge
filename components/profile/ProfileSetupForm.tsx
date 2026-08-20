@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { ArrowRight, Eye, MapPin, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import type { AccountSettings } from "@/modules/auth/account-repository";
 import { brand } from "@/config/brand";
@@ -15,6 +15,7 @@ export function ProfileSetupForm({ initial, firstRun }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const ready = useSyncExternalStore(subscribeToHydration, () => true, () => false);
 
   function set<K extends keyof AccountSettings>(key: K, value: AccountSettings[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -122,7 +123,7 @@ export function ProfileSetupForm({ initial, firstRun }: Props) {
           <Toggle label="Show home city" description="Never shows a street address or ZIP." checked={form.showHomeCity} onChange={(value) => set("showHomeCity", value)} />
           <Toggle label="Show round history" description="Make completed-round summaries visible at your selected profile level." checked={form.showRoundHistory} onChange={(value) => set("showRoundHistory", value)} />
           <Toggle label="Show digital bag" description="Share disc names, not purchase details." checked={form.showBag} onChange={(value) => set("showBag", value)} />
-          <Toggle label="Allow game invitations" description="Blocked users can never invite you." checked={form.allowGameInvites} onChange={(value) => set("allowGameInvites", value)} />
+          <Toggle label="Allow game invitations" description="Keep this off if you prefer not to receive playing-group invitations." checked={form.allowGameInvites} onChange={(value) => set("allowGameInvites", value)} />
           <Toggle label="Optional product analytics" description="Help improve nonessential product flows. Off by default." checked={form.analyticsOptIn} onChange={(value) => set("analyticsOptIn", value)} />
           <Toggle label="Allow AI training use" description="Off by default. This does not enable media uploads." checked={form.aiTrainingOptIn} onChange={(value) => set("aiTrainingOptIn", value)} />
         </div>
@@ -132,13 +133,17 @@ export function ProfileSetupForm({ initial, firstRun }: Props) {
       {saved ? <div className="form-success" role="status">Profile and privacy choices saved.</div> : null}
       <div className="profile-submit-bar">
         <p>{firstRun ? "You can revise every choice later." : "Changes apply to new profile views immediately."}</p>
-        <button className="button button-primary" type="submit" disabled={submitting}>
-          {submitting ? "Saving…" : firstRun ? "Save and enter FlightForge" : "Save changes"}
-          {!submitting ? <ArrowRight aria-hidden="true" /> : null}
+        <button className="button button-primary" type="submit" disabled={submitting || !ready}>
+          {!ready ? "Preparing profile…" : submitting ? "Saving…" : firstRun ? "Save and enter FlightForge" : "Save changes"}
+          {!submitting && ready ? <ArrowRight aria-hidden="true" /> : null}
         </button>
       </div>
     </form>
   );
+}
+
+function subscribeToHydration() {
+  return () => undefined;
 }
 
 function Toggle({ label, description, checked, onChange }: { label: string; description: string; checked: boolean; onChange: (value: boolean) => void }) {

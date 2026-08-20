@@ -4,7 +4,7 @@
 
 The repository includes a static, installable demonstration under `pages-demo/`. It intentionally keeps mutable data in validated browser storage and does not embed server credentials.
 
-1. Run `npm run typecheck`, `npm run lint`, `npm run test`, and `npm audit`.
+1. Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run test:e2e`, and `npm audit`.
 2. Push to a repository with GitHub Pages enabled.
 3. In **Settings → Pages**, choose **GitHub Actions** as the source.
 4. The `Deploy FlightForge Pages Demo` workflow builds `pages-dist/`, uploads the artifact, and deploys it.
@@ -22,14 +22,14 @@ Before publishing:
 
 1. Keep demo authentication disabled.
 2. Configure `PLATFORM_ADMIN_EMAILS`, `COURSE_OWNER_EMAILS`, `EVENT_COORDINATOR_EMAILS`, and `LEAGUE_ADMIN_EMAILS` through hosted environment settings.
-3. Run type checking, linting, unit tests, the production build, rendered integration tests, `npm run db:validate`, and `npm run catalog:validate`.
-4. Inspect generated D1 and PostgreSQL migrations. Confirm the `digital_bag`, `ai_caddie`, and `event_publishing` records are enabled only in intended environments.
+3. Run type checking, linting, unit tests, the production build, rendered integration tests, `npm run test:e2e`, `npm run db:validate`, and `npm run catalog:validate`.
+4. Inspect generated D1 and PostgreSQL migrations. Confirm the `digital_bag`, `ai_caddie`, `event_publishing`, `camera_coach`, and `community_chat` records are enabled only in intended environments.
 5. Confirm access policy before exposing administrator or coordinator routes.
-6. Smoke-test event draft/publish/unpublish, physical-disc add/edit/remove, caddie failure fallback, and JPhillips forced password replacement after deployment.
+6. Smoke-test event draft/publish/unpublish, physical-disc add/edit/remove, caddie failure fallback, JPhillips forced password replacement, offline score recovery and Finish Round, adult community access, channel joining, message send/report/block, and administrator moderation after deployment.
 
 ## Standalone production target
 
-For a conventional Next.js deployment, port the active course/favorite/claim/event/bag/caddie repositories to `packages/database/src/client.ts`, apply PostgreSQL parity migrations, use private S3-compatible storage, and replace dispatch-owned sign-in with an established public identity provider. The D1 adapter is production-backed for Sites but is not the standalone Postgres adapter.
+For a conventional Next.js deployment, port the active course/favorite/claim/event/bag/caddie/community/round repositories to `packages/database/src/client.ts`, apply PostgreSQL parity migrations, use private S3-compatible storage, and activate the prepared Supabase Auth adapter with production SMTP and callback settings. The D1 adapter is production-backed for Sites but is not the standalone Postgres adapter.
 
 ## Environments
 

@@ -13,8 +13,31 @@ The authoritative production schema is [packages/database/src/schema.ts](../pack
 - `user_roles`
 - `organizations`
 - `organization_memberships`
+- `hosted_signup_intents`
+- `password_recovery_intents`
 
 Organization-scoped roles are represented by `user_roles.organization_id`. Role definitions and permission checks remain centralized in application code for this slice.
+
+`users.supabase_auth_user_id` is the explicit link to `auth.users`. It is unique and nullable during migration; application code never claims an existing account from an unverified email match. `hosted_signup_intents` bind provider provisioning to an app-issued consent nonce and configured legal-policy versions. `password_recovery_intents` are hashed, expire after 15 minutes, and are consumed once before password replacement.
+
+### Player privacy and community
+
+- `player_privacy_settings`
+- `consent_records`
+- `community_user_status`
+- `player_connections`
+- `blocked_users`
+- `conversations`
+- `conversation_members`
+- `messages`
+- `reports`
+- `moderation_actions`
+
+Curated regional/state channels use stable UUIDs in both D1 and PostgreSQL. Course and event channels are created only after validating a published application record. Message idempotency is unique per sender, reads require active conversation membership, blocks apply in both directions, and moderator actions retain the report, actor, reason, target, and optional duration.
+
+### Active rounds and offline synchronization
+
+`rounds`, `round_players`, `scorecards`, `hole_scores`, and `round_score_audit_events` persist active scorecards. `rounds.last_mutation_id` makes the optimistic update and its dependent D1 batch auditable; `client_mutation_id` prevents replayed hole changes. A conditional finish transition requires every hole, rejects unsynchronized versions, changes the status to `COMPLETED`, and appends a completion audit event. The browser keeps an owner-scoped schema-versioned mirror in IndexedDB with a local-storage write journal when IndexedDB is unavailable.
 
 ### Courses and geography
 
@@ -48,6 +71,7 @@ Import records retain original normalized payloads, validation errors, possible 
 D1 contains active repositories for:
 
 - password credentials and revocable hashed sessions;
+- hosted-signup consent intents and one-time password-recovery intents;
 - user roles, player profiles, preferences, privacy settings, and consent records;
 - course sources and status observations;
 - favorites;
@@ -59,6 +83,8 @@ D1 contains active repositories for:
 - sourced catalog records, versioned disc ratings, plastic families, physical player discs, bags, and bag slots;
 - private per-disc throw profiles and observations;
 - AI caddie sessions, recommendations, and feedback with model/schema provenance.
+- community status, connections, blocks, conversations, membership, messages, reports, and moderation actions;
+- active event rounds, hole scores, client mutation identifiers, and correction audit history.
 
 Private evidence bytes live in R2. Public course facts remain version-controlled seed data until PostgreSQL becomes the active runtime adapter.
 
@@ -70,4 +96,4 @@ Course evidence now records facility identity, course-versus-layout type, locati
 
 ## Future repositories
 
-Booking, pricing, payments, groups, rounds, statistics, ratings, leagues, media analysis, learning, notifications, moderation, and commerce have D1 tables but do not yet have complete server repositories or provider integrations. Event publishing, bags, and the deterministic caddie are active; multimodal AI and external model providers remain separate disabled capabilities. The next activation should be cross-device booking/scoring with transaction-level authorization and integration tests.
+Booking, pricing, payments, public playing groups, aggregate statistics, ratings, leagues, media analysis, learning, notifications, and commerce have D1 foundations but do not yet have complete server repositories or provider integrations. Event publishing, bags, deterministic caddie recommendations, community messaging, moderation, and active-round score synchronization are active. Multimodal AI and external model providers remain separate disabled capabilities. The next activation should be shared booking inventory with transaction-level authorization and integration tests.

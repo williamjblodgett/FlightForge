@@ -35,6 +35,7 @@ export default async function StateCoursePage({ params }: Props) {
   if (!selected) notFound();
   const stateCourses = courses.filter((course) => course.state === selected.code);
   const user = await getCurrentUser();
-  const favoriteIds = user ? await getFavoriteCourseIds(user.email).catch(() => []) : [];
-  return <main><CourseExplorer courses={stateCourses} initialFavoriteIds={favoriteIds} signedIn={Boolean(user)} variant="directory" /></main>;
+  const accountReady = Boolean(user && !user.identityLinkRequired);
+  const favoriteIds = user && accountReady ? await getFavoriteCourseIds(user.email).catch(() => []) : [];
+  return <main><CourseExplorer courses={stateCourses} initialFavoriteIds={favoriteIds} signedIn={accountReady} variant="directory" /></main>;
 }

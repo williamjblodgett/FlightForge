@@ -5,7 +5,9 @@ import {
   findAccountUserByEmail,
   findAccountUserByProviderSubject,
   getAccountUserBySession,
+  resolveSupabaseAccount,
 } from "./account-repository";
+import { getSupabaseIdentity } from "@/lib/supabase/server";
 import {
   DEMO_SESSION_COOKIE,
   getDemoSessionSecret,
@@ -13,9 +15,25 @@ import {
   verifyDemoSessionToken,
 } from "./demo-session";
 import type { AuthenticatedUser, Role } from "./types";
+import { rolesForConfiguredEmail } from "./configured-roles";
 
 export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
   const cookieStore = await cookies();
+  const hasSupabaseSessionCookie = cookieStore.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
+  const supabaseIdentity = await getSupabaseIdentity().catch(() => null);
+  if (supabaseIdentity?.emailVerified) {
+    return resolveSupabaseAccount({
+      authUserId: supabaseIdentity.id,
+      email: supabaseIdentity.email,
+      displayName: supabaseIdentity.displayName,
+      emailVerified: true,
+      registrationNonce: supabaseIdentity.registrationNonce,
+    }).catch(() => null);
+  }
+  // A hosted-auth cookie must never fall through to a different identity when
+  // token validation, rotation, or provider availability fails.
+  if (hasSupabaseSessionCookie) return null;
+
   const accountToken = cookieStore.get(ACCOUNT_SESSION_COOKIE)?.value;
   if (accountToken) {
     const accountUser = await getAccountUserBySession(accountToken).catch(() => null);
@@ -49,23 +67,4 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
 
 function mergeRoles(first: Role[], second: Role[]): Role[] {
   return Array.from(new Set([...first, ...second]));
-}
-
-function rolesForConfiguredEmail(email: string): Role[] {
-  const normalized = email.toLowerCase();
-  const roles: Role[] = ["PLAYER"];
-  if (emailList("COURSE_OWNER_EMAILS").has(normalized)) roles.push("COURSE_OWNER");
-  if (emailList("EVENT_COORDINATOR_EMAILS").has(normalized)) roles.push("TOURNAMENT_DIRECTOR");
-  if (emailList("LEAGUE_ADMIN_EMAILS").has(normalized)) roles.push("LEAGUE_ADMIN");
-  if (emailList("PLATFORM_ADMIN_EMAILS").has(normalized)) roles.push("PLATFORM_ADMIN");
-  return roles;
-}
-
-function emailList(variableName: string): Set<string> {
-  return new Set(
-    (process.env[variableName] ?? "")
-      .split(",")
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean),
-  );
 }

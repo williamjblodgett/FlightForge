@@ -5,7 +5,7 @@ import { ProfileSetupForm } from "@/components/profile/ProfileSetupForm";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { getAccountSettings } from "@/modules/auth/account-repository";
 import Link from "next/link";
-import { Backpack, Camera, Flag, Heart } from "lucide-react";
+import { Backpack, Camera, Flag, Heart, MessageCircle, Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Player profile and privacy", robots: { index: false, follow: false } };
@@ -27,6 +27,8 @@ export default async function ProfilePage() {
         <Link href="/coach"><Camera aria-hidden="true" /><span><strong>Camera coach</strong><small>Record and review form</small></span></Link>
         <Link href="/play"><Flag aria-hidden="true" /><span><strong>Live round</strong><small>Score offline</small></span></Link>
         <Link href="/favorites"><Heart aria-hidden="true" /><span><strong>Saved courses</strong><small>Your field list</small></span></Link>
+        <Link href="/messages"><MessageCircle aria-hidden="true" /><span><strong>Messages</strong><small>Your player conversations</small></span></Link>
+        <Link href="/community"><Users aria-hidden="true" /><span><strong>Community</strong><small>Players and clubhouses</small></span></Link>
       </nav>
       <ProfileSetupForm initial={settings} firstRun={false} />
       <section className="account-actions-panel" aria-labelledby="account-actions-heading">

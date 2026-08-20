@@ -79,6 +79,7 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
           {submitting ? "Signing in…" : "Sign in"}
           {!submitting ? <ArrowRight size={18} aria-hidden="true" /> : null}
         </button>
+        <p className="auth-switch"><Link href="/forgot-password">Forgot your password?</Link></p>
         <p className="auth-switch">New here? <Link href={`/sign-up?return_to=${encodeURIComponent(returnTo)}`}>Create a free account</Link></p>
         <div className="hosted-auth-divider"><span>or</span></div>
         <a className="button button-secondary button-wide" href={hostedSignInPath}>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, LockKeyhole, Shield } from "lucide-react";
 import { brand } from "@/config/brand";
 
-export function SignupForm() {
+export function SignupForm({ returnTo = "/onboarding" }: { returnTo?: string }) {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,14 +22,15 @@ export function SignupForm() {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ displayName, email, password, acceptTerms }),
+        body: JSON.stringify({ displayName, email, password, acceptTerms, returnTo }),
       });
       const body = (await response.json()) as { error?: { message?: string }; next?: string };
       if (!response.ok) {
         setError(body.error?.message ?? "Your account could not be created.");
         return;
       }
-      setCreated(true);
+      if (body.next && body.next !== "/verify-email") window.location.assign(body.next);
+      else setCreated(true);
     } catch {
       setError(`${brand.productName} could not reach the account service.`);
     } finally {
