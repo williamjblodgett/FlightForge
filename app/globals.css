@@ -1379,6 +1379,7 @@ textarea:focus {
 
 .map-toolbar button {
   display: flex;
+  min-width: 44px;
   min-height: 44px;
   align-items: center;
   gap: 6px;
