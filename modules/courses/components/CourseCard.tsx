@@ -65,7 +65,7 @@ export function CourseCard({ course, favorite, signedIn, selected, onSelect }: P
         {course.nextAvailableAt ? (
           <div className="availability-row"><Clock3 aria-hidden="true" /><span>Next tee time</span><strong>{course.nextAvailableAt}</strong></div>
         ) : (
-          <div className="availability-row is-muted"><Clock3 aria-hidden="true" /><span>Online booking coming soon</span></div>
+          <div className="availability-row is-muted"><Clock3 aria-hidden="true" /><span>Contact the course for booking details</span></div>
         )}
         {course.currentCondition ? (
           <div className="condition-row"><span className="condition-dot" />{course.currentCondition}</div>
