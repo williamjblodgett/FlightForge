@@ -3,8 +3,8 @@ import audit from "@/data/import/new-england-course-evidence-audit.json";
 
 describe("New England course evidence audit", () => {
   it("assigns every candidate a six-state evidence outcome", () => {
-    expect(audit.records).toHaveLength(468);
-    expect(audit.counts.by_state).toEqual({ ME: 120, MA: 116, NH: 70, VT: 86, CT: 68, RI: 8 });
+    expect(audit.records).toHaveLength(474);
+    expect(audit.counts.by_state).toEqual({ ME: 120, MA: 117, NH: 70, VT: 88, CT: 71, RI: 8 });
     expect(new Set(audit.records.map((record) => record.candidate_id)).size).toBe(audit.records.length);
   });
 
@@ -16,7 +16,7 @@ describe("New England course evidence audit", () => {
     );
 
     expect(unsupportedPublished).toEqual([]);
-    expect(audit.counts.withheld_pending_primary_source).toBe(333);
+    expect(audit.counts.withheld_pending_primary_source).toBe(297);
   });
 
   it("keeps availability language conservative", () => {

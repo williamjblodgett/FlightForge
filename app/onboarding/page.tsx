@@ -23,7 +23,7 @@ export default async function OnboardingPage() {
       <ProfileSetupForm initial={settings} firstRun />
       <div className="auth-session-exit">
         <p>Want to finish this later? Your account is already saved.</p>
-        <SignOutButton source={user.source} variant="standalone" />
+        <SignOutButton variant="standalone" />
       </div>
     </main>
   );

@@ -5,7 +5,7 @@
 3. Unclaimed course facts are approximate and display the exact required operator-verification notice.
 4. The fictional Forge Ridge listing demonstrates verified availability and condition states without misrepresenting a real operator.
 5. A signed-in player may initiate a claim because ownership is established by the claim workflow, not by a pre-existing owner role.
-6. Hosted identity is sufficient for this Sites release. A public standalone account system remains a provider decision.
+6. Public users authenticate with a standalone FlightForge email/password account. Hosting-platform or ChatGPT identity headers do not create a FlightForge session.
 7. The provider-neutral map is an accessible launch fallback, not turn-by-turn or emergency navigation.
 8. Monetization, platform fees, AI, booking, and offline scoring remain feature-flagged off until their own complete slices pass review.
 9. Legal placeholders are product artifacts only and do not claim compliance.

@@ -4,6 +4,8 @@ import { CheckCircle2, Database, ExternalLink, ShieldAlert } from "lucide-react"
 import statewideBatch from "@/data/import/maine-courses.statewide.json";
 import operatorReview from "@/data/import/maine-course-authoritative-overrides.json";
 import regionalBatch from "@/data/import/new-england-courses.authoritative.json";
+import regionalNorthExpansion from "@/data/import/new-england-expansion-north.reviewed.json";
+import regionalSouthExpansion from "@/data/import/new-england-expansion-south.reviewed.json";
 import evidenceAudit from "@/data/import/new-england-course-evidence-audit.json";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getCurrentUser } from "@/modules/auth/current-user";
@@ -67,12 +69,19 @@ export default async function AdminImportsPage() {
     records: BatchRecord[];
   };
   const operatorCount = (operatorReview as { records: Array<{ slugs: string[] }> }).records.reduce((total, record) => total + record.slugs.length, 0);
-  const regional = regionalBatch as unknown as {
+  const regionalBatches = [regionalBatch, regionalNorthExpansion, regionalSouthExpansion] as unknown as Array<{
     batch_id: string;
     generated_at: string;
     policy: string;
     candidate_estimates: Record<string, number>;
     records: RegionalRecord[];
+  }>;
+  const regional = {
+    batch_id: regionalBatches.map((batch) => batch.batch_id).join(" · "),
+    generated_at: regionalBatches.map((batch) => batch.generated_at).sort().at(-1) ?? regionalBatches[0].generated_at,
+    policy: regionalBatches[0].policy,
+    candidate_estimates: regionalBatches[0].candidate_estimates,
+    records: regionalBatches.flatMap((batch) => batch.records),
   };
   const stateCounts = Object.entries(
     regional.records.reduce<Record<string, number>>((counts, record) => {

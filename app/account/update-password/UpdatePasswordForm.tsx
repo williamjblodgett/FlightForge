@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { KeyRound } from "lucide-react";
 
-export function UpdatePasswordForm() {
+export function UpdatePasswordForm({ returnTo = "/profile" }: { returnTo?: string }) {
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
@@ -11,7 +11,7 @@ export function UpdatePasswordForm() {
   async function submit(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setError("");
     try {
-      const response = await fetch("/api/auth/update-password", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ password, confirmation }) });
+      const response = await fetch("/api/auth/update-password", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ password, confirmation, returnTo }) });
       const body = await response.json() as { next?: string; error?: { message?: string } };
       if (response.ok) window.location.assign(body.next ?? "/profile");
       else setError(body.error?.message ?? "The password could not be updated.");

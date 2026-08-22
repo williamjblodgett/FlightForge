@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import { LogOut } from "lucide-react";
-import type { AuthenticatedUser } from "@/modules/auth/types";
 
 type Props = {
-  source: AuthenticatedUser["source"];
   variant?: "menu" | "header" | "standalone";
 };
 
-export function SignOutButton({ source, variant = "menu" }: Props) {
+export function SignOutButton({ variant = "menu" }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,11 +21,7 @@ export function SignOutButton({ source, variant = "menu" }: Props) {
         headers: { accept: "application/json" },
       });
       if (!response.ok) throw new Error("Sign-out request rejected");
-      window.location.assign(
-        source === "chatgpt"
-          ? "/signout-with-chatgpt?return_to=%2F"
-          : "/",
-      );
+      window.location.assign("/");
     } catch {
       setError("Sign out could not be completed. Please try again.");
     } finally {

@@ -69,14 +69,14 @@ export class EmailVerificationRequiredError extends Error {
 
 export class ExternalIdentityLinkRequiredError extends Error {
   constructor() {
-    super("Confirm your existing password before linking this hosted identity.");
+    super("Confirm your existing password before linking this Supabase identity.");
     this.name = "ExternalIdentityLinkRequiredError";
   }
 }
 
 export class RegistrationConsentRequiredError extends Error {
   constructor() {
-    super("Create this hosted account through the FlightForge sign-up form before continuing.");
+    super("Create this Supabase account through the FlightForge sign-up form before continuing.");
     this.name = "RegistrationConsentRequiredError";
   }
 }
@@ -395,7 +395,9 @@ export async function verifyAccountEmail(token: string): Promise<AuthenticatedUs
     auditStatement(getD1Database(), row.userId, "EMAIL_VERIFIED", "user", row.userId, now),
   ]);
   const verified = await findUserRowById(row.userId);
-  return verified ? accountUserFromRow(verified, await rolesForUser(verified.id)) : null;
+  if (!verified) return null;
+  await persistConfiguredRoles(verified.id, verified.email);
+  return accountUserFromRow(verified, await rolesForUser(verified.id));
 }
 
 export async function authenticateAccount(
@@ -616,12 +618,16 @@ async function persistConfiguredRoles(userId: string, email: string): Promise<vo
   ]));
 }
 
-export async function linkHostedIdentity(input: {
+export async function linkSupabaseIdentity(input: {
   email: string;
-  providerSubject: string;
+  authUserId: string;
   password: string;
 }): Promise<AuthenticatedUser> {
   await ensureAccountSchema();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(input.authUserId)) {
+    throw new ExternalIdentityLinkRequiredError();
+  }
+  const providerSubject = `supabase:${input.authUserId}`;
   const row = await findUserRowByEmail(input.email);
   if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations) {
     throw new InvalidCurrentPasswordError();
@@ -632,15 +638,15 @@ export async function linkHostedIdentity(input: {
     iterations: row.passwordIterations,
   });
   if (!valid) throw new InvalidCurrentPasswordError();
-  const existingSubject = await findUserRowByProviderSubject(input.providerSubject);
+  const existingSubject = await findUserRowByProviderSubject(providerSubject);
   if (existingSubject && existingSubject.id !== row.id) throw new ExternalIdentityLinkRequiredError();
   const now = new Date().toISOString();
   await getD1Database().batch([
     getD1Database().prepare(
       `UPDATE users SET auth_provider_subject = ?, email_verified_at = COALESCE(email_verified_at, ?),
        status = 'ACTIVE', updated_at = ?, version = version + 1 WHERE id = ?`,
-    ).bind(input.providerSubject, now, now, row.id),
-    auditStatement(getD1Database(), row.id, "HOSTED_IDENTITY_LINKED", "user", row.id, now),
+    ).bind(providerSubject, now, now, row.id),
+    auditStatement(getD1Database(), row.id, "SUPABASE_IDENTITY_LINKED", "user", row.id, now),
   ]);
   const linked = await findUserRowById(row.id);
   if (!linked) throw new Error("The linked account could not be loaded.");
@@ -940,6 +946,7 @@ export async function ensurePersistedUserId(user: AuthenticatedUser): Promise<st
     if (!persisted) throw new Error("The authenticated Supabase account no longer exists.");
     return persisted.id;
   }
+  if (user.source === "chatgpt") throw new ExternalIdentityLinkRequiredError();
   return ensureExternalAccount(user);
 }
 
@@ -1011,7 +1018,11 @@ function accountUserFromRow(row: UserRow, roles: Role[]): AuthenticatedUser {
     email: row.email,
     displayName: row.displayName,
     roles,
-    source: row.authProviderSubject ? "chatgpt" : "password",
+    source: row.authProviderSubject?.startsWith("supabase:")
+      ? "supabase"
+      : row.authProviderSubject
+        ? "chatgpt"
+        : "password",
     onboardingComplete: Boolean(row.onboardingCompletedAt),
     isTestAccount: Boolean(row.isTestAccount),
     mustChangePassword: Boolean(row.mustChangePassword),

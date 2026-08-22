@@ -30,7 +30,9 @@ export async function GET(request: Request) {
     error = { message: "Missing authentication confirmation." };
   }
   if (error) return NextResponse.redirect(new URL("/sign-in?error=invalid_confirmation", url.origin));
-  const destination = type === "recovery" ? "/account/update-password" : next;
+  const destination = type === "recovery"
+    ? `/account/update-password?return_to=${encodeURIComponent(next)}`
+    : next;
   const response = NextResponse.redirect(new URL(destination, url.origin), { headers: { "Cache-Control": "private, no-store" } });
   const legacyToken = readCookie(request.headers.get("cookie") ?? "", ACCOUNT_SESSION_COOKIE);
   if (legacyToken) await revokeAccountSession(legacyToken).catch(() => undefined);

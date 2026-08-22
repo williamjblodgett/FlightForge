@@ -37,7 +37,7 @@ export default async function ProfilePage() {
           <h2 id="account-actions-heading">Finished for now?</h2>
           <p>Sign out on shared devices. Your saved profile and privacy choices remain in your account.</p>
         </div>
-        <SignOutButton source={user.source} variant="standalone" />
+        <SignOutButton variant="standalone" />
       </section>
     </main>
   );

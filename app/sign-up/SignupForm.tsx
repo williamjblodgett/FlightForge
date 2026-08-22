@@ -79,7 +79,7 @@ export function SignupForm({ returnTo = "/onboarding", registrationReady = true 
           {submitting ? "Creating account…" : "Create free account"}
           {!submitting ? <ArrowRight size={18} aria-hidden="true" /> : null}
         </button>
-        <p className="auth-switch">Already have an account? <Link href="/sign-in">Sign in</Link></p>
+        <p className="auth-switch">Already have an account? <Link href={`/sign-in?return_to=${encodeURIComponent(returnTo)}`}>Sign in</Link></p>
       </form>
 
       <aside className="privacy-promise">

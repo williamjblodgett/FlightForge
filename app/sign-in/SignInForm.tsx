@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowRight, KeyRound } from "lucide-react";
 import { brand } from "@/config/brand";
 
 type Props = {
   returnTo: string;
-  hostedSignInPath: string;
+  initialError?: string | null;
 };
 
-export function SignInForm({ returnTo, hostedSignInPath }: Props) {
+export function SignInForm({ returnTo, initialError = null }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const [submitting, setSubmitting] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -50,9 +50,10 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
 
   return (
     <div className="account-entry-grid">
-      <form className="auth-card account-form" onSubmit={submit}>
+      <form className="auth-card account-form" onSubmit={submit} aria-busy={submitting}>
         <span className="eyebrow"><KeyRound aria-hidden="true" /> Player access</span>
-        <h2>Sign in to your field book</h2>
+        <h2>Sign in to your FlightForge account</h2>
+        <p className="field-help">Use your email and FlightForge password. No third-party account is required.</p>
 
         <label className="field-label" htmlFor="account-email">Email</label>
         <input
@@ -61,6 +62,8 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "sign-in-error" : undefined}
           required
         />
 
@@ -71,20 +74,18 @@ export function SignInForm({ returnTo, hostedSignInPath }: Props) {
           autoComplete="current-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "sign-in-error" : undefined}
           required
         />
 
-        {error ? <div className="form-error" role="alert">{error}</div> : null}
+        {error ? <div id="sign-in-error" className="form-error" role="alert">{error}</div> : null}
         <button className="button button-primary button-wide" type="submit" disabled={submitting}>
           {submitting ? "Signing in…" : "Sign in"}
           {!submitting ? <ArrowRight size={18} aria-hidden="true" /> : null}
         </button>
-        <p className="auth-switch"><Link href="/forgot-password">Forgot your password?</Link></p>
+        <p className="auth-switch"><Link href={`/forgot-password?return_to=${encodeURIComponent(returnTo)}`}>Forgot your password?</Link></p>
         <p className="auth-switch">New here? <Link href={`/sign-up?return_to=${encodeURIComponent(returnTo)}`}>Create a free account</Link></p>
-        <div className="hosted-auth-divider"><span>or</span></div>
-        <a className="button button-secondary button-wide" href={hostedSignInPath}>
-          <ShieldCheck size={18} aria-hidden="true" /> Continue with secure sign-in
-        </a>
       </form>
 
     </div>

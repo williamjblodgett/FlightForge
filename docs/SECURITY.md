@@ -4,16 +4,17 @@
 
 - server-side identity and role checks on every write and administrator read;
 - exact role-to-permission helpers instead of hidden-UI authorization;
-- elevated email allowlists apply only to dispatch-authenticated hosted identities; an unverified password signup cannot inherit a coordinator, owner, or administrator role by matching an email string;
+- elevated email allowlists apply only after FlightForge email verification; an unverified signup cannot inherit a coordinator, owner, or administrator role by matching an email string;
 - PBKDF2-SHA256 password hashing with per-user salts and a 210,000-iteration work factor;
 - opaque 256-bit session tokens stored only as SHA-256 hashes server-side;
 - secure, HTTP-only, SameSite cookies with expiration and logout revocation;
-- direct sign-out controls in the desktop header and profile/setup screens, including dispatch-owned sign-out for hosted identities;
+- direct same-origin sign-out controls in the desktop header and profile/setup screens;
 - Supabase Auth email confirmation, PKCE callback handling, enumeration-resistant password recovery, and server-only refresh cookies;
-- app-issued hosted-signup consent nonces, immutable configured Terms/Privacy acceptance records, and rejection of direct provider signup that bypasses the application flow;
+- app-issued Supabase-signup consent nonces, immutable configured Terms/Privacy acceptance records, and rejection of direct provider signup that bypasses the application flow;
 - one-time, 15-minute password-recovery intents required in addition to a valid Supabase session before password replacement;
-- fail-closed Supabase-cookie validation and legacy-session revocation when a hosted identity signs in, preventing silent fallback to a different account;
-- explicit Supabase subject linking; a verified hosted email collision cannot silently claim a pre-existing D1 account;
+- fail-closed Supabase-cookie validation and legacy-session revocation when a Supabase identity signs in, preventing silent fallback to a different account;
+- explicit Supabase subject linking; a verified email collision cannot silently claim a pre-existing D1 account;
+- rejection of ChatGPT and hosting-platform request headers as FlightForge authentication inputs;
 - forced replacement of the JPhillips bootstrap password, with all prior sessions revoked on change;
 - hard-coded role demo auth unavailable in production, even if its local feature variable is set;
 - same-origin checks on cookie-affecting mutations;
@@ -53,9 +54,9 @@
 
 ## Security scan report
 
-As of 2026-08-20:
+As of 2026-08-22:
 
-- `npm audit` reports 0 known vulnerabilities across 752 production, development, optional, and peer dependency records;
+- `npm audit` reports 0 known vulnerabilities in the locked dependency installation;
 - a clean locked install completes with 0 vulnerabilities;
 - the npm dependency tree exits successfully; npm labels two Windows-installed Sharp WASM optional packages as extraneous even after `npm ci`, but neither is imported by application code and both remain covered by the audit;
 - tracked-source pattern checks found no AWS access key, private key, GitHub token, OpenAI key, or live Stripe key;
@@ -63,7 +64,7 @@ As of 2026-08-20:
 - source review found no `eval`, `new Function`, `document.write`, `Math.random` security-token generation, or executable child-process use in application code;
 - CodeQL `security-extended`, `npm audit --audit-level=high`, and Dependabot configuration now run or update through GitHub;
 - GitHub secret scanning, secret-scanning push protection, vulnerability alerts, and Dependabot security updates are enabled for the repository;
-- 118 unit tests, 9 rendered server-flow tests, 3 Pages artifact tests, and 8 desktop/mobile browser tests pass locally alongside type checking, linting, production builds, 13 validated D1 migrations covering 143 tables, reviewed disc-catalog validation, and both Maine seed validations.
+- 125 unit tests, 10 rendered server-flow tests, 3 Pages artifact tests, and 14 desktop/mobile browser tests pass locally alongside type checking, linting, production builds, 13 validated D1 migrations covering 143 tables, reviewed disc-catalog validation, and the Maine and regional seed validations.
 
 This is a code and dependency hardening pass, not a claim of complete security. It does not replace an independent penetration test, cloud configuration review, malware sandbox, operational monitoring, backup/restore exercise, or attorney review.
 

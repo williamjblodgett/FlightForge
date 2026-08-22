@@ -1,4 +1,6 @@
 import authoritativeImport from "@/data/import/new-england-courses.authoritative.json";
+import northExpansionImport from "@/data/import/new-england-expansion-north.reviewed.json";
+import southExpansionImport from "@/data/import/new-england-expansion-south.reviewed.json";
 import type {
   Course,
   CourseEvidenceField,
@@ -8,7 +10,7 @@ import type {
   CourseSource,
 } from "./types";
 
-type AuthoritativeRecord = {
+export type AuthoritativeRecord = {
   external_id: string;
   slug: string;
   name: string;
@@ -36,10 +38,22 @@ type AuthoritativeRecord = {
   evidence_fields: CourseEvidenceField[];
 };
 
-const records = (authoritativeImport as unknown as { records: AuthoritativeRecord[] }).records;
+export const authoritativeNewEnglandBatches = [
+  authoritativeImport,
+  northExpansionImport,
+  southExpansionImport,
+] as unknown as Array<{
+  batch_id: string;
+  generated_at: string;
+  policy: string;
+  candidate_estimates: Record<string, number>;
+  records: AuthoritativeRecord[];
+}>;
+
+export const authoritativeNewEnglandRecords = authoritativeNewEnglandBatches.flatMap((batch) => batch.records);
 const heroTones = ["pine", "lake", "sunrise", "granite", "meadow"] as const;
 
-export const authoritativeNewEnglandCourses: Course[] = records.map((record) => ({
+export const authoritativeNewEnglandCourses: Course[] = authoritativeNewEnglandRecords.map((record) => ({
   id: `course-${record.slug}`,
   facilityId: record.facility_id,
   recordType: record.record_type,

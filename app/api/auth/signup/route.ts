@@ -86,10 +86,24 @@ export async function POST(request: Request) {
         await abandonHostedSignupIntent(registrationNonce).catch(() => undefined);
         throw new Error("Supabase did not create an authentication identity.");
       }
+      if (data.session) {
+        const cleanup = await Promise.allSettled([
+          supabase.auth.signOut(),
+          abandonHostedSignupIntent(registrationNonce),
+        ]);
+        if (cleanup.some((result) => result.status === "rejected")) {
+          logError("account.signup.auto_confirm_cleanup_failed", new Error("Automatic-confirm signup cleanup was incomplete."));
+        }
+        return apiError(
+          "EMAIL_VERIFICATION_NOT_ENFORCED",
+          "Account creation is temporarily unavailable because email verification is not enforced.",
+          503,
+        );
+      }
       return Response.json({
         user: data.user ? { email: parsed.data.email, displayName: parsed.data.displayName } : null,
-        next: data.session ? returnTo : "/verify-email",
-        requiresEmailVerification: !data.session,
+        next: "/verify-email",
+        requiresEmailVerification: true,
       }, { status: 201, headers: { "Cache-Control": "private, no-store" } });
     }
     const user = await createAccount(parsed.data);

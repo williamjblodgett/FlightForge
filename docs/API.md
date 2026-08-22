@@ -17,7 +17,7 @@ All responses avoid raw database errors. Errors use:
 
 ### `POST /api/auth/signup`, `POST /api/auth/login`, and `GET /auth/callback`
 
-When Supabase is configured, signup issues a short-lived consent nonce, records the configured Terms and Privacy versions, creates a hosted identity, sends a verification redirect, and exchanges the PKCE confirmation for secure server cookies. Provisioning rejects identities that lack the app-issued signup intent. Login rejects unverified hosted identities. A verified hosted email that collides with a pre-existing D1 account is never silently linked; the user must complete the explicit account-link flow. During the controlled migration window, existing D1 credentials remain available as a fallback.
+When Supabase is configured, signup issues a short-lived consent nonce, records the configured Terms and Privacy versions, creates a FlightForge identity, sends a verification redirect, and exchanges the PKCE confirmation for secure server cookies. Provisioning rejects identities that lack the app-issued signup intent. Login rejects unverified identities and signup fails closed if the provider is configured to auto-confirm email. A verified Supabase email that collides with a pre-existing D1 account is never silently linked; the user must complete the explicit account-link flow. ChatGPT and hosting-platform request headers are not authentication inputs. During the controlled migration window, existing D1 credentials remain available as a fallback.
 
 ### `POST /api/auth/reset-password` and `PUT /api/auth/update-password`
 

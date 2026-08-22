@@ -27,12 +27,12 @@ Coordinates are planning aids, not emergency navigation. Exact first-tee and bas
 
 ## Uniform six-state audit
 
-The August 8, 2026 refresh contains 468 directory candidates: 120 ME, 116 MA, 70 NH, 86 VT, 68 CT, and 8 RI. Every candidate has an explicit evidence and publication outcome in `data/import/new-england-course-evidence-audit.json`.
+The August 22, 2026 ledger contains 474 reviewed records: 120 ME, 117 MA, 70 NH, 88 VT, 71 CT, and 8 RI. It combines the refreshed directory snapshot with six primary-source records that were not present in that snapshot. Every record has an explicit evidence and publication outcome in `data/import/new-england-course-evidence-audit.json`.
 
-Thirty-one records have approved primary-source evidence, including 16 Maine course records and the 15-record expansion launch set. One hundred four Maine records retain their disclosed directory-only tier. Three hundred thirty-three non-Maine candidates are withheld pending a current owner, facility, municipal, park, school, or university source. Classification is completion of the evidence audit, not a claim that every candidate has been operator verified.
+Seventy-three records have approved primary-source evidence, including 16 Maine course records and 57 records across the other five New England states. One hundred four Maine records retain their disclosed directory-only tier. Two hundred ninety-seven non-Maine candidates are withheld pending a current owner, facility, municipal, park, school, university, or other qualified public-agency source. Classification is completion of the review ledger, not a claim that every candidate has been operator verified.
 
-The refresh checked 553 cited URLs. Five hundred fifty-two responded successfully. The City of Rochester source for Squamanagonic returned HTTP 403 to the automated audit and remains queued for manual recheck; a blocked automated request is not closure evidence.
+The refresh checked 595 cited URLs. Five hundred eighty-eight responded successfully. Seven government URLs rejected or did not satisfy the automated request and remain queued for manual recheck; each was separately reviewed, and an automated HTTP error is not closure evidence.
 
 ## Current reviewed expansion set
 
-The 2026-08-07 regional batch contains 15 primary-source-reviewed records spanning all five expansion states. It remains the publishable expansion set. Unresolved candidates are now uniformly represented in the audit ledger and remain unpublished.
+The original 2026-08-07 regional batch and the two 2026-08-22 expansion batches contain 57 primary-source-reviewed records spanning all five expansion states. Together they are the publishable expansion set. Unresolved candidates remain represented in the review ledger and stay unpublished.

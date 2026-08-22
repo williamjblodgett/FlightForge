@@ -10,6 +10,7 @@ import {
   PASSWORD_RECOVERY_INTENT_COOKIE,
 } from "@/modules/auth/account-repository";
 import { validatePasswordStrength } from "@/modules/auth/password";
+import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
 
 export async function PUT(request: Request) {
   if (!isSameOriginMutation(request)) return apiError("ORIGIN_REJECTED", "The password request origin was rejected.", 403);
@@ -17,6 +18,9 @@ export async function PUT(request: Request) {
   try { body = await request.json(); } catch { return apiError("INVALID_JSON", "The request body must be valid JSON.", 400); }
   const password = typeof body === "object" && body && "password" in body ? String(body.password) : "";
   const confirmation = typeof body === "object" && body && "confirmation" in body ? String(body.confirmation) : "";
+  const returnTo = typeof body === "object" && body && "returnTo" in body
+    ? safeRelativeReturnPath(String(body.returnTo))
+    : "/profile";
   const strengthIssue = validatePasswordStrength(password);
   if (strengthIssue) return apiError("VALIDATION_ERROR", strengthIssue, 422);
   if (password !== confirmation) return apiError("VALIDATION_ERROR", "Passwords do not match.", 422);
@@ -38,7 +42,7 @@ export async function PUT(request: Request) {
   }
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return apiError("PASSWORD_UPDATE_FAILED", "The password could not be updated. Request a new recovery link.", 422);
-  const response = NextResponse.json({ updated: true, next: "/profile" });
+  const response = NextResponse.json({ updated: true, next: returnTo });
   response.cookies.set(PASSWORD_RECOVERY_INTENT_COOKIE, "", {
     httpOnly: true,
     sameSite: "lax",

@@ -21,7 +21,7 @@ export default async function PasswordPage() {
       <PasswordSetupForm temporary={user.mustChangePassword} />
       <div className="auth-session-exit">
         <p>Not your account or using a shared device?</p>
-        <SignOutButton source={user.source} variant="standalone" />
+        <SignOutButton variant="standalone" />
       </div>
     </main>
   );

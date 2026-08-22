@@ -68,7 +68,7 @@ export async function SiteHeader() {
                 <Link href="/community">Community</Link>
                 {can(user, "manageEvents") ? <Link href="/events/manage">Manage events</Link> : null}
                 {can(user, "viewAdmin") ? <Link href="/admin/claims">Admin review</Link> : null}
-                <SignOutButton source={user.source} />
+                <SignOutButton />
               </div>
             </details>
           ) : (
@@ -77,7 +77,7 @@ export async function SiteHeader() {
               <span>Sign in</span>
             </Link>
           )}
-          {user ? <SignOutButton source={user.source} variant="header" /> : null}
+          {user ? <SignOutButton variant="header" /> : null}
         </div>
       </div>
     </header>

@@ -1,25 +1,25 @@
 # New England evidence audit
 
-FlightForge completed a uniform six-state directory and source-health audit on August 8, 2026.
+FlightForge refreshed its six-state directory and source-health audit on August 22, 2026.
 
 ## Results
 
 | State | Candidates |
 | --- | ---: |
 | Maine | 120 |
-| Massachusetts | 116 |
+| Massachusetts | 117 |
 | New Hampshire | 70 |
-| Vermont | 86 |
-| Connecticut | 68 |
+| Vermont | 88 |
+| Connecticut | 71 |
 | Rhode Island | 8 |
-| **Total** | **468** |
+| **Total** | **474** |
 
-- 31 records have approved owner, facility, or public-agency evidence.
+- 73 records have approved owner, facility, or public-agency evidence.
 - 52 Maine records are directory cross-checked.
 - 52 Maine records have one current directory source.
-- 333 non-Maine candidates are withheld pending primary evidence.
-- 552 of 553 cited URLs responded to the automated source-health check.
-- The remaining municipal URL returned HTTP 403 and requires manual review; it is not treated as proof of closure.
+- 297 non-Maine candidates are withheld pending primary evidence.
+- 588 of 595 cited URLs responded to the automated source-health check.
+- Seven government URLs returned an automated HTTP error and require periodic recheck; those responses are not treated as proof of closure.
 
 ## Interpretation
 
@@ -42,4 +42,4 @@ The committed audit is `data/import/new-england-course-evidence-audit.json`. Raw
 
 ## Published database subset
 
-The application publishes the 120 Maine launch records and the 15 non-Maine records that passed the stricter primary-source gate. The remaining 333 expansion candidates are retained in the evidence ledger with a withheld outcome; they are not silently promoted into public course inventory. The idempotent Supabase seed generator mirrors that 135-record public subset without weakening the evidence policy.
+The application publishes the 120 Maine launch records and the 57 non-Maine records that passed the stricter primary-source gate. The remaining 297 expansion candidates are retained in the review ledger with a withheld outcome; they are not silently promoted into public course inventory. The idempotent Supabase seed generator now prepares the same 177-record public subset without weakening the publication policy.

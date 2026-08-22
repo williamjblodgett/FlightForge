@@ -2,29 +2,37 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { authoritativeRegionalCourseBatchSchema } from "../modules/courses/validation";
 
-const inputPath = resolve(process.argv[2] ?? "data/import/new-england-courses.authoritative.json");
-const input = JSON.parse(await readFile(inputPath, "utf8")) as unknown;
-const result = authoritativeRegionalCourseBatchSchema.safeParse(input);
+const inputPaths = process.argv.length > 2
+  ? process.argv.slice(2).map((path) => resolve(path))
+  : [
+      "data/import/new-england-courses.authoritative.json",
+      "data/import/new-england-expansion-north.reviewed.json",
+      "data/import/new-england-expansion-south.reviewed.json",
+    ].map((path) => resolve(path));
+const inputs = await Promise.all(inputPaths.map(async (path) => JSON.parse(await readFile(path, "utf8")) as unknown));
+const results = inputs.map((input) => authoritativeRegionalCourseBatchSchema.safeParse(input));
+const failed = results.find((result) => !result.success);
 
-if (!result.success) {
-  console.error(JSON.stringify(result.error.flatten(), null, 2));
+if (failed && !failed.success) {
+  console.error(JSON.stringify(failed.error.flatten(), null, 2));
   process.exitCode = 1;
 } else {
-  const duplicateSlugs = repeated(result.data.records.map((record) => record.slug));
-  const duplicateExternalIds = repeated(result.data.records.map((record) => record.external_id));
-  const states = [...new Set(result.data.records.map((record) => record.state))].sort();
-  const invalidFacilityGroups = result.data.records
+  const records = results.flatMap((result) => result.success ? result.data.records : []);
+  const duplicateSlugs = repeated(records.map((record) => record.slug));
+  const duplicateExternalIds = repeated(records.map((record) => record.external_id));
+  const states = [...new Set(records.map((record) => record.state))].sort();
+  const invalidFacilityGroups = records
     .filter((record) => record.record_type === "FACILITY_COURSE")
-    .filter((record) => result.data.records.filter((candidate) => candidate.facility_id === record.facility_id).length < 2)
+    .filter((record) => records.filter((candidate) => candidate.facility_id === record.facility_id).length < 2)
     .map((record) => record.facility_id);
 
   const valid = duplicateSlugs.length === 0 && duplicateExternalIds.length === 0 && invalidFacilityGroups.length === 0 && states.length === 5;
   console.log(JSON.stringify({
     valid,
-    batchId: result.data.batch_id,
-    recordCount: result.data.records.length,
+    batchIds: results.flatMap((result) => result.success ? [result.data.batch_id] : []),
+    recordCount: records.length,
     states,
-    primarySourceRecords: result.data.records.filter((record) => record.source_type === "COURSE_OWNER" || record.source_type === "PUBLIC_AGENCY").length,
+    primarySourceRecords: records.filter((record) => record.source_type === "COURSE_OWNER" || record.source_type === "PUBLIC_AGENCY").length,
     duplicateSlugs,
     duplicateExternalIds,
     invalidFacilityGroups: [...new Set(invalidFacilityGroups)],

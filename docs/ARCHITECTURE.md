@@ -50,7 +50,7 @@ flowchart LR
 
 ## Identity
 
-Hosted Sites uses dispatch-owned sign-in and trusted identity headers. Local development can enable signed, HTTP-only demo sessions. Authorization is checked server-side on every write route. Exact hosted emails can be mapped to owner or platform-administrator roles with environment variables.
+The public Sites app uses standalone FlightForge email/password accounts through verified Supabase sessions, with revocable password sessions retained during migration. Hosting-platform identity headers are ignored. Local development can enable signed, HTTP-only demo sessions. Authorization is checked server-side on every write route, and exact verified emails can be mapped to elevated roles with environment variables.
 
 Demo authentication is not the future public account system. A public deployment outside Sites should integrate an established provider behind the same `AuthenticatedUser` contract.
 

@@ -37,7 +37,12 @@ const root = resolve(process.cwd());
 const candidates = await readJson<{ generated_at: string; records: Candidate[] }>(resolve(root, process.argv[2] ?? "work/new-england-directory-candidates.json"));
 const maine = await readJson<{ records: MaineRecord[] }>(resolve(root, "data/import/maine-courses.statewide.json"));
 const overrides = await readJson<{ reviewed_at: string; records: OverrideRecord[] }>(resolve(root, "data/import/maine-course-authoritative-overrides.json"));
-const regional = await readJson<{ records: RegionalRecord[] }>(resolve(root, "data/import/new-england-courses.authoritative.json"));
+const regionalBatches = await Promise.all([
+  "data/import/new-england-courses.authoritative.json",
+  "data/import/new-england-expansion-north.reviewed.json",
+  "data/import/new-england-expansion-south.reviewed.json",
+].map((path) => readJson<{ records: RegionalRecord[] }>(resolve(root, path))));
+const regional = { records: regionalBatches.flatMap((batch) => batch.records) };
 const health = await readJson<{ counts: { urls: number; reachable: number; unavailable: number }; records: Health[] }>(resolve(root, process.argv[3] ?? "work/course-source-health.json"));
 const outputPath = resolve(root, process.argv[4] ?? "data/import/new-england-course-evidence-audit.json");
 

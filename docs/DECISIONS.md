@@ -12,9 +12,9 @@ Model the production domain in PostgreSQL/PostGIS while using Sites D1/R2 for a 
 
 Store source URL, source type, review timestamp, verification status, and fictional flag. Rationale: protect trust and copyright while making operator verification visible.
 
-## D-004 — Hosted identity, gated demo auth
+## D-004 — Standalone accounts, gated demo auth
 
-Use dispatch-owned hosted sign-in and signed local demo sessions. Rationale: avoid inventing a public auth stack from a starter while still testing every role locally.
+Use FlightForge email/password accounts backed by Supabase Auth, retain revocable password sessions during migration, and keep signed demo sessions local-only. Ignore hosting-platform identity headers. Rationale: players can create and recover a FlightForge account without a ChatGPT account, while verified email, consent, and server-side authorization remain enforceable.
 
 ## D-005 — Provider-neutral launch map
 

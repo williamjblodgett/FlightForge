@@ -26,7 +26,7 @@
     "seed:postgres": "tsx packages/database/src/seed.ts",
     "seed:validate": "tsx scripts/validate-course-import.ts data/import/maine-courses.reviewed.json",
     "seed:validate:statewide": "vitest run modules/courses/statewide-courses.test.ts",
-    "seed:validate:regional": "tsx scripts/validate-regional-course-import.ts data/import/new-england-courses.authoritative.json",
+    "seed:validate:regional": "tsx scripts/validate-regional-course-import.ts",
     "courses:research:new-england": "tsx scripts/research-new-england-candidates.ts",
     "courses:audit:sources": "tsx scripts/check-course-source-health.ts",
     "courses:audit:build": "tsx scripts/build-course-evidence-audit.ts",

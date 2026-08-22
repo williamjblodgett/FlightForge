@@ -10,14 +10,19 @@ const root = resolve(process.cwd());
 const candidates = await readJson<CandidateBatch>(resolve(root, process.argv[2] ?? "work/new-england-directory-candidates.json"));
 const maine = await readJson<MaineBatch>(resolve(root, "data/import/maine-courses.statewide.json"));
 const overrides = await readJson<OverrideBatch>(resolve(root, "data/import/maine-course-authoritative-overrides.json"));
-const regional = await readJson<RegionalBatch>(resolve(root, "data/import/new-england-courses.authoritative.json"));
+const regionalBatches = await Promise.all([
+  "data/import/new-england-courses.authoritative.json",
+  "data/import/new-england-expansion-north.reviewed.json",
+  "data/import/new-england-expansion-south.reviewed.json",
+].map((path) => readJson<RegionalBatch>(resolve(root, path))));
+const regionalRecords = regionalBatches.flatMap((batch) => batch.records);
 const outputPath = resolve(root, process.argv[3] ?? "work/course-source-health.json");
 
 const urls = [...new Set([
   ...candidates.records.map((record) => record.discovery_source_url),
   ...maine.records.flatMap((record) => [record.source_url, record.secondary_source_url]).filter(Boolean),
   ...overrides.records.map((record) => record.source_url),
-  ...regional.records.map((record) => record.source_url),
+  ...regionalRecords.map((record) => record.source_url),
 ] as string[])].sort();
 
 const checkedAt = new Date().toISOString();

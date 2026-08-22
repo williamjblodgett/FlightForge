@@ -80,6 +80,23 @@ test("keeps administrator claims protected", async () => {
   assert.match(html, /noindex|index:false/i);
 });
 
+test("does not authenticate a visitor from external identity headers", async () => {
+  const response = await fetch(`${baseUrl}/api/events`, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      origin: baseUrl,
+      "oai-authenticated-user-email": "forged-admin@example.test",
+      "oai-authenticated-user-id": "forged-external-subject",
+      "idempotency-key": "forged-external-identity-attempt",
+    },
+    body: JSON.stringify({}),
+  });
+  assert.equal(response.status, 401);
+  assert.equal((await response.json()).error.code, "AUTHENTICATION_REQUIRED");
+});
+
 test("renders the highlight-enabled scorecard and protects video uploads", async () => {
   const scorecard = await render("/play?eventId=flightforge-demo-event");
   assert.equal(scorecard.status, 200, await scorecard.clone().text());
@@ -271,12 +288,35 @@ test("seeds the player-only JPhillips tester on first successful login", async (
 
 test("lets an authorized coordinator publish an idempotent event to the public board", async () => {
   assert.ok(coordinatorEmail, "the server-test runner must configure a unique coordinator email");
+  const signup = await fetch(`${baseUrl}/api/auth/signup`, {
+    method: "POST",
+    headers: {
+      accept: "application/json", "content-type": "application/json", origin: baseUrl,
+      "cf-connecting-ip": `coordinator-${coordinatorRunId}`,
+    },
+    body: JSON.stringify({
+      displayName: "Event Coordinator",
+      email: coordinatorEmail,
+      password: "CoordinatorTrail2026!",
+      acceptTerms: true,
+    }),
+  });
+  assert.equal(signup.status, 201, await signup.clone().text());
+  const signupBody = await signup.json();
+  assert.ok(signupBody.verificationToken, "coordinator email must be verified before roles are granted");
+  const verification = await fetch(`${baseUrl}/api/auth/verify-email`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ token: signupBody.verificationToken }),
+  });
+  assert.equal(verification.status, 200, await verification.clone().text());
+  const coordinatorCookie = verification.headers.get("set-cookie")?.split(";")[0];
+  assert.ok(coordinatorCookie, "verified coordinator must receive a FlightForge session");
+  const verifiedCoordinator = await verification.json();
+  assert.ok(verifiedCoordinator.user.roles.includes("TOURNAMENT_DIRECTOR"));
+  assert.ok(verifiedCoordinator.user.roles.includes("PLATFORM_ADMIN"));
   const coordinatorHeaders = {
-    accept: "application/json", "content-type": "application/json", origin: baseUrl,
-    "oai-authenticated-user-email": coordinatorEmail,
-    "oai-authenticated-user-id": `coordinator-${coordinatorRunId}`,
-    "oai-authenticated-user-full-name": "Event%20Coordinator",
-    "oai-authenticated-user-full-name-encoding": "percent-encoded-utf-8",
+    accept: "application/json", "content-type": "application/json", origin: baseUrl, cookie: coordinatorCookie,
   };
   const idempotencyKey = `event-test-${coordinatorRunId}`;
   const eventInput = {

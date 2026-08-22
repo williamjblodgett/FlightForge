@@ -6,7 +6,7 @@
 - [x] Replaceable brand configuration
 - [x] Responsive design system and mobile navigation
 - [x] Original optimized hero artwork, refreshed social preview, and non-deceptive course-map art
-- [x] Hosted identity abstraction and signed local demo sessions
+- [x] Standalone email/password and Supabase identity path plus signed local demo sessions
 - [x] Central roles, permissions, and server-side authorization
 - [x] D1/R2 hosted first-slice persistence
 - [x] PostgreSQL/PostGIS normalized schema, migration, and seed
@@ -40,16 +40,16 @@
 
 ## New England evidence expansion
 
-- [x] Five-state primary-source-only launch batch
+- [x] Five-state primary-source-only launch and expansion batches (57 published regional records)
 - [x] State and regional discovery pages
 - [x] State and evidence-level search filters
 - [x] Facility grouping for multi-course properties
 - [x] Field-level evidence, location precision, and re-review dates
 - [x] D1 and PostgreSQL evidence migrations plus Supabase read policies
 - [x] Regional validation CLI and unit tests
-- [x] Uniformly triage all 468 six-state directory candidates with source health and explicit publication outcomes
+- [x] Maintain a 474-record six-state review ledger with source health and explicit publication outcomes
 - [x] Refresh and evidence-tier all 120 Maine records without inflating directory evidence into operator verification
-- [ ] Obtain primary owner or public-agency evidence for the 333 withheld expansion candidates
+- [ ] Obtain primary owner or public-agency evidence for the 297 withheld expansion candidates
 - [ ] Add operator outreach and correction-case workflow after communication approval
 
 ## GitHub Pages interactive edition
@@ -110,7 +110,9 @@
 - [x] GPS rangefinder with accuracy radius, owner-coordinate workflow, and official satellite-view handoff
 
 - [ ] Complete public-workflow repository cutover from hosted D1 to Supabase PostgreSQL
-- [x] Initialize Supabase PostGIS/security foundation and seed the 135 reviewed public course records
+- [x] Initialize Supabase PostGIS/security foundation with the original 135 reviewed public course records
+- [x] Extend the idempotent Supabase seed generator to all 177 current public course records
+- [ ] Apply and verify the 42 newly reviewed regional records in Supabase during the controlled data rehearsal
 - [ ] Configure server-only Supabase credentials and transaction-pooler `DATABASE_URL`
 - [ ] Prove full D1/PostgreSQL repository parity, identity linking, backup, rollback, and cutover rehearsal
 - [ ] Activate production Supabase SMTP/contact settings and rehearse verified-email recovery; social OAuth and MFA remain provider work

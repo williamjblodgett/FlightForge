@@ -1,6 +1,6 @@
 import type { Role } from "./types";
 
-/** Roles granted only after an upstream provider has verified the exact email. */
+/** Roles granted only after FlightForge records verification of the exact email. */
 export function rolesForConfiguredEmail(email: string): Role[] {
   const normalized = email.trim().toLowerCase();
   const roles: Role[] = ["PLAYER"];
