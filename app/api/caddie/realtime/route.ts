@@ -5,10 +5,11 @@ import { getCurrentUser } from "@/modules/auth/current-user";
 import { buildRealtimeInstructions } from "@/modules/ai-caddie/chat-repository";
 import { realtimeSdpSchema } from "@/modules/ai-caddie/chat-validation";
 import { isFeatureEnabled } from "@/modules/config/feature-flags";
+import { isOpenAIProviderConfigured, openAIApiKey } from "@/packages/ai/src/provider-config";
 
 export async function GET() {
   const user = await getCurrentUser();
-  return Response.json({ available: Boolean(user && process.env.AI_PROVIDER?.toLowerCase() === "openai" && process.env.AI_API_KEY), model: process.env.AI_REALTIME_MODEL ?? "gpt-realtime-2.1" });
+  return Response.json({ available: Boolean(user && isOpenAIProviderConfigured()), model: process.env.AI_REALTIME_MODEL ?? "gpt-realtime-2.1" });
 }
 
 export async function POST(request: Request) {
@@ -18,8 +19,8 @@ export async function POST(request: Request) {
   if (!user) return apiError("AUTHENTICATION_REQUIRED", "Sign in to use voice caddie.", 401);
   const settings = await getAccountSettings(user).catch(() => null);
   if (!settings?.aiRecommendations) return apiError("CADDIE_DISABLED", "Enable recommendations in Profile & privacy before using voice caddie.", 403);
-  const apiKey = process.env.AI_API_KEY?.trim();
-  if (!apiKey || process.env.AI_PROVIDER?.toLowerCase() !== "openai") return apiError("VOICE_NOT_CONFIGURED", "Live AI voice is not configured. Text caddie remains available.", 503);
+  const apiKey = openAIApiKey();
+  if (!apiKey || !isOpenAIProviderConfigured()) return apiError("VOICE_NOT_CONFIGURED", "Live AI voice is not configured. Text caddie remains available.", 503);
   const rateLimit = await checkRateLimit("caddie-realtime", user.email, 12, 3600).catch(() => null);
   if (!rateLimit?.allowed) return apiError(rateLimit ? "RATE_LIMITED" : "RATE_LIMIT_UNAVAILABLE", "Voice sessions are temporarily limited.", rateLimit ? 429 : 503);
   const parsed = realtimeSdpSchema.safeParse(await request.text());

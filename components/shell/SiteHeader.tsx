@@ -63,6 +63,7 @@ export async function SiteHeader() {
                 <Link href="/favorites">Saved courses</Link>
                 <Link href="/bag">My disc bag</Link>
                 <Link href="/coach">Camera coach</Link>
+                <Link href="/fieldwork">Fieldwork & throw distance</Link>
                 <Link href="/play">Live scorecard</Link>
                 <Link href="/messages">Messages</Link>
                 <Link href="/community">Community</Link>

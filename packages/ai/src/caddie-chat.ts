@@ -1,4 +1,5 @@
 import { fallbackCaddieAnswer } from "@/modules/ai-caddie/knowledge";
+import { isOpenAIProviderConfigured, openAIApiKey } from "./provider-config";
 
 export type CaddieChatTurn = { role: "user" | "assistant"; content: string };
 export type CaddieChatResult = {
@@ -16,9 +17,8 @@ export async function generateCaddieChat(input: {
   history: CaddieChatTurn[];
   safetyIdentifier: string;
 }): Promise<CaddieChatResult> {
-  const apiKey = process.env.AI_API_KEY?.trim();
-  const providerEnabled = process.env.AI_PROVIDER?.toLowerCase() === "openai";
-  if (!apiKey || !providerEnabled) return fallback(input.message, input.bagSummary, "PROVIDER_UNAVAILABLE");
+  const apiKey = openAIApiKey();
+  if (!apiKey || !isOpenAIProviderConfigured()) return fallback(input.message, input.bagSummary, "PROVIDER_UNAVAILABLE");
 
   const moderation = await moderate(input.message, apiKey, input.safetyIdentifier).catch(() => null);
   if (moderation?.flagged) {

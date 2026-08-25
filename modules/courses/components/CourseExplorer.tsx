@@ -127,7 +127,7 @@ export function CourseExplorer({
               </p>
               <div className="hero-actions">
                 <a className="button button-primary" href="#course-results">Explore New England <ArrowRight aria-hidden="true" /></a>
-                <Link className="button button-ghost-on-dark" href="/roadmap">Explore player tools</Link>
+                <Link className="button button-ghost-on-dark" href="/fieldwork">Fieldwork</Link>
               </div>
             </div>
             <div className="hero-visual-stack">

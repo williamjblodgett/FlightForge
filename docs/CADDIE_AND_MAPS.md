@@ -15,12 +15,14 @@ Set secrets through the hosting environment, never in source control or chat:
 
 ```text
 AI_PROVIDER=openai
-AI_API_KEY=<server-only OpenAI project key>
+OPENAI_API_KEY=<server-only OpenAI project key>
 AI_MODEL=gpt-5.6
 AI_REALTIME_MODEL=gpt-realtime-2.1
 AI_REALTIME_VOICE=marin
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=<browser key restricted to the live domain and Maps Embed API>
 ```
+
+`AI_API_KEY` remains supported as a compatibility alias, but new environments should use the standard `OPENAI_API_KEY` name. If `AI_PROVIDER` is omitted, the presence of `OPENAI_API_KEY` enables OpenAI; setting `AI_PROVIDER=mock` explicitly keeps provider calls disabled.
 
 The Google browser key is intentionally visible to the browser and must be restricted by allowed referrers and allowed APIs. Use a separate server key for future geocoding or routes. Configure budgets and quota alerts for both providers.
 

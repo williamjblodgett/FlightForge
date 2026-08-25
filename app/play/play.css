@@ -112,6 +112,111 @@
   border: 1px solid var(--module-border);
 }
 
+.fieldwork-entry-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(180px, auto) auto;
+  gap: 18px;
+  align-items: center;
+  min-height: 150px;
+  margin-bottom: 14px;
+  padding: clamp(20px, 3vw, 30px);
+  overflow: hidden;
+  border: 1px solid #37546d;
+  background:
+    linear-gradient(115deg, rgb(7 31 57 / 96%), rgb(15 54 68 / 94%)),
+    repeating-linear-gradient(135deg, transparent 0 28px, rgb(255 255 255 / 4%) 28px 29px);
+  color: white;
+  box-shadow: 7px 7px 0 var(--round-lime);
+}
+
+.fieldwork-entry-card::after {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  right: -85px;
+  bottom: -118px;
+  border: 1px solid rgb(183 218 97 / 35%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 30px rgb(183 218 97 / 5%), 0 0 0 62px rgb(183 218 97 / 4%);
+  content: "";
+  pointer-events: none;
+}
+
+.fieldwork-entry-card:hover,
+.fieldwork-entry-card:focus-visible {
+  border-color: var(--round-lime);
+}
+
+.fieldwork-entry-icon {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border: 1px solid rgb(183 218 97 / 45%);
+  border-radius: 50%;
+  background: rgb(183 218 97 / 10%);
+  color: var(--round-lime);
+}
+
+.fieldwork-entry-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.fieldwork-entry-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.fieldwork-entry-copy small {
+  color: var(--round-lime);
+  font: 800 .66rem var(--font-geist-mono), monospace;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.fieldwork-entry-copy strong {
+  font-size: clamp(1.65rem, 3vw, 2.45rem);
+  letter-spacing: -.04em;
+}
+
+.fieldwork-entry-copy > span {
+  max-width: 560px;
+  color: #cad7dc;
+  line-height: 1.45;
+}
+
+.fieldwork-entry-meta,
+.fieldwork-entry-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .78rem;
+}
+
+.fieldwork-entry-meta {
+  color: #cad7dc;
+}
+
+.fieldwork-entry-meta svg,
+.fieldwork-entry-action svg {
+  width: 17px;
+  flex: 0 0 auto;
+}
+
+.fieldwork-entry-action {
+  position: relative;
+  z-index: 1;
+  min-height: 46px;
+  padding: 0 15px;
+  border: 1px solid var(--round-lime);
+  background: var(--round-lime);
+  color: var(--round-night);
+  font-weight: 850;
+  white-space: nowrap;
+}
+
 .play-option-card {
   display: grid;
   grid-template-columns: 50px minmax(0, 1fr) auto;
@@ -390,6 +495,20 @@
     grid-template-columns: 1fr;
   }
 
+  .fieldwork-entry-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .fieldwork-entry-meta,
+  .fieldwork-entry-action {
+    grid-column: 2;
+  }
+
+  .fieldwork-entry-action {
+    width: fit-content;
+  }
+
   .resume-round-grid > a {
     min-height: 190px;
   }
@@ -445,6 +564,27 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 6px;
+  }
+
+  .fieldwork-entry-card {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    box-shadow: 5px 5px 0 var(--round-lime);
+  }
+
+  .fieldwork-entry-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .fieldwork-entry-meta,
+  .fieldwork-entry-action {
+    grid-column: 1;
+  }
+
+  .fieldwork-entry-action {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .play-page .sync-summary {

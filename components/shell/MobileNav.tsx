@@ -8,7 +8,7 @@ export async function MobileNav() {
     <nav className="mobile-nav" aria-label="Mobile navigation">
       <NavLink href="/"><Home aria-hidden="true" /><span>Home</span></NavLink>
       <NavLink match={["/courses", "/places"]} href="/courses"><Compass aria-hidden="true" /><span>Explore</span></NavLink>
-      <NavLink className="mobile-play" href="/play">
+      <NavLink className="mobile-play" match={["/play", "/fieldwork"]} href="/play">
         <span className="mobile-play-icon"><Play aria-hidden="true" /></span>
         <span>Play</span>
       </NavLink>

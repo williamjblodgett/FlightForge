@@ -112,6 +112,24 @@ test("renders the highlight-enabled scorecard and protects video uploads", async
   assert.equal(upload.status, 401);
 });
 
+test("makes Fieldwork discoverable without expanding the five-item mobile navigation", async () => {
+  const play = await render("/play");
+  assert.equal(play.status, 200, await play.clone().text());
+  const playHtml = await play.text();
+  assert.match(playHtml, /href="\/fieldwork"/u);
+  assert.match(playHtml, />Fieldwork</u);
+
+  const home = await render("/");
+  assert.equal(home.status, 200);
+  assert.match(await home.text(), /href="\/fieldwork"[^>]*>Fieldwork</u);
+
+  const fieldwork = await render("/fieldwork");
+  assert.equal(fieldwork.status, 200, await fieldwork.clone().text());
+  const fieldworkHtml = await fieldwork.text();
+  assert.match(fieldworkHtml, /Find space/u);
+  assert.match(fieldworkHtml, /course listing is not permission/iu);
+});
+
 test("creates a free player account and persists first-run privacy settings", async () => {
   const email = `player-${Date.now()}@example.test`;
   const signup = await fetch(`${baseUrl}/api/auth/signup`, {
