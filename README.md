@@ -40,6 +40,10 @@ The GitHub Pages edition adds working, device-local versions of previously defer
 
 All fabricated booking, event, group, round, and operator records in the static Pages edition are pinned to the fictional Forge Ridge fixture and fail closed if a real course is supplied. All mutable Pages data stays in that browser. The server-backed application now has separate production event, bag, caddie, community, moderation, and active-round repositories; the static edition still cannot create real reservations, payments, registrations, course publications, or AI media analyses.
 
+## Connected player tools
+
+Course reports and follows, shared play groups, owned-disc practice calibration, round recaps, private disc-return tags, league RSVP schedules, explicit offline guides, and the New England passport/weekend planner are now implemented in the server application. See [scope, setup, privacy and limitations](docs/PLAYER_TOOLS_RELEASE_2026-09-10.md). No new provider keys are required. Database cutover, payments and external delivery are separate launch gates.
+
 ## September 10 mobile and reliability update
 
 The live server application now supports personal course rounds, private persistent results, audited personal-score corrections, contextual Bag/Coach returns, and a compact Home/Explore/Play/Events/More interface. See [release scope and validation](docs/RELEASE_2026-09-10.md) for exact coverage and external dependencies. The separate Pages edition remains a device-local demo.

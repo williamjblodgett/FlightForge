@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { authReturnPath, nextAuthDestination } from "@/modules/auth/continuation";
 import { getRoundAssistance } from "@/modules/rounds/assistance";
@@ -36,5 +37,5 @@ export default async function BagPage({searchParams}:{searchParams:Promise<Recor
   ]);
   if (catalogResult.error || discResult.error) return <main className="access-page page-shell"><span className="eyebrow">Digital bag</span><h1>Your bag is temporarily unavailable.</h1><p>No collection data was discarded. Please try again shortly.</p></main>;
   const hand = settingsResult?.throwingHand === "LEFT" ? "LEFT" : "RIGHT";
-  return <main className="bag-page page-shell"><RoundAssistanceBar context={roundContext} returnTo={returnTo}/><BagWorkspace initialDiscs={discResult.discs} catalog={catalogResult.catalog} controlledDistanceFeet={settingsResult?.controlledDistanceFeet ?? null} throwingHand={hand} caddieEnabled={caddieEnabled} roundContext={roundContext} /></main>;
+  return <main className="bag-page page-shell"><RoundAssistanceBar context={roundContext} returnTo={returnTo}/><nav className="feature-actions" aria-label="Connected bag tools"><Link href="/practice">Practice history</Link><Link href="/recover">Disc return tags</Link><Link href="/downloads">Offline bag</Link></nav><BagWorkspace initialDiscs={discResult.discs} catalog={catalogResult.catalog} controlledDistanceFeet={settingsResult?.controlledDistanceFeet ?? null} throwingHand={hand} caddieEnabled={caddieEnabled} roundContext={roundContext} /></main>;
 }

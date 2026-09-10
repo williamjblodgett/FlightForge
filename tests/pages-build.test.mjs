@@ -43,9 +43,10 @@ test("GitHub Pages build emits JavaScript and CSS assets", async () => {
 test("service worker caches only explicitly public assets", async () => {
   const worker = await readFile(path.join(output, "sw.js"), "utf8");
   assert.match(worker, /PUBLIC_ASSETS/u);
-  assert.match(worker, /flightforge-maine-hero-v2\.webp/u);
-  assert.match(worker, /event\.request\.mode === "navigate"/u);
-  assert.match(worker, /url\.pathname\.startsWith\("\/api\/"\)/u);
-  assert.match(worker, /event\.request\.headers\.has\("authorization"\)/u);
+  assert.match(worker, /"\/offline"/u);
+  assert.match(worker, /credentials:"omit"/u);
+  assert.match(worker, /request\.mode==="navigate"/u);
+  assert.match(worker, /!PUBLIC_ASSETS\.includes\(url\.pathname\)/u);
+  assert.match(worker, /request\.headers\.has\("authorization"\)/u);
   assert.doesNotMatch(worker, /cacheAppShell|matchAll/u);
 });

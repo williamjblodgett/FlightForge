@@ -1,5 +1,6 @@
 import rawCatalog from "@/data/import/disc-catalog.reviewed.json";
 import { getD1Database } from "@/db/runtime";
+import { practiceProfiles } from "@/modules/practice/practice-repository";
 import { CADDIE_MODEL_VERSION, recommendShot, type ShotRecommendation } from "@/modules/ai-caddie/recommend-shot";
 import { ensurePersistedUserId } from "@/modules/auth/account-repository";
 import type { AuthenticatedUser } from "@/modules/auth/types";
@@ -383,6 +384,12 @@ export async function listPlayerDiscs(user: AuthenticatedUser): Promise<PlayerDi
        COALESCE(rv.speed, pd.manual_speed), COALESCE(m.name, pd.manufacturer_name), COALESCE(dm.name, pd.mold_name)`,
   ).bind(userId).all<Record<string, unknown>>();
   const profiles = await listProfiles(userId);
+  for(const sample of await practiceProfiles(userId)) {
+    const list=profiles.get(sample.discId)??[];
+    const previous=list.find(p=>p.throwType===sample.throwType);
+    const calibrated={throwType:sample.throwType,sampleCount:sample.count,typicalDistanceFeet:sample.distance,successRate:previous?.successRate??null,observedTurn:previous?.observedTurn??null,observedFade:previous?.observedFade??null,confidence:Math.min(0.75,sample.count/20)};
+    profiles.set(sample.discId,[...list.filter(p=>p.throwType!==sample.throwType),calibrated]);
+  }
   return result.results.map((row) => {
     const turn = Number(row.turn ?? 0);
     const fade = Number(row.fade ?? 0);
@@ -593,7 +600,7 @@ export async function recordCaddieFeedback(
 
   let nextProfile: DiscProfile | null = null;
   if (input.representative) {
-    const current = disc.profiles.find((profile) => profile.throwType === input.throwType) ?? null;
+    const current = (await listProfiles(userId)).get(input.playerDiscId)?.find((profile) => profile.throwType === input.throwType) ?? null;
     nextProfile = nextDiscProfile(current, disc, input);
     statements.push(database.prepare(
       `INSERT INTO player_disc_profiles

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { check, index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable(
   "users",
@@ -921,6 +921,58 @@ export const eventAuditEvents = sqliteTable(
   },
   (table) => [index("event_audit_event_created_idx").on(table.eventId, table.createdAt)],
 );
+
+// Player-tool extensions use independent projections, not duplicate foundation tables.
+export const playerToolGuards = sqliteTable("player_tool_guards", {id:text("id").primaryKey(),valid:integer("valid").notNull()},t=>[check("player_tool_guard_valid",sql`${t.valid}=1`)]);
+export const leagueEventLinks = sqliteTable("league_event_links", {eventId:text("event_id").primaryKey(),leagueId:text("league_id").notNull()});
+export const practiceMeasurements = sqliteTable("practice_measurements", {
+  id: text("id").primaryKey(), userId: text("user_id").notNull(), discId: text("disc_id").notNull(),
+  throwType: text("throw_type").notNull(), distanceFeet: real("distance_feet").notNull(),
+  uncertaintyMeters: real("uncertainty_meters").notNull(), useForCaddie: integer("use_for_caddie").default(0).notNull(),
+  measuredAt: text("measured_at").notNull(), createdAt: text("created_at").notNull(), updatedAt: text("updated_at").notNull(),
+  version: integer("version").default(1).notNull(), deletedAt:text("deleted_at"),
+}, t => [index("practice_owner_disc_idx").on(t.userId,t.discId)]);
+
+export const passportEntries = sqliteTable("passport_entries", {
+  id: text("id").primaryKey(), userId: text("user_id").notNull(), courseId: text("course_id").notNull(),
+  state: text("state").notNull(), visitedOn: text("visited_on"), createdAt: text("created_at").notNull(), updatedAt: text("updated_at").notNull(),
+}, t => [uniqueIndex("passport_owner_course_unique").on(t.userId,t.courseId)]);
+export const playerItineraries = sqliteTable("player_itineraries", {
+  id:text("id").primaryKey(), userId:text("user_id").notNull(), planJson:text("plan_json").notNull(), updatedAt:text("updated_at").notNull(),
+});
+export const recoveryTags = sqliteTable("recovery_tags", {
+  id:text("id").primaryKey(), userId:text("user_id").notNull(), discId:text("disc_id").notNull(),
+  tokenHash:text("token_hash").notNull(), label:text("label").notNull(), revokedAt:text("revoked_at"), createdAt:text("created_at").notNull(),
+  courseId:text("course_id"), publicListing:integer("public_listing").default(0).notNull(),
+},t=>[uniqueIndex("recovery_token_unique").on(t.tokenHash),index("recovery_owner_idx").on(t.userId)]);
+export const recoveryCases = sqliteTable("recovery_cases", {
+  id:text("id").primaryKey(), ownerId:text("owner_id").notNull(), finderId:text("finder_id").notNull(),
+  tagId:text("tag_id").notNull(), courseId:text("course_id"), status:text("status").default("OPEN").notNull(),
+  createdAt:text("created_at").notNull(), updatedAt:text("updated_at").notNull(),
+},t=>[index("recovery_case_owner_idx").on(t.ownerId),index("recovery_case_finder_idx").on(t.finderId)]);
+export const recoveryMessages = sqliteTable("recovery_messages", {
+  id:text("id").primaryKey(), caseId:text("case_id").notNull(), senderId:text("sender_id").notNull(),
+  body:text("body").notNull(), createdAt:text("created_at").notNull(),
+},t=>[index("recovery_case_messages_idx").on(t.caseId,t.createdAt)]);
+export const playGroups = sqliteTable("play_groups", {
+  id:text("id").primaryKey(), hostId:text("host_id").notNull(), courseId:text("course_id").notNull(), contextJson:text("context_json").notNull(),
+  startsAt:text("starts_at").notNull(), visibility:text("visibility").notNull(), pace:text("pace").notNull(),
+  beginnersWelcome:integer("beginners_welcome").notNull(), capacity:integer("capacity").notNull(), tokenHash:text("token_hash").notNull(),
+  status:text("status").default("OPEN").notNull(), version:integer("version").default(1).notNull(), createdAt:text("created_at").notNull(),
+},t=>[uniqueIndex("play_group_token_unique").on(t.tokenHash),index("play_groups_discovery_idx").on(t.visibility,t.startsAt)]);
+export const playGroupMembers = sqliteTable("play_group_members", {
+  id:text("id").primaryKey(), groupId:text("group_id").notNull(), userId:text("user_id"), displayName:text("display_name").notNull(),
+  status:text("status").notNull(), roundId:text("round_id"), guestScoresJson:text("guest_scores_json").default("[]").notNull(),
+  createdAt:text("created_at").notNull(), updatedAt:text("updated_at").notNull(), version:integer("version").default(1).notNull(),
+},t=>[uniqueIndex("play_group_user_unique").on(t.groupId,t.userId),index("play_group_status_idx").on(t.groupId,t.status)]);
+export const companionRsvps = sqliteTable("companion_rsvps", {
+  id:text("id").primaryKey(), eventId:text("event_id").notNull(), userId:text("user_id").notNull(), status:text("status").notNull(),
+  attended:integer("attended").default(0).notNull(), createdAt:text("created_at").notNull(), updatedAt:text("updated_at").notNull(),
+},t=>[uniqueIndex("companion_event_user_unique").on(t.eventId,t.userId),index("companion_waitlist_idx").on(t.eventId,t.status,t.createdAt)]);
+export const playerToolAudit = sqliteTable("player_tool_audit", {
+  id:text("id").primaryKey(), actorId:text("actor_id").notNull(), resourceType:text("resource_type").notNull(),
+  resourceId:text("resource_id").notNull(), action:text("action").notNull(), detailJson:text("detail_json").notNull(), createdAt:text("created_at").notNull(),
+},t=>[index("player_tool_audit_resource_idx").on(t.resourceType,t.resourceId)]);
 
 export const rounds = sqliteTable(
   "rounds",

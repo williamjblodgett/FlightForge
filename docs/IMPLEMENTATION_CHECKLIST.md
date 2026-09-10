@@ -1,5 +1,19 @@
 # Implementation checklist
 
+## Connected player tools — September 10 expansion
+
+- [x] Time-limited course reports, scoped operator labels, follows and in-app updates
+- [x] Private/shared play groups, invitations, guests, approval and member scoreboards
+- [x] Owned-disc practice history and explicit, reversible caddie calibration
+- [x] Deterministic post-round recap with unknown-par safeguards
+- [x] Revocable lost-disc contact tags and private recovery conversations
+- [x] League companion with event-linked schedule, RSVP, waitlist and attendance
+- [x] Explicit offline course packs and safe static offline guide
+- [x] Private New England passport and editable weekend planner
+- [x] Ownership/concurrency tests, browser checks, build and security checks
+- Publication is tied to the pushed commit and verified through the live `/api/health` release identifier.
+- [ ] Physical-iOS cold offline reopening (Windows WebKit automation is explicitly pending)
+
 ## September 10 Astra reliability and mobile release
 
 - [x] Reachable round HUD, active-hole restoration, truthful storage status, export/retry
@@ -15,7 +29,7 @@
 - [x] Explicit release report for provider-dependent and physical-device validation
 
 - [ ] Actual provider email/recovery and voice calls, real-device sensor validation, measured field performance
-- [ ] Explicit Fieldwork-to-owned-disc feedback and physical-bag calibration handoff
+- [x] Explicit Fieldwork-to-owned-disc feedback and physical-bag calibration handoff
 - [ ] Production backup/restore, independent security assessment, and legal approval
 
 ## Foundation
@@ -134,7 +148,7 @@
 - [ ] Configure server-only Supabase credentials and transaction-pooler `DATABASE_URL`
 - [ ] Prove full D1/PostgreSQL repository parity, identity linking, backup, rollback, and cutover rehearsal
 - [ ] Activate production Supabase SMTP/contact settings and rehearse verified-email recovery; social OAuth and MFA remain provider work
-- [ ] Persist booking, group, and full import-review apply/rollback workflows across devices (round scoring is now persistent)
+- [ ] Persist booking and full import-review apply/rollback workflows across devices (round scoring and shared play groups are now persistent)
 - [ ] Connect verified course inventory, email/push delivery, and operator calendars
 - [ ] Add Stripe Connect sandbox, marketplace ledger, payouts, tax, refunds, and disputes
 - [ ] Add third-party malware scanning, isolated transcoding, and a scheduled global retention sweep (per-user expiry cleanup is active)

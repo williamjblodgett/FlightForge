@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import {useClientReady} from "@/components/player-tools/ReadyControls";
 import {
   useCallback,
   useEffect,
@@ -81,6 +82,7 @@ export function LiveRoundScorecard({
   roundPath = `/play?eventId=${encodeURIComponent(eventId)}`,
   personal = false,
 }: Props) {
+  const clientReady=useClientReady();
   const pars = useMemo(() => Array.from({ length: holeCount }, (_, i) => holePars?.[i] ?? null), [holeCount, holePars]);
   const seeded = useMemo(() => scoresFromActiveRound(initialRound, holeCount), [initialRound, holeCount]);
   const [scores, setScores] = useState<Array<OfflineHoleScore | null>>(seeded);
@@ -466,7 +468,7 @@ export function LiveRoundScorecard({
         <Link href={`/bag?return_to=${encodeURIComponent(roundPath)}&round=${encodeURIComponent(eventId)}&hole=${currentHole}#caddie-chat`} aria-label="Ask the caddie"><Sparkles aria-hidden="true" /></Link>
         <Link className="hud-secondary" href={`/community?context=${personal ? "course" : "event"}&id=${encodeURIComponent(personal ? courseId : eventId)}`} aria-label="Open round community chat"><MessageCircle aria-hidden="true" /></Link>
         <Link href={`/coach?return_to=${encodeURIComponent(roundPath)}&round=${encodeURIComponent(eventId)}&hole=${currentHole}`} aria-label="Open camera coach"><ScanLine aria-hidden="true" /></Link>
-        {!personal ? <button type="button" onClick={(event) => {event.currentTarget.focus();setUploadHole(currentHole);}} aria-label={`Share video from hole ${currentHole}`}><Camera aria-hidden="true" /></button> : null}
+        {!personal ? <button type="button" disabled={!clientReady} onClick={(event) => {event.currentTarget.focus();setUploadHole(currentHole);}} aria-label={`Share video from hole ${currentHole}`}><Camera aria-hidden="true" /></button> : null}
         <button type="button" disabled={currentHole === holeCount || syncState === "RESTORING"} onClick={() => setCurrentHole((hole) => Math.min(holeCount, hole + 1))} aria-label="Next hole"><ChevronRight aria-hidden="true" /></button>
       </div>
     </header>

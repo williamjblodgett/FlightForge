@@ -882,7 +882,7 @@ async function listSuggestedPlayers(userId: string): Promise<PlayerSummary[]> {
   });
 }
 
-async function getCommunityStatus(userId: string): Promise<CommunityStatus> {
+export async function getCommunityStatus(userId: string): Promise<CommunityStatus> {
   const row = await getD1Database().prepare(
     `SELECT adult_attested_at AS adultAttestedAt, guidelines_version AS guidelinesVersion,
        guidelines_accepted_at AS guidelinesAcceptedAt, status, muted_until AS mutedUntil,

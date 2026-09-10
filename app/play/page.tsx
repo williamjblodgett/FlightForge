@@ -47,7 +47,7 @@ export default async function PlayPage({ searchParams }: Props) {
         <div className="play-option-grid">
           <Link className="play-option-card is-primary" href="/courses"><MapPinned aria-hidden="true"/><span><strong>Course round</strong><small>Choose a course and start your own scorecard.</small></span><ChevronRight aria-hidden="true"/></Link>
           <Link className="play-option-card" href="/events"><CalendarDays aria-hidden="true"/><span><strong>Event scorecard</strong><small>Open a published tournament or league event.</small></span><ChevronRight aria-hidden="true"/></Link>
-          <Link className="play-option-card" href="/fieldwork"><Crosshair aria-hidden="true"/><span><strong>Fieldwork</strong><small>Find practice space and estimate throw distance.</small></span><ChevronRight aria-hidden="true"/></Link>
+          <Link className="play-option-card" href="/groups"><Crosshair aria-hidden="true"/><span><strong>Play together</strong><small>Invitations and shared scoreboards.</small></span><ChevronRight aria-hidden="true"/></Link><Link className="play-option-card" href="/fieldwork"><Crosshair aria-hidden="true"/><span><strong>Fieldwork</strong><small>Find practice space and estimate throw distance.</small></span><ChevronRight aria-hidden="true"/></Link>
           <Link className="play-option-card" href="/play?eventId=flightforge-demo-event"><PlayCircle aria-hidden="true"/><span><strong>Try a demo round</strong><small>Practice scoring on a fictional course.</small></span><ChevronRight aria-hidden="true"/></Link>
         </div>
       </section>

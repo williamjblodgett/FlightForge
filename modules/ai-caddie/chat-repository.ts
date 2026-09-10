@@ -67,7 +67,7 @@ export async function sendCaddieMessage(user: AuthenticatedUser, message: string
   const existing = await listCaddieMessages(user, conversationId);
   const discs = await listPlayerDiscs(user);
   const active = discs.filter((disc) => disc.status === "IN_BAG");
-  const bagSummary = active.slice(0, 30).map((disc) => `${disc.manufacturerName} ${disc.moldName} (${disc.speed}/${disc.glide}/${disc.turn}/${disc.fade}${disc.weightGrams ? `, ${disc.weightGrams}g` : ""}, wear ${disc.wearRating}/10)`).join("; ");
+  const bagSummary = active.slice(0, 30).map((disc) => `${disc.manufacturerName} ${disc.moldName} (${disc.speed}/${disc.glide}/${disc.turn}/${disc.fade}${disc.weightGrams ? `, ${disc.weightGrams}g` : ""}, wear ${disc.wearRating}/10; ${disc.profiles.map(p=>`${p.throwType}: ${p.sampleCount} self-reported samples, typical ${Math.round(p.typicalDistanceFeet??0)} ft, confidence ${p.confidence}`).join(", ")})`).join("; ");
   const safetyIdentifier = await privacyHash(userId);
   const history: CaddieChatTurn[] = existing.messages.map(({ role, content }) => ({ role, content }));
   const generated = await generateCaddieChat({ message, instructions: buildCaddieSystemInstructions(bagSummary)+assistanceInstructions(roundContext), bagSummary, history, safetyIdentifier });
@@ -84,7 +84,7 @@ export async function sendCaddieMessage(user: AuthenticatedUser, message: string
 export async function buildRealtimeInstructions(user: AuthenticatedUser, roundContext?:RoundAssistance|null): Promise<{ instructions: string; safetyIdentifier: string }> {
   const userId = await ensurePersistedUserId(user);
   const discs = await listPlayerDiscs(user);
-  const bagSummary = discs.filter((disc) => disc.status === "IN_BAG").slice(0, 30).map((disc) => `${disc.manufacturerName} ${disc.moldName} ${disc.speed}/${disc.glide}/${disc.turn}/${disc.fade}`).join("; ");
+  const bagSummary = discs.filter((disc) => disc.status === "IN_BAG").slice(0, 30).map((disc) => `${disc.manufacturerName} ${disc.moldName} ${disc.speed}/${disc.glide}/${disc.turn}/${disc.fade}; personal samples: ${disc.profiles.map(p=>`${p.throwType} ${p.sampleCount} throws, typical ${Math.round(p.typicalDistanceFeet??0)} ft, confidence ${p.confidence}`).join(", ")}`).join("; ");
   return { instructions: `${buildCaddieSystemInstructions(bagSummary)}${assistanceInstructions(roundContext)}\nKeep spoken answers under 25 seconds unless the player asks for detail. Ask one question at a time.`, safetyIdentifier: await privacyHash(userId) };
 }
 

@@ -352,6 +352,7 @@ export function FieldworkWorkspace({ candidates }: { candidates: PracticeCandida
         ) : null}
         {session.measurements.length ? (
           <ol className={styles.historyList}>
+            <Link href="/practice">Save throws to an owned disc & teach your caddie</Link>
             {session.measurements.map((measurement, index) => (
               <li key={measurement.id}>
                 <span>{String(session.measurements.length - index).padStart(2, "0")}</span>

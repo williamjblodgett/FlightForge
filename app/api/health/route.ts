@@ -11,6 +11,9 @@ export async function GET() {
     await getD1Database().prepare("SELECT id FROM hole_highlight_videos LIMIT 0").all();
     await getD1Database().prepare("SELECT h.id FROM holes h JOIN course_layouts l ON l.id=h.layout_id LIMIT 0").all();
     await getD1Database().prepare("SELECT id FROM verification_delivery_jobs LIMIT 0").all();
+    for (const table of ["practice_measurements","play_groups","recovery_tags","companion_rsvps","passport_entries","league_event_links"]) {
+      await getD1Database().prepare(`SELECT id FROM ${table === "league_event_links" ? "(SELECT event_id AS id FROM league_event_links)" : table} LIMIT 0`).all();
+    }
     checks.schema=true;
   } catch { /* Report a degraded check without exposing provider details. */ }
   try {

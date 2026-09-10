@@ -1,6 +1,6 @@
 import { getD1Database } from "@/db/runtime";
 
-export const productionFeatureKeys = ["digital_bag", "ai_caddie", "event_publishing", "camera_coach", "community_chat"] as const;
+export const productionFeatureKeys = ["digital_bag", "ai_caddie", "event_publishing", "camera_coach", "community_chat","course_updates","shared_play","practice_history","disc_recovery","league_companion","course_passport","weekend_planner","offline_guides"] as const;
 export type ProductionFeatureKey = (typeof productionFeatureKeys)[number];
 
 const descriptions: Record<ProductionFeatureKey, string> = {
@@ -9,6 +9,14 @@ const descriptions: Record<ProductionFeatureKey, string> = {
   event_publishing: "Coordinator-owned event draft and publication workflow",
   camera_coach: "Private guided throw capture, evidence-based coaching, and GPS rangefinding",
   community_chat: "Adult community channels and private player messaging",
+  course_updates:"Time-limited course reports and in-app follows",
+  shared_play:"Approved play groups and shared score projections",
+  practice_history:"Private owned-disc measurements and reversible calibration",
+  disc_recovery:"Revocable disc contact tags and private recovery",
+  league_companion:"Recurring events, RSVP, waitlists and attendance",
+  course_passport:"Private played-course history and wishlist",
+  weekend_planner:"Private editable two-day itinerary",
+  offline_guides:"Explicit device-local course, bag and round downloads",
 };
 
 let featureInitialization: Promise<void> | null = null;

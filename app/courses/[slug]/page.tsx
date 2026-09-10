@@ -18,6 +18,9 @@ import {
   TriangleAlert,
   Trees,
 } from "lucide-react";
+import { listConditions } from "@/modules/courses/conditions-repository";
+import { CourseUpdates } from "@/modules/courses/components/CourseUpdates";
+import { DownloadCourse } from "@/modules/courses/components/DownloadCourse";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { getFavoriteCourseIds } from "@/modules/courses/course-repository";
 import { courses, formatCoursePrice, getCourseBySlug } from "@/modules/courses/demo-courses";
@@ -65,6 +68,7 @@ export default async function CourseDetailPage({ params }: Props) {
   if (!course) notFound();
 
   const user = await getCurrentUser();
+  const notices=await listConditions(course.id,user?.id??null).catch(()=>[]);
   const accountReady = Boolean(user && !user.identityLinkRequired);
   const favoriteIds = user && accountReady
     ? await getFavoriteCourseIds(user.email).catch(() => [])
@@ -153,6 +157,8 @@ export default async function CourseDetailPage({ params }: Props) {
 
       <div className="detail-layout page-shell">
         <div className="detail-main">
+          <CourseUpdates courseId={course.id} initial={notices} signedIn={Boolean(user)}/>
+          <DownloadCourse courseId={course.id} signedIn={Boolean(user)}/>
           <section className="detail-section" aria-labelledby="course-overview-heading">
             <div className="section-heading">
               <span className="eyebrow">At a glance</span>

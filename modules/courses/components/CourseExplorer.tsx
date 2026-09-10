@@ -1,4 +1,5 @@
 "use client";
+import {ReadyControls} from "@/components/player-tools/ReadyControls";
 import {useEffect,useRef,useState,useTransition,type ReactNode,type RefObject} from "react";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
@@ -19,7 +20,7 @@ export function CourseExplorer({courses,mapCourses,initialFavoriteIds,signedIn,t
   function pageHref(n:number){const p=new URLSearchParams();if(initialFilters?.query)p.set("q",initialFilters.query);if(initialFilters?.state&&initialFilters.state!=="ALL")p.set("state",initialFilters.state);if(initialFilters?.difficulty&&initialFilters.difficulty!=="ALL")p.set("difficulty",initialFilters.difficulty);if(initialFilters?.priceType&&initialFilters.priceType!=="ALL")p.set("price",initialFilters.priceType);if(initialFilters?.holes&&initialFilters.holes!=="ALL")p.set("holes",initialFilters.holes);if(initialFilters?.evidence&&initialFilters.evidence!=="ALL")p.set("source",initialFilters.evidence);if(initialBounds)p.set("bbox",serializeMapBounds(initialBounds));p.set("view",view);p.set("page",String(n));return"/courses?"+p;}
   function clear(){setQuery("");navigate({q:null,state:null,difficulty:null,price:null,holes:null,source:null,evidence:null,bbox:null});}
   const map=<CourseMap courses={pins} selectedCourseId={selected} onSelect={setSelected} initialBounds={initialBounds} onSearchArea={b=>navigate({bbox:serializeMapBounds(b)})} onClose={()=>setViewMode("list")}/>;
-  return <section className="explorer-shell page-shell compact-explorer" aria-labelledby="results-heading">
+  return <ReadyControls><section className="explorer-shell page-shell compact-explorer" aria-labelledby="results-heading">
     <header className="compact-page-heading"><div><span className="eyebrow">New England</span><h1>Find your course</h1></div><span>{totalMatches} {totalMatches === 1 ? "listing" : "listings"}</span></header>
     <form className="explorer-topbar" role="search" onSubmit={event=>{event.preventDefault();navigate({q:query});}}>
       <div className="search-field"><Search aria-hidden="true"/><label className="sr-only" htmlFor="course-search">Search by course, city, or amenity</label><input id="course-search" type="search" placeholder="Course, town, ZIP, or amenity" value={query} onChange={e=>setQuery(e.target.value)}/></div>
@@ -40,7 +41,7 @@ export function CourseExplorer({courses,mapCourses,initialFavoriteIds,signedIn,t
       {totalMatches>pageSize?<nav className="pagination" aria-label="Course result pages">{page<=1?<button className="button" disabled>Previous</button>:<Link className="button" href={pageHref(page-1)}>Previous</Link>}<span>Page {page} of {Math.max(1,Math.ceil(totalMatches/pageSize))}</span>{page*pageSize>=totalMatches?<button className="button" disabled>Next</button>:<Link className="button" href={pageHref(page+1)}>Next</Link>}</nav>:null}
     </div>{view==="split"?<div className="map-panel">{map}</div>:null}</div>
     {view==="map"?<MapDialog returnFocusRef={mapTrigger} onClose={()=>setViewMode("list")}>{map}</MapDialog>:null}
-  </section>;
+  </section></ReadyControls>;
 }
 function MapDialog({children,onClose,returnFocusRef}:{children:ReactNode;onClose:()=>void;returnFocusRef:RefObject<HTMLButtonElement|null>}){
   const ref=useRef<HTMLDialogElement>(null);

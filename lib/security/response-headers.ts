@@ -19,7 +19,7 @@ const privatePathPrefixes = [
   "/account/",
   "/admin/",
   "/api/",
-  "/coach",
+  "/coach", "/groups", "/practice", "/passport", "/plan", "/recover", "/updates", "/downloads",
   "/favorites",
   "/onboarding",
   "/profile",
@@ -31,7 +31,7 @@ export function withSecurityHeaders(request: Request, response: Response): Respo
   const headers = new Headers(response.headers);
   headers.set("Content-Security-Policy", contentSecurityPolicy);
   headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Referrer-Policy",new URL(request.url).pathname.startsWith("/recover")||new URL(request.url).pathname.startsWith("/groups")?"no-referrer":"strict-origin-when-cross-origin");
   headers.set(
     "Permissions-Policy",
     "accelerometer=(), camera=(self), geolocation=(self), gyroscope=(), microphone=(self), payment=(), usb=()",

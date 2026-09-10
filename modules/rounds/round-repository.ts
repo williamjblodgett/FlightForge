@@ -70,13 +70,14 @@ export class RoundUnavailableError extends Error {
   }
 }
 
-export async function getOrCreateActiveRound(user: AuthenticatedUser, event: RoundInput): Promise<ActiveRound> {
+export async function getOrCreateActiveRound(user: AuthenticatedUser, event: RoundInput, frozenContext?: RoundContext): Promise<ActiveRound> {
+  if(frozenContext&&(frozenContext.id!==event.id||frozenContext.courseId!==event.courseId||frozenContext.layoutId!==event.layoutId||frozenContext.holeCount!==event.holeCount))throw new Error("Frozen round identity mismatch.");
   await ensureRoundSchema();
   const userId = await ensurePersistedUserId(user);
   const database = getD1Database();
   let row = await database.prepare(activeRoundSelect).bind(userId, event.id).first<ActiveRoundRow>();
   if (!row) {
-    const context = await snapshotRoundContext(event);
+    const context = frozenContext ?? await snapshotRoundContext(event);
     const roundId = crypto.randomUUID();
     const playerId = crypto.randomUUID();
     const scorecardId = crypto.randomUUID();
@@ -101,7 +102,7 @@ export async function getOrCreateActiveRound(user: AuthenticatedUser, event: Rou
     row = await database.prepare(activeRoundSelect).bind(userId, event.id).first<ActiveRoundRow>();
   }
   if (!row) throw new Error("The active round could not be created.");
-  if(!row.contextJson){const context=await snapshotRoundContext(event);await database.prepare("UPDATE rounds SET context_json = ? WHERE id = ? AND context_json IS NULL").bind(JSON.stringify(context),row.id).run();row=await database.prepare(activeRoundSelect).bind(userId,event.id).first<ActiveRoundRow>();if(!row)throw new RoundUnavailableError();}
+  if(!row.contextJson){const context=frozenContext??await snapshotRoundContext(event);await database.prepare("UPDATE rounds SET context_json = ? WHERE id = ? AND context_json IS NULL").bind(JSON.stringify(context),row.id).run();row=await database.prepare(activeRoundSelect).bind(userId,event.id).first<ActiveRoundRow>();if(!row)throw new RoundUnavailableError();}
   return hydrateRound(row);
 }
 
