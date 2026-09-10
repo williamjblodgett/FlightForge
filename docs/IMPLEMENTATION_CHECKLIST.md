@@ -12,7 +12,7 @@
 - [x] Private New England passport and editable weekend planner
 - [x] Ownership/concurrency tests, browser checks, build and security checks
 - Publication is tied to the pushed commit and verified through the live `/api/health` release identifier.
-- [ ] Physical-iOS cold offline reopening (Windows WebKit automation is explicitly pending)
+- [ ] Physical-iOS cold offline reopening (Windows/Linux WebKit automation is explicitly pending)
 
 ## September 10 Astra reliability and mobile release
 

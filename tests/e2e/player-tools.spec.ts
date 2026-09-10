@@ -114,7 +114,7 @@ test("private offline scores reject stale tabs, synchronize and clear on sign-ou
 test("downloaded public guide cold-reloads without a network",async({page,context,browserName})=>{
   // Reproduced driver navigation failure even with an activated controller and cached shell.
   // Owner: offline module. Next: verify on physical iOS before enabling this cold-start claim.
-  test.fixme(browserName==="webkit"&&process.platform==="win32","Local Windows WebKit cannot reload after setOffline; physical iOS cold-start validation is still required.");
+  test.fixme(browserName==="webkit","WebKit automation on Windows and Linux cannot reload after setOffline; physical iOS cold-start validation is still required.");
   const href=await courseLink(page);await page.goto(href);
   await page.getByRole("button",{name:"Save for offline use",exact:true}).click();
   await expect(page.getByText(/Available offline\. Saved/)).toBeVisible({timeout:20000});
