@@ -107,7 +107,7 @@ export function readFieldworkSession(rawValue: string | null): FieldworkSession 
       ? parsed.measurements
         .filter(isStoredMeasurement)
         .slice(0, MAX_SAVED_MEASUREMENTS)
-        .map((measurement) => ({ ...measurement }))
+        .map(summaryOnly)
       : [];
 
     return { version: 1, searchPosition: null, start: null, landing: null, measurements };
@@ -121,7 +121,7 @@ export function readFieldworkSession(rawValue: string | null): FieldworkSession 
  * coordinates intentionally remain session-memory data.
  */
 export function serializeFieldworkSession(session: FieldworkSession): string {
-  return JSON.stringify({ version: 1, measurements: session.measurements });
+  return JSON.stringify({ version: 1, measurements: session.measurements.filter(isStoredMeasurement).map(summaryOnly) });
 }
 
 export function appendMeasurement(
@@ -133,6 +133,13 @@ export function appendMeasurement(
     measurements: [measurement, ...session.measurements.filter((item) => item.id !== measurement.id)]
       .slice(0, MAX_SAVED_MEASUREMENTS),
   };
+}
+
+export function summaryOnly(value: ThrowMeasurement): ThrowMeasurement {
+  return { id:value.id, distanceMeters:value.distanceMeters, distanceFeet:value.distanceFeet, estimatedUncertaintyMeters:value.estimatedUncertaintyMeters, confidence:value.confidence, measuredAt:value.measuredAt,
+    ...(typeof value.discName === "string" ? {discName:value.discName.trim().slice(0,100)} : {}),
+    ...(typeof value.sessionTag === "string" ? {sessionTag:value.sessionTag.trim().slice(0,80)} : {}),
+    ...(["BACKHAND","FOREHAND","PUTTING","STANDSTILL"].includes(value.throwType??"") ? {throwType:value.throwType}: {}) };
 }
 
 function combinedAccuracyMeters(startAccuracyMeters: number, landingAccuracyMeters: number): number {

@@ -17,6 +17,9 @@ export type ThrowMeasurement = {
   estimatedUncertaintyMeters: number;
   confidence: MeasurementConfidence;
   measuredAt: string;
+  discName?: string;
+  throwType?: "BACKHAND" | "FOREHAND" | "PUTTING" | "STANDSTILL";
+  sessionTag?: string;
 };
 
 export type FieldworkSession = {

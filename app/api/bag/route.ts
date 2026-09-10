@@ -1,3 +1,4 @@
+import {isPlayerReady} from "@/modules/auth/player-readiness";
 import { apiError } from "@/lib/http/api-response";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
 import { getCurrentUser } from "@/modules/auth/current-user";
@@ -10,6 +11,7 @@ export async function GET() {
   if (!await isFeatureEnabled("digital_bag")) return apiError("FEATURE_DISABLED", "Digital bags are temporarily paused.", 503);
   const user = await getCurrentUser();
   if (!user) return apiError("AUTHENTICATION_REQUIRED", "Sign in to view your digital bag.", 401);
+  if(!isPlayerReady(user))return apiError("ACCOUNT_SETUP_REQUIRED","Complete email verification and player setup before using this feature.",403);
   if (!can(user, "manageOwnBag")) return apiError("FORBIDDEN", "Your account cannot manage a digital bag.", 403);
   try { return Response.json({ discs: await listPlayerDiscs(user) }); }
   catch { return apiError("BAG_UNAVAILABLE", "Your digital bag is temporarily unavailable.", 503); }
@@ -20,6 +22,7 @@ export async function POST(request: Request) {
   if (!await isFeatureEnabled("digital_bag")) return apiError("FEATURE_DISABLED", "Digital bags are temporarily paused.", 503);
   const user = await getCurrentUser();
   if (!user) return apiError("AUTHENTICATION_REQUIRED", "Sign in to add a disc.", 401);
+  if(!isPlayerReady(user))return apiError("ACCOUNT_SETUP_REQUIRED","Complete email verification and player setup before using this feature.",403);
   if (!can(user, "manageOwnBag")) return apiError("FORBIDDEN", "Your account cannot manage a digital bag.", 403);
   const rateLimit = await checkRateLimit("bag-write", user.email, 120, 3600).catch(() => null);
   if (!rateLimit?.allowed) return apiError(rateLimit ? "RATE_LIMITED" : "RATE_LIMIT_UNAVAILABLE", "Disc changes are temporarily limited. Try again later.", rateLimit ? 429 : 503);

@@ -24,7 +24,7 @@ export function SignInForm({ returnTo, initialError = null }: Props) {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, returnTo }),
       });
       const body = (await response.json()) as {
         error?: { message?: string };
@@ -35,12 +35,7 @@ export function SignInForm({ returnTo, initialError = null }: Props) {
         setError(body.error?.message ?? "Sign-in failed. Try again.");
         return;
       }
-      const destination = body.user?.mustChangePassword
-        ? body.next ?? "/account/password"
-        : body.user?.onboardingComplete && returnTo !== "/"
-          ? returnTo
-          : body.next ?? returnTo;
-      window.location.assign(destination);
+      window.location.assign(body.next ?? returnTo);
     } catch {
       setError(`${brand.productName} could not reach the sign-in service.`);
     } finally {
@@ -84,6 +79,7 @@ export function SignInForm({ returnTo, initialError = null }: Props) {
           {submitting ? "Signing in…" : "Sign in"}
           {!submitting ? <ArrowRight size={18} aria-hidden="true" /> : null}
         </button>
+        <p className="auth-switch"><Link href={`/verify-email?return_to=${encodeURIComponent(returnTo)}`}>Need a new verification email?</Link></p>
         <p className="auth-switch"><Link href={`/forgot-password?return_to=${encodeURIComponent(returnTo)}`}>Forgot your password?</Link></p>
         <p className="auth-switch">New here? <Link href={`/sign-up?return_to=${encodeURIComponent(returnTo)}`}>Create a free account</Link></p>
       </form>

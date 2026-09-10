@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CourseExplorer } from "@/modules/courses/components/CourseExplorer";
-import { courses } from "@/modules/courses/demo-courses";
-import { getCurrentUser } from "@/modules/auth/current-user";
-import { getFavoriteCourseIds } from "@/modules/courses/course-repository";
+import CoursesPage from "@/app/courses/page";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +13,7 @@ const states: Record<string, { code: string; name: string }> = {
   "rhode-island": { code: "RI", name: "Rhode Island" },
 };
 
-type Props = { params: Promise<{ state: string }> };
+type Props = { params: Promise<{ state: string }>; searchParams: Promise<Record<string,string|string[]|undefined>> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { state } = await params;
@@ -29,13 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function StateCoursePage({ params }: Props) {
+export default async function StateCoursePage({ params, searchParams }: Props) {
   const { state } = await params;
   const selected = states[state];
   if (!selected) notFound();
-  const stateCourses = courses.filter((course) => course.state === selected.code);
-  const user = await getCurrentUser();
-  const accountReady = Boolean(user && !user.identityLinkRequired);
-  const favoriteIds = user && accountReady ? await getFavoriteCourseIds(user.email).catch(() => []) : [];
-  return <main><CourseExplorer courses={stateCourses} initialFavoriteIds={favoriteIds} signedIn={accountReady} variant="directory" /></main>;
+  return <CoursesPage searchParams={Promise.resolve({...await searchParams,state:selected.code})}/>;
 }

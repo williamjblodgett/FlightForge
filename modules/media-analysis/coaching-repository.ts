@@ -102,8 +102,9 @@ export async function purgeExpiredCoachingMedia(limit = 100): Promise<{ deleted:
 
 export async function deleteCoachingUpload(user: AuthenticatedUser, id: string): Promise<boolean> {
   const database = getD1Database();
-  const row = await database.prepare("SELECT storage_key AS storageKey FROM media_uploads WHERE id = ? AND user_id = ? AND deleted_at IS NULL").bind(id, user.id).first<{ storageKey: string }>();
+  const row = await database.prepare("SELECT storage_key AS storageKey, deleted_at AS deletedAt FROM media_uploads WHERE id = ? AND user_id = ?").bind(id, user.id).first<{ storageKey: string; deletedAt: string | null }>();
   if (!row) return false;
+  if (row.deletedAt) return true;
   const now = new Date().toISOString();
   await getPrivateMediaBucket().delete(row.storageKey);
   await database.batch([

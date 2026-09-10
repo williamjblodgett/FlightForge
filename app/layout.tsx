@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/shell/SiteFooter";
 import { SiteHeader } from "@/components/shell/SiteHeader";
 import { brand } from "@/config/brand";
 import "./globals.css";
+import "./player-ui.css";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });

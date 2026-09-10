@@ -1027,3 +1027,10 @@
   .locationEmpty button,
   .locationEmpty a { transition: none; }
 }
+/* Utility-first fieldwork: actions precede supporting detail. */
+.heroInner{padding-block:24px;min-height:0;display:block}.hero h1{font-size:clamp(28px,5vw,42px);line-height:1.1;margin:8px 0}.heroCopy p{margin:0;max-width:54ch}
+.safetyStrip{margin-top:12px;padding-block:12px}.safetyStrip summary{cursor:pointer;font-weight:650;min-height:32px}.workspace{padding-top:18px}
+.toolTabs{display:flex;gap:8px;margin-bottom:16px}.toolTabs button{min-height:48px;flex:1;border:1px solid #bdc9c2;border-radius:12px;background:#fff;color:#193a30;font-size:16px;font-weight:650}.toolTabs button[aria-pressed=true]{background:#163e32;color:white}
+.commandGrid{display:block}.locationPanel[hidden],.measurePanel[hidden],.nearbySection[hidden],.historySection[hidden]{display:none}.locationPanel,.measurePanel{padding:20px}
+.throwTags{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));grid-column:1/-1}.throwTags label{display:grid;gap:6px;font-size:14px}.throwTags input,.throwTags select{min-width:0;width:100%;min-height:46px;border:1px solid #bdc9c2;border-radius:8px;padding:8px;background:#fff;color:#172d25;font-size:16px}
+@media(max-width:600px){.heroInner{padding-block:16px}.hero h1{font-size:30px}.heroCopy p{font-size:15px}.kicker{display:none}.workspace{padding-top:12px}.locationPanel,.measurePanel{padding:16px}.panelHeading{margin-bottom:10px}.captureRail>div{padding:12px;gap:10px}.nearbySection,.historySection{margin-top:24px}.resultCard{padding:16px}.resultCard button{min-height:48px;white-space:normal}.permissionNote{font-size:14px}}

@@ -19,14 +19,18 @@ export type OfflineRoundState = {
   pending: PendingScoreMutation[];
   updatedAt: string;
   lastSyncedAt: string | null;
+  currentHole?: number;
+  finishMutationId?: string;
 };
+
+export type PersistenceResult = "INDEXED_DB" | "LOCAL_STORAGE" | "MEMORY_ONLY";
 
 const databaseName = "flightforge-offline";
 const storeName = "active-rounds";
 const localPrefix = "flightforge:round:v2:";
 const legacyPrefix = "flightforge:round:v1:";
 const memoryFallback = new Map<string, OfflineRoundState>();
-const writeChains = new Map<string, Promise<void>>();
+const writeChains = new Map<string, Promise<PersistenceResult>>();
 
 export function offlineRoundKey(eventId: string, ownerScope: string): string {
   return `${localPrefix}${encodeURIComponent(ownerScope)}:${eventId}`;
@@ -49,29 +53,32 @@ export async function readOfflineRound(eventId: string, ownerScope: string): Pro
   return newestRecord(indexedRecord, local, memory);
 }
 
-export async function writeOfflineRound(state: OfflineRoundState): Promise<void> {
+export async function writeOfflineRound(state: OfflineRoundState): Promise<PersistenceResult> {
   const key = offlineRoundKey(state.eventId, state.ownerScope);
+  const serialized = JSON.stringify(state);
+  memoryFallback.set(key, state);
+  const journalWritten = safeLocalStorageSet(key, serialized);
   const previous = writeChains.get(key) ?? Promise.resolve();
-  const next = previous.catch(() => undefined).then(async () => {
-    memoryFallback.set(key, state);
-    // Keep a synchronous journal until IndexedDB confirms its durable write.
-    safeLocalStorageSet(key, JSON.stringify(state));
+  const next = previous.catch(() => undefined).then(async (): Promise<PersistenceResult> => {
+    // The synchronous journal was written before queueing this IndexedDB write.
     try {
       const database = await openDatabase();
       const transaction = database.transaction(storeName, "readwrite");
       transaction.objectStore(storeName).put(state, key);
       await transactionComplete(transaction);
       database.close();
-      safeLocalStorageRemove(key);
+      if (safeLocalStorageGet(key) === serialized) safeLocalStorageRemove(key);
       if (state.ownerScope === "guest") safeLocalStorageRemove(`${legacyPrefix}${state.eventId}`);
-      return;
+      return "INDEXED_DB";
     } catch {
       // The localStorage journal remains as the durable fallback.
     }
+    return journalWritten ? "LOCAL_STORAGE" : "MEMORY_ONLY";
   });
   writeChains.set(key, next);
-  await next;
+  const result = await next;
   if (writeChains.get(key) === next) writeChains.delete(key);
+  return result;
 }
 
 export async function removeOfflineRound(eventId: string, ownerScope: string): Promise<void> {
@@ -79,6 +86,8 @@ export async function removeOfflineRound(eventId: string, ownerScope: string): P
   memoryFallback.delete(key);
   safeLocalStorageRemove(key);
   if (ownerScope === "guest") safeLocalStorageRemove(`${legacyPrefix}${eventId}`);
+  const previous = writeChains.get(key) ?? Promise.resolve("MEMORY_ONLY" as const);
+  const deletion = previous.catch(() => undefined).then(async (): Promise<PersistenceResult> => {
   try {
     const database = await openDatabase();
     const transaction = database.transaction(storeName, "readwrite");
@@ -86,8 +95,13 @@ export async function removeOfflineRound(eventId: string, ownerScope: string): P
     await transactionComplete(transaction);
     database.close();
   } catch {
-    // Removing the browser fallback is sufficient when IndexedDB is unavailable.
+    // Browser storage is unavailable; the synchronous fallback was cleared.
   }
+  return "MEMORY_ONLY";
+  });
+  writeChains.set(key, deletion);
+  await deletion;
+  if (writeChains.get(key) === deletion) writeChains.delete(key);
 }
 
 export function validateOfflineRound(value: unknown, eventId: string, ownerScope: string): OfflineRoundState | null {
@@ -99,6 +113,7 @@ export function validateOfflineRound(value: unknown, eventId: string, ownerScope
   if (!candidate.scores.every((score) => score === null || isScore(score))) return null;
   if (!candidate.pending.every(isPendingMutation)) return null;
   if (!isIsoDate(candidate.updatedAt) || (candidate.lastSyncedAt !== null && !isIsoDate(candidate.lastSyncedAt))) return null;
+  if (candidate.currentHole !== undefined && (!Number.isInteger(candidate.currentHole) || candidate.currentHole < 1 || candidate.currentHole > candidate.scores.length)) return null;
   return candidate as OfflineRoundState;
 }
 
@@ -205,9 +220,9 @@ function safeLocalStorageGet(key: string): string | null {
   catch { return null; }
 }
 
-function safeLocalStorageSet(key: string, value: string): void {
-  try { if (typeof localStorage !== "undefined") localStorage.setItem(key, value); }
-  catch { /* The in-memory fallback still preserves this tab's round. */ }
+function safeLocalStorageSet(key: string, value: string): boolean {
+  try { if (typeof localStorage === "undefined") return false; localStorage.setItem(key, value); return true; }
+  catch { return false; }
 }
 
 function safeLocalStorageRemove(key: string): void {

@@ -1,5 +1,23 @@
 # Implementation checklist
 
+## September 10 Astra reliability and mobile release
+
+- [x] Reachable round HUD, active-hole restoration, truthful storage status, export/retry
+- [x] Course-specific scoring context and explicit guest draft import
+- [x] Personal course rounds, persistent results/history, audited corrections
+- [x] Contextual assistance and return to the active hole
+- [x] Compact mobile Home/Explore/Play/Events/More and form-first account pages
+- [x] Full-query map results, usable clusters/previews, accessible drawer, URL state
+- [x] Fieldwork draft/correct/save workflow and equipment tags
+- [x] Recoverable Coach requests and account verification/resend
+- [x] Request deduplication, lightweight unread counts, regression coverage
+- [ ] Final release build, browser regression run, publication, and live smoke checks
+- [x] Explicit release report for provider-dependent and physical-device validation
+
+- [ ] Actual provider email/recovery and voice calls, real-device sensor validation, measured field performance
+- [ ] Explicit Fieldwork-to-owned-disc feedback and physical-bag calibration handoff
+- [ ] Production backup/restore, independent security assessment, and legal approval
+
 ## Foundation
 
 - [x] New repository initialized with locked dependencies

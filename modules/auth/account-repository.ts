@@ -1,3 +1,4 @@
+import {verificationJobStatement} from "@/modules/notifications/verification-outbox";
 import { getD1Database } from "@/db/runtime";
 import type { AuthenticatedUser, Role } from "./types";
 import type { OnboardingInput } from "./account-validation";
@@ -277,7 +278,7 @@ export async function createAccount(input: {
   displayName: string;
   email: string;
   password: string;
-}): Promise<AuthenticatedUser> {
+}, delivery?:{origin:string;returnTo:string}): Promise<AuthenticatedUser> {
   await ensureAccountSchema();
   const database = getD1Database();
   const email = input.email.trim().toLowerCase();
@@ -337,6 +338,7 @@ export async function createAccount(input: {
          VALUES (?, ?, 'PRIVACY', ?, 1, ?)`,
       ).bind(crypto.randomUUID(), id, versions.privacy, timestamp),
       auditStatement(database, id, "ACCOUNT_CREATED", "user", id, timestamp),
+      ...(delivery?[verificationJobStatement(database,id,delivery.origin,delivery.returnTo)]:[]),
     ]);
   } catch (error) {
     if (await findUserRowByEmail(email)) throw new AccountEmailTakenError();
@@ -356,7 +358,7 @@ export async function createAccount(input: {
   };
 }
 
-export async function createEmailVerificationToken(userId: string): Promise<string> {
+export async function createEmailVerificationToken(userId: string, preserveExisting=false): Promise<string> {
   await ensureAccountSchema();
   const token = randomToken(32);
   const tokenHash = await sha256Text(token);
@@ -364,8 +366,8 @@ export async function createEmailVerificationToken(userId: string): Promise<stri
   const expiresAt = new Date(now.getTime() + 30 * 60_000).toISOString();
   await getD1Database().batch([
     getD1Database().prepare(
-      "UPDATE email_verification_tokens SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL",
-    ).bind(now.toISOString(), userId),
+      "UPDATE email_verification_tokens SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL AND ? = 0",
+    ).bind(now.toISOString(), userId, preserveExisting ? 1 : 0),
     getD1Database().prepare(
       `INSERT INTO email_verification_tokens
         (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)`,
@@ -384,16 +386,18 @@ export async function verifyAccountEmail(token: string): Promise<AuthenticatedUs
      WHERE t.token_hash = ? AND t.consumed_at IS NULL AND t.expires_at > ? LIMIT 1`,
   ).bind(tokenHash, now).first<{ tokenId: string; userId: string }>();
   if (!row) return null;
-  await getD1Database().batch([
+  const changes = await getD1Database().batch([
     getD1Database().prepare(
-      "UPDATE email_verification_tokens SET consumed_at = ? WHERE id = ? AND consumed_at IS NULL",
-    ).bind(now, row.tokenId),
+      "UPDATE email_verification_tokens SET consumed_at = ? WHERE id = ? AND consumed_at IS NULL AND expires_at > ? AND EXISTS (SELECT 1 FROM users u WHERE u.id = email_verification_tokens.user_id AND u.status = 'PENDING_EMAIL_VERIFICATION' AND u.deleted_at IS NULL)",
+    ).bind(now, row.tokenId, now),
     getD1Database().prepare(
       `UPDATE users SET email_verified_at = ?, status = 'ACTIVE', updated_at = ?, version = version + 1
-       WHERE id = ? AND status = 'PENDING_EMAIL_VERIFICATION'`,
+       WHERE id = ? AND status = 'PENDING_EMAIL_VERIFICATION' AND deleted_at IS NULL AND changes() = 1`,
     ).bind(now, now, row.userId),
-    auditStatement(getD1Database(), row.userId, "EMAIL_VERIFIED", "user", row.userId, now),
+    getD1Database().prepare("INSERT INTO audit_logs (id,actor_user_id,action,resource_type,resource_id,created_at) SELECT ?,?,'EMAIL_VERIFIED','user',?,? WHERE changes() = 1").bind(crypto.randomUUID(),row.userId,row.userId,now),
+    getD1Database().prepare("UPDATE email_verification_tokens SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL").bind(now,row.userId),
   ]);
+  if(changes[0]?.meta.changes!==1)return null;
   const verified = await findUserRowById(row.userId);
   if (!verified) return null;
   await persistConfiguredRoles(verified.id, verified.email);
@@ -525,6 +529,7 @@ export async function resolveSupabaseAccount(input: {
   const subject = `supabase:${input.authUserId}`;
   const linked = await findUserRowByProviderSubject(subject);
   if (linked) {
+    if(linked.status!=="ACTIVE")throw new Error("This account is unavailable.");
     await persistConfiguredRoles(linked.id, input.email);
     const resolved = accountUserFromRow(linked, await rolesForUser(linked.id));
     return { ...resolved, source: "supabase", emailVerified: true };
@@ -638,16 +643,19 @@ export async function linkSupabaseIdentity(input: {
     iterations: row.passwordIterations,
   });
   if (!valid) throw new InvalidCurrentPasswordError();
+  if(row.mustChangePassword)throw new PasswordChangeRequiredError();
+  if(row.status!=="ACTIVE"||!row.emailVerifiedAt)throw new ExternalIdentityLinkRequiredError();
   const existingSubject = await findUserRowByProviderSubject(providerSubject);
   if (existingSubject && existingSubject.id !== row.id) throw new ExternalIdentityLinkRequiredError();
   const now = new Date().toISOString();
-  await getD1Database().batch([
+  const results=await getD1Database().batch([
     getD1Database().prepare(
       `UPDATE users SET auth_provider_subject = ?, email_verified_at = COALESCE(email_verified_at, ?),
-       status = 'ACTIVE', updated_at = ?, version = version + 1 WHERE id = ?`,
+       status = 'ACTIVE', updated_at = ?, version = version + 1 WHERE id = ? AND status = 'ACTIVE' AND must_change_password = 0 AND deleted_at IS NULL`,
     ).bind(providerSubject, now, now, row.id),
-    auditStatement(getD1Database(), row.id, "SUPABASE_IDENTITY_LINKED", "user", row.id, now),
+    getD1Database().prepare("INSERT INTO audit_logs(id,actor_user_id,action,resource_type,resource_id,created_at) SELECT ?,?,'SUPABASE_IDENTITY_LINKED','user',?,? WHERE changes()=1").bind(crypto.randomUUID(),row.id,row.id,now),
   ]);
+  if(results[0]?.meta.changes!==1)throw new ExternalIdentityLinkRequiredError();
   const linked = await findUserRowById(row.id);
   if (!linked) throw new Error("The linked account could not be loaded.");
   return accountUserFromRow(linked, await rolesForUser(linked.id));

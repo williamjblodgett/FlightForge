@@ -13,7 +13,7 @@ export async function requireCommunityActor(): Promise<AuthenticatedUser> {
   await ensureCommunityRuntimeSchema();
   const user = await getCurrentUser();
   if (!user) throw new CommunityError("AUTHENTICATION_REQUIRED", "Sign in to use the community.", 401);
-  if (!user.emailVerified || user.identityLinkRequired) {
+  if (!user.emailVerified || user.identityLinkRequired || user.mustChangePassword) {
     throw new CommunityError("FORBIDDEN", "Verify and securely link your account before using the community.", 403);
   }
   if (!user.onboardingComplete && !user.roles.includes("PLATFORM_ADMIN")) {

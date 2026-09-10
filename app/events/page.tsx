@@ -22,8 +22,8 @@ export default async function EventsPage() {
   return <main className="events-page">
     <section className="events-hero">
       <div className="page-shell events-hero-inner">
-        <div><span className="eyebrow"><Trophy aria-hidden="true" /> Live event board</span><h1>Show up ready.<br />Know what’s happening.</h1><p>Organizer-posted tournaments, leagues, clinics, and community rounds—published with clear dates, locations, registration details, and accountable ownership.</p></div>
-        <div className="events-publish-card"><CalendarPlus2 aria-hidden="true" /><span>For organizers</span><h2>Post an event to FlightForge</h2><p>Authorized coordinators can save a private draft, preview the details, and publish directly to this board.</p>{!eventPublishingEnabled ? <p className="coordinator-note">Publishing is temporarily paused by a platform feature control.</p> : can(user, "manageEvents") ? <Link className="button button-primary" href="/events/new">Create an event <ArrowRight aria-hidden="true" /></Link> : user ? <Link className="button button-secondary" href="/events/coordinator/apply"><ShieldCheck aria-hidden="true" /> Apply for course-scoped access</Link> : <Link className="button button-secondary" href="/sign-in?return_to=%2Fevents%2Fcoordinator%2Fapply">Coordinator sign in</Link>}</div>
+        <div><span className="eyebrow"><Trophy aria-hidden="true" /> Live event board</span><h1>Events</h1><p>Tournaments, leagues, clinics, and community rounds.</p></div>
+
       </div>
     </section>
     <section className="page-shell event-board">
@@ -31,6 +31,7 @@ export default async function EventsPage() {
       {result.failed ? <div className="event-state error-state"><strong>The live event board is temporarily unavailable.</strong><p>No event data was replaced or lost. Try again shortly.</p></div> : upcoming.length ? <div className="public-event-grid">{upcoming.map((event) => <EventCard key={event.id} event={event} />)}</div> : <div className="event-state"><CalendarDays aria-hidden="true" /><strong>No public events have been posted yet.</strong><p>Authorized coordinators can publish the first event.</p>{eventPublishingEnabled && can(user, "manageEvents") ? <Link className="button button-primary" href="/events/new">Post the first event</Link> : null}</div>}
       {past.length ? <section className="past-events"><span className="eyebrow">Recently completed</span><div>{past.map((event) => <Link key={event.id} href={`/events/${event.slug}`}><strong>{event.title}</strong><span>{formatDate(event.startsAt, event.timeZone)} · {event.city}, {event.regionCode}</span></Link>)}</div></section> : null}
     </section>
+    <section className="page-shell event-organizer-section"><div className="events-publish-card"><CalendarPlus2 aria-hidden="true" /><span>For organizers</span><h2>Post an event to FlightForge</h2><p>Authorized coordinators can save a private draft, preview the details, and publish directly to this board.</p>{!eventPublishingEnabled ? <p className="coordinator-note">Publishing is temporarily paused by a platform feature control.</p> : can(user, "manageEvents") ? <Link className="button button-primary" href="/events/new">Create an event <ArrowRight aria-hidden="true" /></Link> : user ? <Link className="button button-secondary" href="/events/coordinator/apply"><ShieldCheck aria-hidden="true" /> Apply for course-scoped access</Link> : <Link className="button button-secondary" href="/sign-in?return_to=%2Fevents%2Fcoordinator%2Fapply">Coordinator sign in</Link>}</div></section>
   </main>;
 }
 

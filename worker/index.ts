@@ -1,9 +1,11 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
+import {drainVerificationOutbox} from "../modules/notifications/verification-outbox";
+import type {VerificationDeliveryEnvironment} from "../modules/notifications/email-verification";
 import handler from "vinext/server/app-router-entry";
 import { withSecurityHeaders } from "../lib/security/response-headers";
 
-interface Env {
+interface Env extends VerificationDeliveryEnvironment {
   ASSETS: Fetcher;
   DB: D1Database;
   MEDIA: R2Bucket;
@@ -27,9 +29,12 @@ interface ExecutionContext {
 // dangerouslyAllowSVG: true in next.config.js and uncomment below:
 // const imageConfig: ImageConfig = { dangerouslyAllowSVG: true };
 
+let lastDeliverySweep=0;
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    // Opportunistic retries keep delivery moving even when the host has no cron trigger.
+    if(Date.now()-lastDeliverySweep>60_000){lastDeliverySweep=Date.now();ctx.waitUntil(drainVerificationOutbox(env.DB,env).catch(()=>{console.error(JSON.stringify({event:"verification_outbox_failed"}));}));}
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
@@ -47,6 +52,7 @@ const worker = {
   },
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(purgeExpiredMedia(env));
+    ctx.waitUntil(drainVerificationOutbox(env.DB,env));
   },
 };
 

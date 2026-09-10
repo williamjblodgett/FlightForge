@@ -1,3 +1,4 @@
+import { nextAuthDestination } from "@/modules/auth/continuation";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/http/api-response";
 import {
@@ -77,13 +78,13 @@ export async function POST(request: Request) {
         // During the verified migration window, existing D1 accounts (including
         // the forced-change tester account) remain usable until each person
         // explicitly links a Supabase identity.
-        const legacyUser = await authenticateAccount(parsed.data.email, parsed.data.password).catch(() => null);
+        const legacyUser = await authenticateAccount(parsed.data.email, parsed.data.password).catch(error => {if(error instanceof EmailVerificationRequiredError)throw error;return null;});
         if (legacyUser) {
           await supabase.auth.signOut().catch(() => undefined);
           const session = await createAccountSession(legacyUser.id, request.headers.get("user-agent"));
           const response = NextResponse.json({
             user: legacyUser,
-            next: legacyUser.mustChangePassword ? "/account/password" : legacyUser.onboardingComplete ? "/profile" : "/onboarding",
+            next: nextAuthDestination(legacyUser,parsed.data.returnTo),
           });
           response.cookies.set(ACCOUNT_SESSION_COOKIE, session.token, {
             httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: session.maxAge,
@@ -111,9 +112,7 @@ export async function POST(request: Request) {
       });
       const response = NextResponse.json({
         user,
-        next: user.identityLinkRequired
-          ? "/account/link"
-          : user.onboardingComplete ? "/profile" : "/onboarding",
+        next: nextAuthDestination(user,parsed.data.returnTo),
       }, { headers: { "Cache-Control": "private, no-store" } });
       const legacyToken = readCookie(request.headers.get("cookie") ?? "", ACCOUNT_SESSION_COOKIE);
       if (legacyToken) await revokeAccountSession(legacyToken).catch(() => undefined);
@@ -126,11 +125,7 @@ export async function POST(request: Request) {
     const session = await createAccountSession(user.id, request.headers.get("user-agent"));
     const response = NextResponse.json({
       user,
-      next: user.mustChangePassword
-        ? "/account/password"
-        : user.onboardingComplete
-          ? "/profile"
-          : "/onboarding",
+      next: nextAuthDestination(user,parsed.data.returnTo),
     });
     response.cookies.set(ACCOUNT_SESSION_COOKIE, session.token, {
       httpOnly: true,

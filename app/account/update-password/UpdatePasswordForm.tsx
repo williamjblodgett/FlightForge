@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { KeyRound } from "lucide-react";
 
@@ -15,8 +16,8 @@ export function UpdatePasswordForm({ returnTo = "/profile" }: { returnTo?: strin
       const body = await response.json() as { next?: string; error?: { message?: string } };
       if (response.ok) window.location.assign(body.next ?? "/profile");
       else setError(body.error?.message ?? "The password could not be updated.");
-    } catch { setError("The password could not be updated."); }
+    } catch { setError("We could not confirm the update. Try signing in with your new password, or request a new recovery link."); }
     finally { setBusy(false); }
   }
-  return <form className="auth-card account-form" onSubmit={submit}><KeyRound aria-hidden="true" /><h2>Choose a new password</h2><label className="field-label" htmlFor="new-password">New password</label><input id="new-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={(event) => setPassword(event.target.value)} /><p className="field-help">At least 12 characters, including a letter and a number.</p><label className="field-label" htmlFor="confirm-password">Confirm password</label><input id="confirm-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />{error ? <div className="form-error" role="alert">{error}</div> : null}<button className="button button-primary button-wide" disabled={busy}>{busy ? "Updating…" : "Update password"}</button></form>;
+  return <form className="auth-card account-form" onSubmit={submit}><KeyRound aria-hidden="true" /><h2>Choose a new password</h2><label className="field-label" htmlFor="new-password">New password</label><input id="new-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={(event) => setPassword(event.target.value)} /><p className="field-help">At least 12 characters, including a letter and a number.</p><label className="field-label" htmlFor="confirm-password">Confirm password</label><input id="confirm-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />{error ? <div className="form-error" role="alert">{error}</div> : null}<button className="button button-primary button-wide" disabled={busy}>{busy ? "Updating…" : "Update password"}</button><Link href={"/sign-in?return_to="+encodeURIComponent(returnTo)}>Try signing in</Link><Link href={"/forgot-password?return_to="+encodeURIComponent(returnTo)}>Request a new recovery link</Link></form>;
 }

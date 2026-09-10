@@ -1,0 +1,14 @@
+import Link from "next/link";
+import {notFound,redirect} from "next/navigation";
+import {getCurrentUser} from "@/modules/auth/current-user";
+import {getRoundForUser} from "@/modules/rounds/history-repository";
+import {CorrectionForm} from "./CorrectionForm";
+export const dynamic="force-dynamic";
+export const metadata={title:"Round result",robots:{index:false,follow:false}};
+export default async function RoundResultPage({params}:{params:Promise<{id:string}>}){
+  const{id}=await params;const user=await getCurrentUser();if(!user)redirect(`/sign-in?return_to=${encodeURIComponent(`/rounds/${id}`)}`);
+  const detail=await getRoundForUser(user,id);if(!detail)notFound();
+  if(detail.status!=="COMPLETED")redirect(`/play?roundId=${id}`);
+  const{context,round}=detail;const known=context.pars.length===context.holeCount&&context.pars.every(p=>p!==null);const par=known?context.pars.reduce<number>((n,p)=>n+p!,0):null;
+  return <main className="page-shell compact-page"><Link href="/rounds">Round history</Link><span className="eyebrow">App-recorded · private</span><h1>{context.venueName}</h1><p>{context.title} · {new Date(detail.completedAt!).toLocaleDateString()}</p><section className="round-result-summary"><strong>{detail.totalScore} strokes</strong><span>{context.holeCount} holes</span><span>{par===null?"Strokes only — pars unconfirmed":`${detail.totalScore-par>0?"+":""}${detail.totalScore-par} to par`}</span></section><div className="table-scroll"><table><caption>Final scorecard</caption><thead><tr><th>Hole</th><th>Par</th><th>Strokes</th><th>Penalties</th><th>Total</th></tr></thead><tbody>{round.holeScores.map(s=><tr key={s.holeNumber}><th>{s.holeNumber}</th><td>{context.pars[s.holeNumber-1]??"—"}</td><td>{s.strokes}</td><td>{s.penalties}</td><td>{s.strokes+s.penalties}</td></tr>)}</tbody></table></div>{context.kind==="PERSONAL"?<CorrectionForm id={id} version={round.version} holeCount={context.holeCount}/>:<p>Event score changes must be reviewed with the event organizer.</p>}<details><summary>Score correction history ({round.corrections.length})</summary><ol>{round.corrections.map(c=><li key={c.id}>Hole {c.holeNumber}: {c.fromStrokes===null?"Not scored":c.fromStrokes+(c.fromPenalties??0)} → {c.toStrokes+c.toPenalties} strokes · {new Date(c.createdAt).toLocaleString()}</li>)}</ol></details><Link className="button button-primary" href={context.id === "flightforge-demo-event" ? "/play?eventId=flightforge-demo-event" : `/rounds/new?courseId=${context.courseId}`}>Play again</Link></main>;
+}

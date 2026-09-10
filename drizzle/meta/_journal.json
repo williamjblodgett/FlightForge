@@ -92,6 +92,20 @@
       "when": 1787241600000,
       "tag": "0012_community_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1789049247919,
+      "tag": "0013_mysterious_sunspot",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1789053738454,
+      "tag": "0014_deep_onslaught",
+      "breakpoints": true
     }
   ]
 }

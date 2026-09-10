@@ -824,7 +824,7 @@ async function listConversationSummaries(userId: string, publicOnly: boolean): P
      FROM conversations c LEFT JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = ?
      WHERE c.status = 'ACTIVE' AND ${publicOnly
        ? "c.conversation_type = 'PUBLIC_CHANNEL'"
-       : `c.conversation_type != 'PUBLIC_CHANNEL' AND cm.left_at IS NULL
+       : `c.conversation_type != 'PUBLIC_CHANNEL' AND cm.id IS NOT NULL AND cm.left_at IS NULL
           AND NOT EXISTS (
             SELECT 1 FROM conversation_members blocked_member JOIN blocked_users blocked_pair ON
               ((blocked_pair.blocker_user_id = ? AND blocked_pair.blocked_user_id = blocked_member.user_id)
@@ -1047,4 +1047,15 @@ function decodeCursor(cursor: string | null): { createdAt: string; id: string } 
   } catch {
     return null;
   }
+}
+export async function getUnreadMessageCount(user:AuthenticatedUser):Promise<number>{
+ const status=await getCommunityStatus(user.id);if(!status.adultAttested||status.suspended)return 0;
+ const row=await getD1Database().prepare(`SELECT COUNT(*) AS unreadCount
+ FROM conversation_members cm JOIN conversations c ON c.id=cm.conversation_id JOIN messages m ON m.conversation_id=c.id
+ WHERE cm.user_id=? AND cm.left_at IS NULL AND c.status='ACTIVE' AND c.conversation_type!='PUBLIC_CHANNEL'
+ AND m.sender_user_id!=? AND m.moderation_status='PUBLISHED' AND m.deleted_at IS NULL
+ AND (m.created_at>COALESCE(cm.last_read_at,'') OR (m.created_at=COALESCE(cm.last_read_at,'') AND m.id>COALESCE(cm.last_read_message_id,'')))
+ AND NOT EXISTS(SELECT 1 FROM blocked_users b WHERE (b.blocker_user_id=? AND b.blocked_user_id=m.sender_user_id) OR (b.blocker_user_id=m.sender_user_id AND b.blocked_user_id=?))
+ AND NOT EXISTS(SELECT 1 FROM conversation_members member JOIN blocked_users b ON (b.blocker_user_id=? AND b.blocked_user_id=member.user_id) OR (b.blocker_user_id=member.user_id AND b.blocked_user_id=?) WHERE member.conversation_id=c.id AND member.user_id!=? AND member.left_at IS NULL)`).bind(user.id,user.id,user.id,user.id,user.id,user.id,user.id).first<{unreadCount:number}>();
+ return Number(row?.unreadCount??0);
 }

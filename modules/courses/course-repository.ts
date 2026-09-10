@@ -191,6 +191,13 @@ export async function getFavoriteCourseIds(userEmail: string): Promise<string[]>
   return result.results.map((row) => row.courseId);
 }
 
+export async function setFavoriteCourse(user:AuthenticatedUser,courseId:string,favorited:boolean):Promise<{favorited:boolean}>{
+  await ensureSchema();const db=getD1Database(),email=user.email.toLowerCase();
+  if(favorited)await db.prepare("INSERT OR IGNORE INTO favorite_courses (id,user_email,course_id,created_at) VALUES (?,?,?,?)").bind(crypto.randomUUID(),email,courseId,new Date().toISOString()).run();
+  else await db.prepare("DELETE FROM favorite_courses WHERE user_email=? AND course_id=?").bind(email,courseId).run();
+  return {favorited};
+}
+
 export async function toggleFavoriteCourse(
   user: AuthenticatedUser,
   courseId: string,

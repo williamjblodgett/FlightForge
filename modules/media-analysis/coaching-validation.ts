@@ -5,6 +5,8 @@ export const coachingContextSchema = z.object({
   cameraAngle: z.enum(["SIDE", "REAR", "FRONT"]),
   intendedShot: z.string().trim().min(2).max(200),
   discUsed: z.string().trim().max(100).optional().default(""),
+  measurementSource: z.literal("FIELDWORK_GPS").optional(),
+  measurementUncertaintyMeters: z.coerce.number().finite().min(0).max(100_000).optional(),
   approximateDistanceFeet: z.coerce.number().int().min(0).max(1500).optional(),
   result: z.enum(["EARLY", "LATE", "LOW", "HIGH", "CLEAN", "OTHER"]),
   analysisQuestion: z.string().trim().min(5).max(500),

@@ -1,3 +1,5 @@
+import {isPlayerReady} from "@/modules/auth/player-readiness";
+import {isFeatureEnabled} from "@/modules/config/feature-flags";
 import { apiError } from "@/lib/http/api-response";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
 import { getCurrentUser } from "@/modules/auth/current-user";
@@ -9,15 +11,18 @@ import { evaluateMediaUpload } from "@/modules/media-analysis/upload-safety";
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return apiError("AUTHENTICATION_REQUIRED", "Sign in to view coaching sessions.", 401);
+  if(!isPlayerReady(user))return apiError("ACCOUNT_SETUP_REQUIRED","Complete email verification and player setup before using this feature.",403);
   if (!can(user, "useCameraCoach")) return apiError("FORBIDDEN", "Your account cannot use camera coaching.", 403);
   try { return Response.json({ uploads: await listCoachingUploads(user) }); }
   catch { return apiError("COACHING_UNAVAILABLE", "Your private coaching history is temporarily unavailable.", 503); }
 }
 
 export async function POST(request: Request) {
+  if(!await isFeatureEnabled("camera_coach"))return apiError("FEATURE_DISABLED","Camera coaching is temporarily paused.",503);
   if (!isSameOriginMutation(request)) return apiError("ORIGIN_REJECTED", "The upload origin was rejected.", 403);
   const user = await getCurrentUser();
   if (!user) return apiError("AUTHENTICATION_REQUIRED", "Sign in to upload a throw.", 401);
+  if(!isPlayerReady(user))return apiError("ACCOUNT_SETUP_REQUIRED","Complete email verification and player setup before using this feature.",403);
   if (!can(user, "useCameraCoach")) return apiError("FORBIDDEN", "Your account cannot use camera coaching.", 403);
   const limit = await checkRateLimit("coaching-upload", user.id, 10, 3600).catch(() => null);
   if (!limit) return apiError("RATE_LIMIT_UNAVAILABLE", "Upload protection is temporarily unavailable.", 503);
@@ -27,6 +32,7 @@ export async function POST(request: Request) {
   const file = form.get("video");
   if (!(file instanceof File)) return apiError("VIDEO_REQUIRED", "Record or choose a coaching video.", 422);
   const parsed = coachingContextSchema.safeParse({
+    measurementSource:form.get("measurementSource")||undefined,measurementUncertaintyMeters:form.get("measurementUncertaintyMeters")||undefined,
     throwType: form.get("throwType"), cameraAngle: form.get("cameraAngle"), intendedShot: form.get("intendedShot"),
     discUsed: form.get("discUsed") ?? "", approximateDistanceFeet: form.get("approximateDistanceFeet") || undefined,
     result: form.get("result"), analysisQuestion: form.get("analysisQuestion"), durationSeconds: form.get("durationSeconds"),

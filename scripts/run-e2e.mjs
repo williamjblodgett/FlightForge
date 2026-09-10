@@ -1,25 +1,23 @@
-import { spawn, spawnSync } from "node:child_process";
+import { isolatedTestWorkspace } from "./isolated-test-workspace.mjs";
+import { resolve } from "node:path";
+import { spawn, spawnSync, execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
+import { request as httpsRequest } from "node:https";
 import { fileURLToPath } from "node:url";
 
 const port = 31_000 + (process.pid % 1_000);
-const baseUrl = `http://127.0.0.1:${port}`;
-const environment = {
-  ...process.env,
-  E2E_BASE_URL: baseUrl,
-  EMAIL_DELIVERY_MODE: "test",
-  NEXT_PUBLIC_SUPPORT_EMAIL: "support@example.test",
-  NEXT_PUBLIC_PRIVACY_EMAIL: "privacy@example.test",
-  LEGAL_TERMS_VERSION: "e2e-v1",
-  LEGAL_PRIVACY_VERSION: "e2e-v1",
-};
+const baseUrl = `https://127.0.0.1:${port}`;
+const {cwd,env:environment}=isolatedTestWorkspace({E2E_BASE_URL:baseUrl,FLIGHTFORGE_TEST_HTTPS:"1"});
+const openssl=process.platform==="win32"?"C:/Program Files/Git/usr/bin/openssl.exe":"openssl";
+execFileSync(openssl,["req","-x509","-newkey","rsa:2048","-nodes","-keyout",resolve(cwd,"test-local.key"),"-out",resolve(cwd,"test-local.crt"),"-days","1","-subj","/CN=localhost","-addext","subjectAltName=DNS:localhost,IP:127.0.0.1"],{env:environment,stdio:"ignore",windowsHide:true});
 const npmExecPath = process.env.npm_execpath;
 if (!npmExecPath) throw new Error("Run this browser harness through npm so npm_execpath is available.");
 
 runSync(process.execPath, [npmExecPath, "run", "build"]);
+runSync(process.execPath,["scripts/migrate-test-state.mjs"]);
 const viteCli = fileURLToPath(new URL("../node_modules/vite/bin/vite.js", import.meta.url));
 const server = spawn(process.execPath, [viteCli, "preview", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
-  cwd: process.cwd(),
+  cwd,
   env: environment,
   stdio: ["ignore", "inherit", "inherit"],
   windowsHide: true,
@@ -38,7 +36,7 @@ process.exit(suiteStatus);
 
 function runSync(command, args) {
   const result = spawnSync(command, args, {
-    cwd: process.cwd(),
+    cwd,
     env: environment,
     stdio: "inherit",
   });
@@ -51,8 +49,11 @@ async function waitForHealth(url, child) {
   while (Date.now() < deadline) {
     if (child.exitCode !== null) throw new Error(`The browser-test server exited with code ${child.exitCode}.`);
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(2_000) });
-      if (response.ok) return;
+      const healthy=await new Promise((resolve,reject)=>{
+        const request=httpsRequest(url,{rejectUnauthorized:false},response=>{response.resume();resolve(response.statusCode===200);});
+        request.setTimeout(2000,()=>request.destroy(new Error("Health timeout")));request.on("error",reject);request.end();
+      });
+      if (healthy) return;
     } catch {
       // The isolated preview is still starting.
     }
@@ -64,12 +65,12 @@ async function waitForHealth(url, child) {
 async function runPlaywright(playwrightCli, args) {
   const startedAt = Date.now();
   const child = spawn(process.execPath, [playwrightCli, "test", ...args], {
-    cwd: process.cwd(),
+    cwd,
     env: environment,
     stdio: "inherit",
     windowsHide: true,
   });
-  const resultPath = fileURLToPath(new URL("../test-results/.last-run.json", import.meta.url));
+  const resultPath = resolve(cwd,"test-results/.last-run.json");
   const deadline = startedAt + 10 * 60_000;
   while (Date.now() < deadline) {
     if (child.exitCode !== null) return child.exitCode;

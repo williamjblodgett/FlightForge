@@ -8,9 +8,10 @@ import { brand } from "@/config/brand";
 type Props = {
   initial: AccountSettings;
   firstRun: boolean;
+  returnTo?: string;
 };
 
-export function ProfileSetupForm({ initial, firstRun }: Props) {
+export function ProfileSetupForm({ initial, firstRun, returnTo="/profile" }: Props) {
   const [form, setForm] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -32,6 +33,7 @@ export function ProfileSetupForm({ initial, firstRun }: Props) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           ...form,
+          returnTo,
           homeCity: form.homeCity || null,
           homeRegionCode: form.homeRegionCode || null,
           postalCode: form.postalCode || null,

@@ -1,3 +1,4 @@
+import { assistanceInstructions, type RoundAssistance } from "@/modules/rounds/assistance";
 import { getD1Database } from "@/db/runtime";
 import { ensurePersistedUserId } from "@/modules/auth/account-repository";
 import type { AuthenticatedUser } from "@/modules/auth/types";
@@ -46,7 +47,7 @@ export async function listCaddieMessages(user: AuthenticatedUser, conversationId
   return { conversationId: selectedId, messages: result.results.map(mapMessage) };
 }
 
-export async function sendCaddieMessage(user: AuthenticatedUser, message: string, requestedConversationId?: string | null) {
+export async function sendCaddieMessage(user: AuthenticatedUser, message: string, requestedConversationId?: string | null, roundContext?:RoundAssistance|null) {
   await ensureSchema();
   const userId = await ensurePersistedUserId(user);
   const database = getD1Database();
@@ -69,7 +70,7 @@ export async function sendCaddieMessage(user: AuthenticatedUser, message: string
   const bagSummary = active.slice(0, 30).map((disc) => `${disc.manufacturerName} ${disc.moldName} (${disc.speed}/${disc.glide}/${disc.turn}/${disc.fade}${disc.weightGrams ? `, ${disc.weightGrams}g` : ""}, wear ${disc.wearRating}/10)`).join("; ");
   const safetyIdentifier = await privacyHash(userId);
   const history: CaddieChatTurn[] = existing.messages.map(({ role, content }) => ({ role, content }));
-  const generated = await generateCaddieChat({ message, instructions: buildCaddieSystemInstructions(bagSummary), bagSummary, history, safetyIdentifier });
+  const generated = await generateCaddieChat({ message, instructions: buildCaddieSystemInstructions(bagSummary)+assistanceInstructions(roundContext), bagSummary, history, safetyIdentifier });
   const userMessage: StoredCaddieMessage = { id: crypto.randomUUID(), role: "user", content: message, provider: null, confidence: null, createdAt: now };
   const assistantMessage: StoredCaddieMessage = { id: crypto.randomUUID(), role: "assistant", content: generated.answer, provider: generated.provider, confidence: generated.confidence, createdAt: new Date().toISOString() };
   await database.batch([
@@ -80,11 +81,11 @@ export async function sendCaddieMessage(user: AuthenticatedUser, message: string
   return { conversationId, messages: [userMessage, assistantMessage], mode: generated.provider === "OPENAI" ? "AI" : "FIELD_GUIDE" };
 }
 
-export async function buildRealtimeInstructions(user: AuthenticatedUser): Promise<{ instructions: string; safetyIdentifier: string }> {
+export async function buildRealtimeInstructions(user: AuthenticatedUser, roundContext?:RoundAssistance|null): Promise<{ instructions: string; safetyIdentifier: string }> {
   const userId = await ensurePersistedUserId(user);
   const discs = await listPlayerDiscs(user);
   const bagSummary = discs.filter((disc) => disc.status === "IN_BAG").slice(0, 30).map((disc) => `${disc.manufacturerName} ${disc.moldName} ${disc.speed}/${disc.glide}/${disc.turn}/${disc.fade}`).join("; ");
-  return { instructions: `${buildCaddieSystemInstructions(bagSummary)}\nKeep spoken answers under 25 seconds unless the player asks for detail. Ask one question at a time.`, safetyIdentifier: await privacyHash(userId) };
+  return { instructions: `${buildCaddieSystemInstructions(bagSummary)}${assistanceInstructions(roundContext)}\nKeep spoken answers under 25 seconds unless the player asks for detail. Ask one question at a time.`, safetyIdentifier: await privacyHash(userId) };
 }
 
 async function ensureSchema() {

@@ -9,11 +9,12 @@ type Props = {
   confirmLabel: string;
   destructive?: boolean;
   busy?: boolean;
+  error?: string | null;
   onConfirm: () => void | Promise<void>;
   onCancel: () => void;
 };
 
-export function ConfirmDialog({ open, title, description, confirmLabel, destructive = false, busy = false, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, description, confirmLabel, destructive = false, busy = false, error, onConfirm, onCancel }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -26,6 +27,7 @@ export function ConfirmDialog({ open, title, description, confirmLabel, destruct
     <form method="dialog" onSubmit={(event) => event.preventDefault()}>
       <h2 id="confirm-dialog-title">{title}</h2>
       <p>{description}</p>
+      {error?<p role="alert" className="form-error">{error}</p>:null}
       <div className="confirm-dialog-actions">
         <button className="button button-secondary" type="button" disabled={busy} onClick={onCancel}>Cancel</button>
         <button className={`button ${destructive ? "button-danger" : "button-primary"}`} type="button" disabled={busy} onClick={() => void onConfirm()}>{busy ? "Working…" : confirmLabel}</button>

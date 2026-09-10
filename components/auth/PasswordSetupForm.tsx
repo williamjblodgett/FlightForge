@@ -4,9 +4,9 @@ import { useState } from "react";
 import { ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
 import { brand } from "@/config/brand";
 
-type Props = { temporary: boolean };
+type Props = { temporary: boolean; returnTo?:string };
 
-export function PasswordSetupForm({ temporary }: Props) {
+export function PasswordSetupForm({ temporary,returnTo="/profile" }: Props) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -21,7 +21,7 @@ export function PasswordSetupForm({ temporary }: Props) {
       const response = await fetch("/api/account/password", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword, confirmation }),
+        body: JSON.stringify({ currentPassword, newPassword, confirmation, returnTo }),
       });
       const body = (await response.json()) as { error?: { message?: string }; next?: string };
       if (!response.ok) {

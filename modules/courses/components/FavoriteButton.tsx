@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 
 type Props = {
@@ -22,16 +22,19 @@ export function FavoriteButton({
   const [busy, setBusy] = useState(false);
   const [announcement, setAnnouncement] = useState("");
 
+  const intentKey="flightforge.favorite.intent";
+  function signInWithIntent(){try{sessionStorage.setItem(intentKey,JSON.stringify({courseId,expiresAt:Date.now()+30*60_000}));}catch{/* Saving manually after login remains available. */}window.location.assign(`/sign-in?return_to=${encodeURIComponent(window.location.pathname+window.location.search+window.location.hash)}`);}
+  useEffect(()=>{if(!signedIn)return;let cancelled=false;const timer=window.setTimeout(async()=>{try{const intent=JSON.parse(sessionStorage.getItem(intentKey)??"null") as {courseId?:string;expiresAt?:number}|null;if(intent?.courseId!==courseId||!intent.expiresAt||intent.expiresAt<Date.now())return;setBusy(true);const response=await fetch(`/api/favorites/${courseId}`,{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify({favorited:true})});if(response.ok){sessionStorage.removeItem(intentKey);if(!cancelled){setFavorited(true);setAnnouncement(courseName+" saved.");}}else if(!cancelled)setAnnouncement("Sign-in completed. Tap save again to add this course.");}catch{if(!cancelled)setAnnouncement("Could not resume saving. Tap save again.");}finally{if(!cancelled)setBusy(false);}},0);return()=>{cancelled=true;window.clearTimeout(timer);};},[courseId,courseName,signedIn]);
   async function toggle() {
     if (!signedIn) {
-      window.location.assign(`/sign-in?return_to=${encodeURIComponent(window.location.pathname)}`);
+      signInWithIntent();
       return;
     }
     setBusy(true);
     try {
-      const response = await fetch(`/api/favorites/${courseId}`, { method: "POST" });
+      const response = await fetch(`/api/favorites/${courseId}`, { method: "PUT",headers:{"content-type":"application/json"},body:JSON.stringify({favorited:!favorited}) });
       if (response.status === 401) {
-        window.location.assign(`/sign-in?return_to=${encodeURIComponent(window.location.pathname)}`);
+        signInWithIntent();
         return;
       }
       if (!response.ok) {

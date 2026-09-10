@@ -27,6 +27,6 @@ describe("standalone FlightForge account entry", () => {
     expect(forgotPassword).toContain("JSON.stringify({ email, returnTo })");
     expect(callback).toContain("/account/update-password?return_to=");
     expect(updatePassword).toContain("safeRelativeReturnPath(String(body.returnTo))");
-    expect(updatePassword).toContain("next: returnTo");
+    expect(updatePassword).toContain("next: nextAuthDestination(account, returnTo)");
   });
 });

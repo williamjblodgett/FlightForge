@@ -20,7 +20,7 @@ describe("Supabase authentication security contracts", () => {
     expect(callbackRoute).toContain("createPasswordRecoveryIntent");
     expect(callbackRoute).toContain("PASSWORD_RECOVERY_INTENT_COOKIE");
     expect(updateRoute).toContain("consumePasswordRecoveryIntent");
-    expect(updateRoute.indexOf("consumePasswordRecoveryIntent")).toBeLessThan(updateRoute.indexOf("updateUser({ password })"));
+    expect(updateRoute.indexOf("await consumePasswordRecoveryIntent")).toBeLessThan(updateRoute.indexOf("supabase.auth.updateUser"));
   });
 
   it("never treats ChatGPT request headers as a FlightForge session", () => {

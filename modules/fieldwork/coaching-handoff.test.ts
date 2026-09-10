@@ -1,0 +1,5 @@
+import {it,expect} from "vitest";
+import {readPracticeHandoff} from "./coaching-handoff";
+import {summaryOnly} from "./measurement";
+it("accepts only fresh, derived practice data",()=>{const raw={version:1,expiresAt:1000+60_000,distanceFeet:300,discUsed:" Leopard ",throwType:"BACKHAND",uncertaintyMeters:4,latitude:44,longitude:-70};const result=readPracticeHandoff(JSON.stringify(raw),1000);expect(result).toEqual({distanceFeet:300,discUsed:"Leopard",throwType:"BACKHAND",uncertaintyMeters:4});expect(readPracticeHandoff(JSON.stringify(raw),70_000)).toBeNull();expect(readPracticeHandoff(JSON.stringify({...raw,distanceFeet:2000}),1000)?.distanceFeet).toBeNull();});
+it("strips injected location and private fields when persisting summaries",()=>{const result=summaryOnly({id:"one",distanceFeet:300,distanceMeters:91,estimatedUncertaintyMeters:4,confidence:"MEDIUM",measuredAt:"2026-09-10T12:00:00Z",discName:"Leopard",...{latitude:44,longitude:-70,privateNote:"do not store"}});expect(result).not.toHaveProperty("latitude");expect(result).not.toHaveProperty("privateNote");expect(result.discName).toBe("Leopard");});

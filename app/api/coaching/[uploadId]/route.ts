@@ -1,4 +1,5 @@
 import { apiError } from "@/lib/http/api-response";
+import {hasSecureIdentity} from "@/modules/auth/player-readiness";
 import { isSameOriginMutation } from "@/lib/security/request-security";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { can } from "@/modules/auth/permissions";
@@ -8,6 +9,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ uplo
   if (!isSameOriginMutation(request)) return apiError("ORIGIN_REJECTED", "The deletion origin was rejected.", 403);
   const user = await getCurrentUser();
   if (!user) return apiError("AUTHENTICATION_REQUIRED", "Sign in to delete a coaching session.", 401);
+  if(!hasSecureIdentity(user))return apiError("ACCOUNT_SECURITY_REQUIRED","Verify your email and secure your login before deleting media.",403);
   if (!can(user, "useCameraCoach")) return apiError("FORBIDDEN", "Your account cannot manage coaching media.", 403);
   const { uploadId } = await context.params;
   try {

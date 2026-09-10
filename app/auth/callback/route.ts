@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
+import { authReturnPath, nextAuthDestination } from "@/modules/auth/continuation";
 import {
   ACCOUNT_SESSION_COOKIE,
+  resolveSupabaseAccount,
   createPasswordRecoveryIntent,
   PASSWORD_RECOVERY_INTENT_COOKIE,
   revokeAccountSession,
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type");
-  const next = safeRelativeReturnPath(url.searchParams.get("next") || "/onboarding");
+  const next = authReturnPath(url.searchParams.get("next"));
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.redirect(new URL("/sign-in?error=auth_unavailable", url.origin));
 
@@ -29,10 +30,18 @@ export async function GET(request: Request) {
   } else {
     error = { message: "Missing authentication confirmation." };
   }
-  if (error) return NextResponse.redirect(new URL("/sign-in?error=invalid_confirmation", url.origin));
+  if (error) return NextResponse.redirect(new URL("/sign-in?error=invalid_confirmation&return_to="+encodeURIComponent(next), url.origin));
+  let accountNext=next;
+  if(type!=="recovery"){
+    try{const {data}=await supabase.auth.getUser();const identity=data.user;
+      if(!identity?.email||!identity.email_confirmed_at)throw Error("Unverified");
+      const account=await resolveSupabaseAccount({authUserId:identity.id,email:identity.email,displayName:typeof identity.user_metadata?.display_name==="string"?identity.user_metadata.display_name:"Player",emailVerified:true,registrationNonce:typeof identity.user_metadata?.flightforge_registration_nonce==="string"?identity.user_metadata.flightforge_registration_nonce:null});
+      accountNext=nextAuthDestination(account,next);
+    }catch{return NextResponse.redirect(new URL("/sign-in?error=invalid_confirmation&return_to="+encodeURIComponent(next),url.origin));}
+  }
   const destination = type === "recovery"
     ? `/account/update-password?return_to=${encodeURIComponent(next)}`
-    : next;
+    : accountNext;
   const response = NextResponse.redirect(new URL(destination, url.origin), { headers: { "Cache-Control": "private, no-store" } });
   const legacyToken = readCookie(request.headers.get("cookie") ?? "", ACCOUNT_SESSION_COOKIE);
   if (legacyToken) await revokeAccountSession(legacyToken).catch(() => undefined);
@@ -47,7 +56,7 @@ export async function GET(request: Request) {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
-      path: "/account/update-password",
+      path: "/api/auth/update-password",
       maxAge: 15 * 60,
     });
   }

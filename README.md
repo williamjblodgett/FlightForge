@@ -40,6 +40,14 @@ The GitHub Pages edition adds working, device-local versions of previously defer
 
 All fabricated booking, event, group, round, and operator records in the static Pages edition are pinned to the fictional Forge Ridge fixture and fail closed if a real course is supplied. All mutable Pages data stays in that browser. The server-backed application now has separate production event, bag, caddie, community, moderation, and active-round repositories; the static edition still cannot create real reservations, payments, registrations, course publications, or AI media analyses.
 
+## September 10 mobile and reliability update
+
+The live server application now supports personal course rounds, private persistent results, audited personal-score corrections, contextual Bag/Coach returns, and a compact Home/Explore/Play/Events/More interface. See [release scope and validation](docs/RELEASE_2026-09-10.md) for exact coverage and external dependencies. The separate Pages edition remains a device-local demo.
+
+For a clean local preview without any production credentials, run `npm ci --ignore-scripts` followed by `npm run review:preview`. It copies source to an isolated temporary workspace, migrates a new local D1 database, uses test email and mock providers, and serves http://127.0.0.1:3100. Its test accounts and media are not production data. Stop with Ctrl+C. The copy is retained for debugging; never recursively delete through its node_modules junction.
+
+`npm run test:e2e` requires Playwright Chromium and WebKit (`npx playwright install chromium webkit`) and OpenSSL (included with Git for Windows; system package on Linux). It creates a one-day localhost-only certificate so Safari tests retain production Secure-cookie behavior. It does not weaken production cookies or use real provider keys.
+
 ## Quick start
 
 Prerequisites: Node.js 22.13 or newer. Docker is optional and is used only when exercising the PostgreSQL/PostGIS adapter locally.

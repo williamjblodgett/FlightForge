@@ -6,10 +6,12 @@ import {
 } from "@/lib/security/request-security";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  resolveSupabaseAccount,
   consumePasswordRecoveryIntent,
   PASSWORD_RECOVERY_INTENT_COOKIE,
 } from "@/modules/auth/account-repository";
 import { validatePasswordStrength } from "@/modules/auth/password";
+import { nextAuthDestination } from "@/modules/auth/continuation";
 import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
 
 export async function PUT(request: Request) {
@@ -26,7 +28,9 @@ export async function PUT(request: Request) {
   if (password !== confirmation) return apiError("VALIDATION_ERROR", "Passwords do not match.", 422);
   const supabase = await createSupabaseServerClient();
   if (!supabase) return apiError("RECOVERY_NOT_READY", "Password recovery is not configured yet.", 503);
-  const { data: current } = await supabase.auth.getUser();
+  const currentResult=await supabase.auth.getUser().catch(()=>null);
+  if(!currentResult)return apiError("RECOVERY_UNAVAILABLE","The account provider is temporarily unavailable. Retry this link shortly.",503);
+  const current=currentResult.data;
   if (!current.user) return apiError("AUTH_REQUIRED", "Open the current recovery link before changing your password.", 401);
   try {
     const rateLimit = await checkRateLimit("password-recovery-update", current.user.id, 5, 900);
@@ -36,18 +40,22 @@ export async function PUT(request: Request) {
   } catch {
     return apiError("AUTH_GUARD_UNAVAILABLE", "The password security check is temporarily unavailable.", 503);
   }
+  const identity=current.user;
+  if(!identity.email||!identity.email_confirmed_at)return apiError("EMAIL_VERIFICATION_REQUIRED","Verify your email before continuing.",403);
+  const account = await resolveSupabaseAccount({authUserId:identity.id,email:identity.email,displayName:typeof identity.user_metadata?.display_name==="string"?identity.user_metadata.display_name:"Player",emailVerified:true,registrationNonce:typeof identity.user_metadata?.flightforge_registration_nonce==="string"?identity.user_metadata.flightforge_registration_nonce:null}).catch(()=>null);
+  if(!account)return apiError("ACCOUNT_UNAVAILABLE","The account could not be checked. Your password was not changed; please retry.",503);
   const recoveryIntent = readCookie(request.headers.get("cookie") ?? "", PASSWORD_RECOVERY_INTENT_COOKIE);
   if (!recoveryIntent || !await consumePasswordRecoveryIntent({ token: recoveryIntent, authUserId: current.user.id })) {
     return apiError("RECOVERY_INTENT_REQUIRED", "This recovery link is missing, expired, or already used. Request a new one.", 403);
   }
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) return apiError("PASSWORD_UPDATE_FAILED", "The password could not be updated. Request a new recovery link.", 422);
-  const response = NextResponse.json({ updated: true, next: returnTo });
+  try{const {error}=await supabase.auth.updateUser({password});if(error)return apiError("PASSWORD_UPDATE_FAILED","The password could not be updated. Request a new recovery link.",422);}
+  catch{return apiError("PASSWORD_UPDATE_UNCONFIRMED","We could not confirm the update. Try signing in with your new password, or request a new recovery link.",503);}
+  const response = NextResponse.json({ updated: true, next: nextAuthDestination(account, returnTo) });
   response.cookies.set(PASSWORD_RECOVERY_INTENT_COOKIE, "", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    path: "/account/update-password",
+    path: "/api/auth/update-password",
     maxAge: 0,
   });
   return response;

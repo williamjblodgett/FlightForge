@@ -1,3 +1,5 @@
+import {getD1Database} from "@/db/runtime";
+import {acknowledgeVerificationDelivery} from "@/modules/notifications/verification-outbox";
 import { apiError } from "@/lib/http/api-response";
 import {
   abandonHostedSignupIntent,
@@ -7,7 +9,8 @@ import {
   createHostedSignupIntent,
 } from "@/modules/auth/account-repository";
 import { isEmailVerificationDeliveryConfigured, sendEmailVerification } from "@/modules/notifications/email-verification";
-import { isPublicRegistrationReady } from "@/config/public-launch";
+import { isRegistrationReady,registrationUsesHostedAuth } from "@/modules/auth/registration-readiness";
+import { authReturnPath } from "@/modules/auth/continuation";
 import { signupSchema } from "@/modules/auth/account-validation";
 import {
   checkRateLimit,
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) {
     return apiError("ORIGIN_REJECTED", "The sign-up request origin was rejected.", 403);
   }
-  if (!isPublicRegistrationReady()) {
+  if (!isRegistrationReady()) {
     return apiError("REGISTRATION_NOT_READY", "Public registration is paused until verified support, privacy, and email-delivery contacts are configured.", 503);
   }
   if (!isSupabaseConfigured() && !isEmailVerificationDeliveryConfigured()) {
@@ -58,7 +61,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    if (isSupabaseConfigured() && process.env.EMAIL_DELIVERY_MODE !== "test") {
+    if (registrationUsesHostedAuth()) {
       const supabase = await createSupabaseServerClient();
       if (!supabase) throw new Error("Supabase authentication is unavailable.");
       const registrationNonce = await createHostedSignupIntent(parsed.data.email);
@@ -106,16 +109,19 @@ export async function POST(request: Request) {
         requiresEmailVerification: true,
       }, { status: 201, headers: { "Cache-Control": "private, no-store" } });
     }
-    const user = await createAccount(parsed.data);
+    const user = await createAccount(parsed.data,{origin:new URL(request.url).origin,returnTo:authReturnPath(typeof body==="object"&&body&&"returnTo" in body?body.returnTo:undefined)});
     const verificationToken = await createEmailVerificationToken(user.id);
+    let deliveryPending=false;
     await sendEmailVerification({
       email: user.email,
       displayName: user.displayName,
       token: verificationToken,
       origin: new URL(request.url).origin,
-    });
+      returnTo:authReturnPath(typeof body==="object"&&body&&"returnTo" in body?body.returnTo:undefined),
+    }).then(()=>acknowledgeVerificationDelivery(getD1Database(),user.id)).catch(()=>{deliveryPending=true;});
     return Response.json({
       user,
+      deliveryPending,
       next: "/verify-email",
       verificationToken: process.env.EMAIL_DELIVERY_MODE === "test" ? verificationToken : undefined,
     }, { status: 201 });

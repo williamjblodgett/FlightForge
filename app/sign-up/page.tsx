@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SignupForm } from "./SignupForm";
 import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
-import { isPublicRegistrationReady } from "@/config/public-launch";
+import { isRegistrationReady } from "@/modules/auth/registration-readiness";
 
 export const metadata: Metadata = {
   title: "Create a free account",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default async function SignupPage({ searchParams }: { searchParams: Promise<{ return_to?: string }> }) {
   const query = await searchParams;
   const returnTo = safeRelativeReturnPath(query.return_to || "/onboarding");
-  const registrationReady = isPublicRegistrationReady();
+  const registrationReady = isRegistrationReady();
   return (
     <main className="auth-page page-shell">
       <div className="auth-heading">

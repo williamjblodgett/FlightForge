@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import vinext from "vinext";
 import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json" with { type: "json" };
@@ -7,6 +8,13 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 
 const { d1, r2 } = hostingConfig;
+const isolated=process.env.FLIGHTFORGE_TEST_ISOLATED==="1";
+const testState=process.env.FLIGHTFORGE_TEST_STATE;
+if(isolated&&(!testState||process.env.EMAIL_DELIVERY_MODE!=="test"))throw new Error("Invalid isolated test configuration.");
+const noExternalFetch={name:"flightforge-test-no-external-fetch",enforce:"pre" as const,transform(source:string,id:string){if(!isolated||!id.split("?")[0].replaceAll("\\\\","/").endsWith("/worker/index.ts"))return;return `
+const testNativeFetch=globalThis.fetch.bind(globalThis);
+globalThis.fetch=(input,init)=>{const url=new URL(input instanceof Request?input.url:String(input));if(!["localhost","127.0.0.1","[::1]"].includes(url.hostname))return Promise.reject(new Error("External fetch blocked in isolated tests"));return testNativeFetch(input,init);};
+${source}`;}};
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
@@ -59,13 +67,21 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    preview:isolated&&process.env.FLIGHTFORGE_TEST_HTTPS==="1"?{https:{key:readFileSync("test-local.key"),cert:readFileSync("test-local.crt")}}:undefined,
+    envDir:isolated?false as const:undefined,
+    cacheDir:isolated?".test-vite-cache":undefined,
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,
     plugins: [
+      ...(isolated?[noExternalFetch]:[]),
       vinext(),
       sites(),
       cloudflare({
+        persistState:isolated?{path:testState!}:true,
+        remoteBindings:isolated?false:undefined,
+        inspectorPort:isolated?false:undefined,
+        tunnel:isolated?false:undefined,
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         config: localBindingConfig,
       }),

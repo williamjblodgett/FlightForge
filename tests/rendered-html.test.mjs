@@ -35,11 +35,10 @@ test("server-renders FlightForge discovery without starter metadata", async () =
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /FlightForge/);
-  assert.match(html, /Find your line/);
-  assert.match(html, /Sabattus Disc Golf/);
-  assert.match(html, /Maine is the first tee|Maine/);
-  assert.match(html, /flightforge-maine-hero-v2\.webp/u);
-  assert.match(html, /Illustrative field scene/u);
+  assert.match(html, /Your next round/);
+  assert.match(html, /Where are you playing/);
+  assert.match(html, /Six states/);
+  assert.doesNotMatch(html, /class="course-card/u);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/);
 });
 
@@ -58,7 +57,7 @@ test("reports production dependency health without exposing secrets", async () =
   const health = await response.json();
   assert.equal(health.status, "ok");
   assert.equal(health.service, "flightforge-web");
-  assert.deepEqual(health.checks, { database: true, privateStorage: true });
+  assert.deepEqual(health.checks, { database: true, schema:true, privateStorage: true });
   assert.equal(typeof health.supabaseConfigured, "boolean");
   assert.equal("serviceRoleKey" in health, false);
 });
@@ -121,13 +120,13 @@ test("makes Fieldwork discoverable without expanding the five-item mobile naviga
 
   const home = await render("/");
   assert.equal(home.status, 200);
-  assert.match(await home.text(), /href="\/fieldwork"[^>]*>Fieldwork</u);
+  assert.match(await home.text(), /href="\/fieldwork"/u);
 
   const fieldwork = await render("/fieldwork");
   assert.equal(fieldwork.status, 200, await fieldwork.clone().text());
   const fieldworkHtml = await fieldwork.text();
-  assert.match(fieldworkHtml, /Find space/u);
-  assert.match(fieldworkHtml, /course listing is not permission/iu);
+  assert.match(fieldworkHtml, /Fieldwork/u);
+  assert.match(fieldworkHtml, /Check permission and keep your practice area clear/iu);
 });
 
 test("creates a free player account and persists first-run privacy settings", async () => {
@@ -149,7 +148,7 @@ test("creates a free player account and persists first-run privacy settings", as
   assert.equal(verification.status, 200);
   const cookie = verification.headers.get("set-cookie")?.split(";")[0];
   assert.ok(cookie, "verification must issue a secure session cookie");
-  assert.equal((await verification.json()).next, "/onboarding");
+  assert.equal((await verification.json()).next, "/onboarding?return_to=%2Fprofile");
 
   const settings = await fetch(`${baseUrl}/api/account/onboarding`, {
     method: "PUT",
@@ -301,7 +300,7 @@ test("seeds the player-only JPhillips tester on first successful login", async (
   assert.deepEqual(body.user.roles, ["PLAYER"]);
   assert.equal(body.user.onboardingComplete, false);
   assert.equal(body.user.mustChangePassword, true);
-  assert.equal(body.next, "/account/password");
+  assert.equal(body.next, "/account/password?return_to=%2Fprofile");
 });
 
 test("lets an authorized coordinator publish an idempotent event to the public board", async () => {

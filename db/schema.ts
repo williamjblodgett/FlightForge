@@ -30,6 +30,13 @@ export const users = sqliteTable(
   ],
 );
 
+export const verificationDeliveryJobs = sqliteTable("verification_delivery_jobs", {
+  id:text("id").primaryKey(),userId:text("user_id").notNull(),origin:text("origin").notNull(),returnTo:text("return_to").notNull(),
+  status:text("status").default("PENDING").notNull(),attempts:integer("attempts").default(0).notNull(),
+  nextAttemptAt:text("next_attempt_at").notNull(),leaseToken:text("lease_token"),leaseExpiresAt:text("lease_expires_at"),
+  createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull(),
+},table=>[uniqueIndex("verification_delivery_user_unique").on(table.userId),index("verification_delivery_due_idx").on(table.status,table.nextAttemptAt)]);
+
 export const authSessions = sqliteTable(
   "auth_sessions",
   {
@@ -922,6 +929,8 @@ export const rounds = sqliteTable(
     courseId: text("course_id").notNull(),
     layoutId: text("layout_id"),
     eventId: text("event_id"),
+    sessionKey: text("session_key"),
+    contextJson: text("context_json"),
     createdBy: text("created_by").notNull(),
     status: text("status").notNull(),
     scoringFormat: text("scoring_format").notNull(),
@@ -937,5 +946,6 @@ export const rounds = sqliteTable(
     uniqueIndex("rounds_user_event_active_unique")
       .on(table.createdBy, table.eventId)
       .where(sql`${table.status} = 'IN_PROGRESS'`),
+    uniqueIndex("rounds_user_session_unique").on(table.createdBy, table.sessionKey),
   ],
 );

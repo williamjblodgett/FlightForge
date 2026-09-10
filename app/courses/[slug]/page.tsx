@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowRight,
   BadgeCheck,
   CalendarClock,
   Check,
@@ -128,6 +129,8 @@ export default async function CourseDetailPage({ params }: Props) {
           <p className="detail-location"><MapPin aria-hidden="true" /> {address}</p>
           <p className="detail-summary">{course.shortDescription}</p>
           <div className="detail-actions">
+            <Link className="button button-primary" href={`/rounds/new?courseId=${encodeURIComponent(course.id)}`}>Start round <ArrowRight aria-hidden="true"/></Link>
+            <a className="button button-secondary" href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer">Directions <MapPin aria-hidden="true"/></a>
             <FavoriteButton
               courseId={course.id}
               courseName={course.name}
@@ -138,7 +141,7 @@ export default async function CourseDetailPage({ params }: Props) {
             <ShareCourseButton courseName={course.name} />
             <CommunityChannelLink contextType="COURSE" contextId={course.id} signedIn={Boolean(user)} label="Course community" className="button button-secondary" />
             <a className="button button-tertiary" href={course.sourceUrl} target="_blank" rel="noreferrer">
-              Visit course information <ExternalLink aria-hidden="true" />
+              Supporting course information <ExternalLink aria-hidden="true" />
             </a>
           </div>
         </div>
@@ -231,7 +234,7 @@ export default async function CourseDetailPage({ params }: Props) {
             <div className="next-time is-muted"><Clock3 aria-hidden="true" /><div><span>Reservations</span><strong>Contact the course for booking details</strong></div></div>
           )}
           <a className="button button-primary button-wide" href={course.sourceUrl} target="_blank" rel="noreferrer">
-            Check with the course <ExternalLink aria-hidden="true" />
+            Check source information <ExternalLink aria-hidden="true" />
           </a>
           {course.claimStatus !== "VERIFIED" ? (
             <Link className="button button-secondary button-wide" href={`/courses/${course.slug}/claim`}>Claim this course</Link>

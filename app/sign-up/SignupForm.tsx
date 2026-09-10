@@ -12,6 +12,7 @@ export function SignupForm({ returnTo = "/onboarding", registrationReady = true 
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deliveryPending,setDeliveryPending]=useState(false);
   const [created, setCreated] = useState(false);
 
   if (!registrationReady) {
@@ -37,13 +38,13 @@ export function SignupForm({ returnTo = "/onboarding", registrationReady = true 
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ displayName, email, password, acceptTerms, returnTo }),
       });
-      const body = (await response.json()) as { error?: { message?: string }; next?: string };
+      const body = (await response.json()) as { error?: { message?: string }; next?: string; deliveryPending?:boolean };
       if (!response.ok) {
         setError(body.error?.message ?? "Your account could not be created.");
         return;
       }
       if (body.next && body.next !== "/verify-email") window.location.assign(body.next);
-      else setCreated(true);
+      else {setDeliveryPending(Boolean(body.deliveryPending));setCreated(true);}
     } catch {
       setError(`${brand.productName} could not reach the account service.`);
     } finally {
@@ -51,7 +52,7 @@ export function SignupForm({ returnTo = "/onboarding", registrationReady = true 
     }
   }
 
-  if (created) return <section className="auth-card account-form" role="status"><Shield aria-hidden="true" /><span className="eyebrow">Check your inbox</span><h2>Verify your email to continue.</h2><p>We sent a single-use link that expires in 30 minutes. No session is created until that link is verified.</p><Link className="button button-secondary button-wide" href="/sign-in">Return to sign in</Link></section>;
+  if (created) return <section className="auth-card account-form" role="status"><Shield aria-hidden="true" /><span className="eyebrow">Check your inbox</span><h2>Verify your email to continue.</h2><p>{deliveryPending?"Your account was created, but email delivery could not be confirmed. Request a new link below.":"Check your inbox for a single-use verification link. No session is created until your email is verified."}</p><Link className="button button-primary button-wide" href={`/verify-email?return_to=${encodeURIComponent(returnTo)}`}>Request a new link</Link><Link className="button button-secondary button-wide" href={`/sign-in?return_to=${encodeURIComponent(returnTo)}`}>Return to sign in</Link></section>;
 
   return (
     <div className="account-entry-grid signup-grid">

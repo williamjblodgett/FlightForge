@@ -1,19 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageCircle } from "lucide-react";
-import { loadCommunity } from "./api";
+import { communityRequest,CommunityRequestError } from "./api";
 import styles from "./Community.module.css";
 
 export function UnreadMessagesLink() {
+  const busy=useRef(false);
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
 
   const refresh = useCallback(async () => {
-    try { setUnreadCount((await loadCommunity()).viewer.unreadCount); }
-    catch { /* The inbox itself presents sign-in, feature, and connection errors. */ }
+    if(busy.current)return;busy.current=true;
+    try{const result=await communityRequest<{unreadCount:number}>("/api/community/unread");setUnreadCount(Math.max(0,result.unreadCount));}
+    catch(error){if(error instanceof CommunityRequestError&&(error.status===401||error.status===403))setUnreadCount(0);}
+    finally{busy.current=false;}
   }, []);
 
   useEffect(() => {

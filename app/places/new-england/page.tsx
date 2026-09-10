@@ -25,7 +25,7 @@ export default function NewEnglandPage() {
         <span className="eyebrow">Six states · one place to explore</span>
         <h1>Find your next New England round.</h1>
         <p>Browse courses across Maine, New Hampshire, Vermont, Massachusetts, Connecticut, and Rhode Island. Check directly with the course before traveling for current hours and conditions.</p>
-        <div className="region-hero-actions"><Link className="button button-primary" href="/courses">Open the regional map <MapPinned aria-hidden="true" /></Link><a className="button button-secondary" href="#states">Browse by state</a></div>
+        <div className="region-hero-actions"><Link className="button button-primary" href="/courses?view=map">Open the regional map <MapPinned aria-hidden="true" /></Link><a className="button button-secondary" href="#states">Browse by state</a></div>
       </section>
       <section id="states" className="region-state-grid page-shell" aria-label="New England states">
         {states.map((state) => {

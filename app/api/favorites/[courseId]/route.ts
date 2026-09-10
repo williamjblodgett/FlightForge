@@ -2,11 +2,13 @@ import { apiError } from "@/lib/http/api-response";
 import { can } from "@/modules/auth/permissions";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { getCourseById } from "@/modules/courses/demo-courses";
-import { toggleFavoriteCourse } from "@/modules/courses/course-repository";
+import { toggleFavoriteCourse,setFavoriteCourse } from "@/modules/courses/course-repository";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
 import { brand } from "@/config/brand";
 
 type RouteContext = { params: Promise<{ courseId: string }> };
+
+export async function PUT(request:Request,context:RouteContext){return POST(request,context);}
 
 export async function POST(request: Request, { params }: RouteContext) {
   if (!isSameOriginMutation(request)) {
@@ -27,6 +29,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   try {
+    if(request.method==="PUT"){const body=await request.json().catch(()=>null) as {favorited?:unknown}|null;if(typeof body?.favorited!=="boolean")return apiError("VALIDATION_ERROR","Choose a saved state.",422);return Response.json(await setFavoriteCourse(user,courseId,body.favorited));}
     return Response.json(await toggleFavoriteCourse(user, courseId));
   } catch {
     return apiError(

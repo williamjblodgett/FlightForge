@@ -1,3 +1,4 @@
+import { nextAuthDestination } from "@/modules/auth/continuation";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/http/api-response";
 import { getCurrentUser } from "@/modules/auth/current-user";
@@ -43,7 +44,7 @@ export async function PUT(request: Request) {
 
   try {
     await saveOnboarding(user, parsed.data);
-    return NextResponse.json({ saved: true, next: "/profile" });
+    return NextResponse.json({ saved: true, next: nextAuthDestination({...user,onboardingComplete:true},parsed.data.returnTo) });
   } catch (error) {
     if (error instanceof PasswordChangeRequiredError) {
       return apiError("PASSWORD_CHANGE_REQUIRED", error.message, 409);

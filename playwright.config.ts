@@ -7,8 +7,9 @@ export default defineConfig({
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL, trace: "retain-on-failure" },
+  use: { baseURL, ignoreHTTPSErrors:process.env.FLIGHTFORGE_TEST_ISOLATED==="1", trace: "retain-on-failure", serviceWorkers:"block" },
   projects: [
+    {name:"mobile-webkit",use:{...devices["iPhone 13"],browserName:"webkit"}},
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile-chromium", use: { ...devices["iPhone 13"], browserName: "chromium" } },
   ],

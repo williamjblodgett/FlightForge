@@ -11,8 +11,6 @@ const primaryNavigation = [
   { label: "Discover", href: "/courses" },
   { label: "Play", href: "/play" },
   { label: "Events", href: "/events" },
-  { label: "Leagues", href: "/roadmap#leagues" },
-  { label: "Learn", href: "/roadmap#learn" },
   { label: "Coach", href: "/coach" },
   { label: "Bag", href: "/bag" },
   { label: "Community", href: "/community" },
@@ -60,6 +58,8 @@ export async function SiteHeader() {
                     ? <Link href="/onboarding">Finish profile setup</Link>
                     : <Link href="/profile">Profile & privacy</Link>}
                 {!user.mustChangePassword && user.source === "password" ? <Link href="/account/password">Change password</Link> : null}
+                <Link href="/more">All player tools</Link>
+                <Link href="/rounds">Round history</Link>
                 <Link href="/favorites">Saved courses</Link>
                 <Link href="/bag">My disc bag</Link>
                 <Link href="/coach">Camera coach</Link>

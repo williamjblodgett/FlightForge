@@ -1,5 +1,6 @@
+import { nextAuthDestination } from "@/modules/auth/continuation";
 import { apiError } from "@/lib/http/api-response";
-import { InvalidCurrentPasswordError, linkSupabaseIdentity } from "@/modules/auth/account-repository";
+import { PasswordChangeRequiredError, InvalidCurrentPasswordError, linkSupabaseIdentity } from "@/modules/auth/account-repository";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
 import { getSupabaseIdentity } from "@/lib/supabase/server";
 
@@ -17,8 +18,9 @@ export async function POST(request: Request) {
   if (password.length < 12 || password.length > 128) return apiError("VALIDATION_ERROR", "Enter the password for the existing FlightForge account.", 422);
   try {
     const user = await linkSupabaseIdentity({ email: supabase.email, authUserId: supabase.id, password });
-    return Response.json({ user, next: user.onboardingComplete ? "/profile" : "/onboarding" });
+    return Response.json({ user, next: nextAuthDestination(user,typeof body==="object"&&body&&"returnTo" in body?body.returnTo:undefined) });
   } catch (error) {
+    if(error instanceof PasswordChangeRequiredError)return apiError("PASSWORD_CHANGE_REQUIRED","First sign in with your existing FlightForge password and replace the temporary password. Then link this verified identity.",409);
     if (error instanceof InvalidCurrentPasswordError) return apiError("INVALID_CREDENTIALS", "The existing account password is incorrect.", 401);
     return apiError("LINK_FAILED", "The verified FlightForge identity could not be linked safely.", 409);
   }

@@ -1,3 +1,4 @@
+import {clampCoursePage,isInMapBounds,parseMapBounds,toCourseMapSummary} from "@/modules/courses/map-model";
 import type { Metadata } from "next";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { CourseExplorer } from "@/modules/courses/components/CourseExplorer";
@@ -24,15 +25,17 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
     priceType: enumValue(scalar(query.price), ["ALL", "FREE", "PAID", "MIXED"] as const, "ALL") as CoursePriceType | "ALL",
     holes: enumValue(scalar(query.holes), ["ALL", "9", "18", "36"] as const, "ALL"),
     evidence: enumValue(scalar(query.source) || scalar(query.evidence), ["ALL", "AUTHORITATIVE", "DIRECTORY"] as const, "ALL"),
-    view: enumValue(scalar(query.view), ["split", "list", "map"] as const, "split"),
+    view: enumValue(scalar(query.view), ["split", "list", "map"] as const, "list"),
   };
   const matches = rankCoursesForDiscovery(filterCourses(courses, {
     query: initialFilters.query, state: initialFilters.state, difficulty: initialFilters.difficulty,
     priceType: initialFilters.priceType, minimumHoles: initialFilters.holes === "ALL" ? null : Number(initialFilters.holes), evidence: initialFilters.evidence,
   }));
-  const page = Math.max(1, Number.parseInt(scalar(query.page) || "1", 10) || 1);
+  const bounds = parseMapBounds(scalar(query.bbox));
+  const areaMatches = matches.filter(c => isInMapBounds(c,bounds));
+  const page = clampCoursePage(scalar(query.page),areaMatches.length);
   const pageSize = 24;
-  const pageCourses = matches.slice((page - 1) * pageSize, page * pageSize);
+  const pageCourses = areaMatches.slice((page - 1) * pageSize, page * pageSize);
   const accountReady = Boolean(user && !user.identityLinkRequired);
   const favoriteIds = user && accountReady
     ? await getFavoriteCourseIds(user.email).catch(() => [])
@@ -40,8 +43,11 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
   return (
     <main>
       <CourseExplorer
+        key={JSON.stringify({...initialFilters,view:undefined,page,bounds})}
         courses={pageCourses}
-        totalMatches={matches.length}
+        mapCourses={matches.map(toCourseMapSummary)}
+        initialBounds={bounds}
+        totalMatches={areaMatches.length}
         page={page}
         pageSize={pageSize}
         initialFilters={initialFilters}

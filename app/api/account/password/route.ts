@@ -1,3 +1,4 @@
+import { nextAuthDestination } from "@/modules/auth/continuation";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/http/api-response";
 import {
@@ -41,7 +42,7 @@ export async function PUT(request: Request) {
   try {
     await changeAccountPassword(user.id, parsed.data.currentPassword, parsed.data.newPassword);
     const session = await createAccountSession(user.id, request.headers.get("user-agent"));
-    const response = NextResponse.json({ next: user.onboardingComplete ? "/profile" : "/onboarding" });
+    const response = NextResponse.json({ next: nextAuthDestination({...user,mustChangePassword:false},parsed.data.returnTo) });
     response.cookies.set(ACCOUNT_SESSION_COOKIE, session.token, {
       httpOnly: true,
       sameSite: "lax",

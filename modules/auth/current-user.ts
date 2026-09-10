@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { cacheForRequest } from "vinext/cache";
 import {
   ACCOUNT_SESSION_COOKIE,
   getAccountUserBySession,
@@ -13,7 +14,7 @@ import {
 } from "./demo-session";
 import type { AuthenticatedUser } from "./types";
 
-export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
+async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
   const cookieStore = await cookies();
   const hasSupabaseSessionCookie = cookieStore.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
   const supabaseIdentity = await getSupabaseIdentity().catch(() => null);
@@ -42,3 +43,5 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
   const token = cookieStore.get(DEMO_SESSION_COOKIE)?.value;
   return token ? verifyDemoSessionToken(token, secret) : null;
 }
+
+export const getCurrentUser = cacheForRequest(resolveCurrentUser);

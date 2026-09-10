@@ -12,11 +12,13 @@ export const signupSchema = z.object({
 });
 
 export const loginSchema = z.object({
+  returnTo: z.string().max(2048).optional(),
   email: z.email().transform((value) => value.trim().toLowerCase()),
   password: z.string().min(1).max(128),
 });
 
 export const passwordChangeSchema = z.object({
+  returnTo: z.string().max(2048).optional(),
   currentPassword: z.string().min(1).max(128),
   newPassword: z.string().min(1).max(128).superRefine((value, context) => {
     const issue = validatePasswordStrength(value);
@@ -35,6 +37,7 @@ export const passwordChangeSchema = z.object({
 const optionalDistance = z.union([z.number().int().min(50).max(1000), z.null()]);
 
 export const onboardingSchema = z.object({
+  returnTo: z.string().max(2048).optional(),
   displayName: z.string().trim().min(2).max(60),
   homeCity: z.string().trim().max(80).nullable(),
   homeRegionCode: z.string().trim().toUpperCase().max(3).nullable(),
