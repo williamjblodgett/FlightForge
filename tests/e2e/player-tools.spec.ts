@@ -1,4 +1,5 @@
-import {expect,test,type Page,type TestInfo} from "@playwright/test";
+import {expect,type Page,type TestInfo} from "@playwright/test";
+import {test} from "./fixtures";
 test.use({serviceWorkers:"allow"});
 async function readyPlayer(page:Page,info:TestInfo) {
   const origin=new URL(String(info.project.use.baseURL)).origin,unique=crypto.randomUUID();

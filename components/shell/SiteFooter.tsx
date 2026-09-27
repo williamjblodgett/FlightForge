@@ -12,12 +12,12 @@ export function SiteFooter() {
           <p>The operating system for recreational and competitive disc golf.</p>
         </div>
         <div className="footer-links">
-          <Link href="/courses">Discover courses</Link>
-          <Link href="/roadmap">Platform overview</Link>
-          <Link href="/legal/privacy">Privacy</Link>
-          <Link href="/legal/terms">Terms</Link>
-          <Link href="/legal/community-guidelines">Community guidelines</Link>
-          <Link href="/support/course-correction">Correct a course listing</Link>
+          <Link prefetch={false} href="/courses">Discover courses</Link>
+          <Link prefetch={false} href="/roadmap">Platform overview</Link>
+          <Link prefetch={false} href="/legal/privacy">Privacy</Link>
+          <Link prefetch={false} href="/legal/terms">Terms</Link>
+          <Link prefetch={false} href="/legal/community-guidelines">Community guidelines</Link>
+          <Link prefetch={false} href="/support/course-correction">Correct a course listing</Link>
           {contacts.supportEmail ? <a href={`mailto:${contacts.supportEmail}`}>Support</a> : null}
         </div>
         <p className="footer-legal">

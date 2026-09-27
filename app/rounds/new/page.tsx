@@ -8,7 +8,9 @@ import {StartRoundForm} from "./StartRoundForm";
 export const dynamic="force-dynamic";
 export const metadata={title:"Start a personal round",robots:{index:false,follow:false}};
 export default async function StartRoundPage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){
-  const query=await searchParams;const courseId=typeof query.courseId==="string"?query.courseId:"";const course=getCourseById(courseId);if(!course)notFound();
+  const query=await searchParams;const courseId=typeof query.courseId==="string"?query.courseId:"";
+  if(!courseId)return <main className="page-shell compact-page"><h1>Start a round</h1><section className="feature-card"><h2>Choose your course first</h2><p>Find the course you are playing, then select Start round on its page.</p><div className="feature-actions"><Link className="button button-primary" href="/courses">Find a course</Link><Link className="button button-secondary" href="/play">Continue a saved round</Link></div></section></main>;
+  const course=getCourseById(courseId);if(!course)notFound();
   const user=await getCurrentUser();if(!user)redirect(`/sign-in?return_to=${encodeURIComponent(`/rounds/new?courseId=${courseId}`)}`);
   const destination=`/rounds/new?courseId=${encodeURIComponent(courseId)}`;const next=nextAuthDestination(user,destination);if(next!==destination)redirect(next);
   const layouts=await getD1Database().prepare("SELECT id,name,hole_count AS holeCount FROM course_layouts WHERE course_id=? AND is_active=1 AND deleted_at IS NULL ORDER BY name").bind(courseId).all<{id:string;name:string;holeCount:number}>();

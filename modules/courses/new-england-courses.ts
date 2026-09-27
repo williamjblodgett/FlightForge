@@ -1,6 +1,7 @@
 import authoritativeImport from "@/data/import/new-england-courses.authoritative.json";
 import northExpansionImport from "@/data/import/new-england-expansion-north.reviewed.json";
 import southExpansionImport from "@/data/import/new-england-expansion-south.reviewed.json";
+import septemberImport from "@/data/import/new-england-september.reviewed.json";
 import type {
   Course,
   CourseEvidenceField,
@@ -29,6 +30,8 @@ export type AuthoritativeRecord = {
   availability_type: string;
   access: string;
   cost_note: string;
+  price_type?: CoursePriceType;
+  location_source?: {name: string; url: string; note: string};
   source_name: string;
   source_url: string;
   source_type: Extract<CourseSource["type"], "COURSE_OWNER" | "PUBLIC_AGENCY">;
@@ -42,6 +45,7 @@ export const authoritativeNewEnglandBatches = [
   authoritativeImport,
   northExpansionImport,
   southExpansionImport,
+  septemberImport,
 ] as unknown as Array<{
   batch_id: string;
   generated_at: string;
@@ -73,7 +77,7 @@ export const authoritativeNewEnglandCourses: Course[] = authoritativeNewEnglandR
   difficulty: "UNRATED",
   terrain: [],
   amenities: [],
-  priceType: priceType(record.cost_note),
+  priceType: record.price_type ?? priceType(record.cost_note),
   priceFromCents: null,
   claimStatus: "UNCLAIMED",
   dataVerificationStatus: "OPERATOR_SOURCE_REVIEWED",
@@ -92,7 +96,15 @@ export const authoritativeNewEnglandCourses: Course[] = authoritativeNewEnglandR
     validUntil: record.next_review_due_at,
     supports: record.evidence_fields,
     authoritative: true,
-  }],
+  }, ...(record.location_source ? [{
+    name: record.location_source.name,
+    url: record.location_source.url,
+    type: "PUBLIC_AGENCY" as const,
+    observation: record.location_source.note,
+    checkedAt: record.source_checked_at,
+    supports: ["LOCATION" as const],
+    authoritative: true,
+  }] : [])],
   operationalStatus: record.operational_status,
   availabilityType: record.availability_type,
   verificationLevel: "OPERATOR_SOURCE_REVIEWED",

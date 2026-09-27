@@ -16,7 +16,7 @@ describe("New England course evidence audit", () => {
     );
 
     expect(unsupportedPublished).toEqual([]);
-    expect(audit.counts.withheld_pending_primary_source).toBe(297);
+    expect(audit.counts.withheld_pending_primary_source).toBe(288);
   });
 
   it("keeps availability language conservative", () => {

@@ -12,7 +12,7 @@ The server-backed application delivers a complete account-to-discovery-to-course
 - centralized roles and server-side authorization;
 - PostgreSQL/PostGIS production schema and migrations;
 - durable Sites D1/R2 adapter for the deployed first slice;
-- a uniformly triaged 468-candidate New England evidence ledger, including all 120 Maine records, source-health checks, operator-source overrides, and conservative publication gates;
+- 186 public New England course listings and a 474-entry review ledger, including 120 legacy Maine records; triage is not a completed primary-source audit, and 288 candidate entries remain withheld;
 - responsive course search and provider-neutral map/list views;
 - source-attributed course details and exact unclaimed notices;
 - persistent favorites;

@@ -7,6 +7,7 @@ import { analyzeBag, type PlayerDisc } from "@/modules/bags/bag-intelligence";
 import type { CatalogDisc, PlayerDiscRecord } from "@/modules/bags/bag-repository";
 import { CaddieChat } from "@/components/caddie/CaddieChat";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ReadyControls } from "@/components/player-tools/ReadyControls";
 
 import type { RoundAssistance } from "@/modules/rounds/assistance";
 
@@ -70,6 +71,7 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
   const [actualDistance, setActualDistance] = useState("");
   const [pendingDelete, setPendingDelete] = useState<PlayerDiscRecord | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const caddieDiscs = useMemo(() => discs.map(toPlayerDisc), [discs]);
   const analysis = useMemo(() => analyzeBag(caddieDiscs), [caddieDiscs]);
   const activeCount = discs.filter((disc) => disc.status === "IN_BAG").length;
@@ -88,21 +90,25 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
     const payload = discPayload(discForm, editing?.version);
     try {
       const response = await fetch(editing ? `/api/bag/${editing.id}` : "/api/bag", { method: editing ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
-      const body = await response.json() as { error?: { message?: string } };
+      const body = await response.json() as { disc?: PlayerDiscRecord; error?: { message?: string } };
       if (!response.ok) { setDiscError(body.error?.message ?? "The disc could not be saved."); return; }
-      await refreshBag(); setShowEditor(false); setEditing(null); setDiscForm(emptyDiscForm());
+      // A committed mutation must not be reported as a failed save when a later read fails.
+      if (body.disc) setDiscs(current => [body.disc!, ...current.filter(disc => disc.id !== body.disc!.id)]);
+      setShowEditor(false); setEditing(null); setDiscForm(emptyDiscForm());
+      try { await refreshBag(); } catch { setDiscError("Your disc was saved. The latest bag could not be refreshed; use Refresh bag to try again."); }
     } catch { setDiscError("The bag service could not be reached. Your entries remain in this form."); }
     finally { setDiscBusy(false); }
   }
 
   async function removeDisc(disc: PlayerDiscRecord) {
     setDeleteBusy(true);
-    setDiscError(null);
+    setDeleteError(null);
     try {
       const response = await fetch(`/api/bag/${disc.id}`, { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ version: disc.version }) });
-      if (!response.ok) { const body = await response.json() as { error?: { message?: string } }; setDiscError(body.error?.message ?? "The disc could not be removed."); return; }
-      await refreshBag(); setPendingDelete(null);
-    } catch { setDiscError("The bag service could not be reached."); }
+      if (!response.ok) { const body = await response.json() as { error?: { message?: string } }; setDeleteError(body.error?.message ?? "The disc could not be removed."); return; }
+      setDiscs(current => current.filter(item => item.id !== disc.id)); setPendingDelete(null);
+      try { await refreshBag(); } catch { setDiscError("The disc was removed. Use Refresh bag to reload the rest of your collection."); }
+    } catch { setDeleteError("The bag service could not be reached. Try again."); }
     finally { setDeleteBusy(false); }
   }
 
@@ -111,6 +117,7 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
     if (!response.ok) throw new Error("Bag refresh failed");
     const body = await response.json() as { discs: PlayerDiscRecord[] };
     setDiscs(body.discs);
+    setDiscError(null);
   }
 
   async function requestCaddie(event: React.FormEvent<HTMLFormElement>) {
@@ -134,13 +141,14 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
       const response = await fetch(`/api/caddie/recommendations/${recommendation.id}/feedback`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ playerDiscId: selectedId, throwType: caddie.throwType, intendedShape: caddie.fairwayShape, result: feedbackResult, flightAdjustment, missDirection: feedbackResult === "SUCCESS" ? "NONE" : feedbackResult === "SHORT" ? "SHORT" : feedbackResult === "LONG" ? "LONG" : null, distanceFeet: actualDistance ? Number(actualDistance) : null, windMph: caddie.windMph, windDirection: caddie.windDirection, representative: true, comment: null }) });
       const body = await response.json() as { error?: { message?: string } };
       if (!response.ok) { setCaddieError(body.error?.message ?? "The feedback could not be saved."); return; }
-      await refreshBag(); setFeedbackSaved(true);
+      setFeedbackSaved(true);
+      try { await refreshBag(); } catch { setCaddieError("Your throw feedback was saved. Refresh your bag to load the updated disc profile."); }
     } catch { setCaddieError("The feedback service could not be reached."); }
     finally { setCaddieBusy(false); }
   }
 
   const selectedCatalog = catalog.find((disc) => disc.id === discForm.catalogMoldId) ?? null;
-  return <div className="bag-workspace">
+  return <ReadyControls><div className="bag-workspace">
     <section className="bag-command-bar"><div><span className="eyebrow"><Disc3 aria-hidden="true" /> Digital bag</span><h1>Your discs are the caddie’s equipment map.</h1><p>Record each physical disc separately. Manufacturer ratings remain attributed; wear and your representative throws create a private personalized layer.</p></div><button className="button button-primary" type="button" onClick={showEditor ? () => setShowEditor(false) : startAdd}>{showEditor ? <><X aria-hidden="true" />Close editor</> : <><Plus aria-hidden="true" />Add a disc</>}</button></section>
 
     <section className="bag-metrics" aria-label="Bag summary"><div><strong>{activeCount}</strong><span>Carried now</span></div><div><strong>{discs.length}</strong><span>Owned discs</span></div><div><strong>{learnedCount}</strong><span>Personalized</span></div><div><strong>{analysis.coverage}%</strong><span>Starter-role coverage</span></div></section>
@@ -179,8 +187,8 @@ export function BagWorkspace({ initialDiscs, catalog, controlledDistanceFeet, th
       </div>
     </section>
     {caddieEnabled ? <CaddieChat roundContext={roundContext} /> : null}
-    <ConfirmDialog open={Boolean(pendingDelete)} title="Remove this disc?" description={pendingDelete ? `${pendingDelete.nickname || pendingDelete.moldName} will leave your collection. Its recorded throw profiles will no longer appear in your bag.` : ""} confirmLabel="Remove disc" destructive busy={deleteBusy} onCancel={() => setPendingDelete(null)} onConfirm={() => pendingDelete ? removeDisc(pendingDelete) : undefined} />
-  </div>;
+    <ConfirmDialog open={Boolean(pendingDelete)} title="Remove this disc?" description={pendingDelete ? `${pendingDelete.nickname || pendingDelete.moldName} will leave your collection. Its recorded throw profiles will no longer appear in your bag.` : ""} confirmLabel="Remove disc" destructive busy={deleteBusy} error={deleteError} onCancel={() => {setPendingDelete(null);setDeleteError(null);}} onConfirm={() => pendingDelete ? removeDisc(pendingDelete) : undefined} />
+  </div></ReadyControls>;
 }
 
 function emptyDiscForm(): DiscForm { return { catalogMoldId: "", manufacturerName: "", moldName: "", manualSpeed: "7", manualGlide: "5", manualTurn: "0", manualFade: "1", plastic: "", weightGrams: "", color: "", nickname: "", condition: "GOOD", wearRating: 2, domeProfile: "", runName: "", status: "IN_BAG", notes: "" }; }

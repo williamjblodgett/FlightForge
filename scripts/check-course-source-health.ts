@@ -14,6 +14,7 @@ const regionalBatches = await Promise.all([
   "data/import/new-england-courses.authoritative.json",
   "data/import/new-england-expansion-north.reviewed.json",
   "data/import/new-england-expansion-south.reviewed.json",
+  "data/import/new-england-september.reviewed.json",
 ].map((path) => readJson<RegionalBatch>(resolve(root, path))));
 const regionalRecords = regionalBatches.flatMap((batch) => batch.records);
 const outputPath = resolve(root, process.argv[3] ?? "work/course-source-health.json");

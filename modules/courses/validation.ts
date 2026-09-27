@@ -62,6 +62,8 @@ export const authoritativeRegionalCourseRecordSchema = z.object({
   availability_type: z.string().trim().min(2).max(240),
   access: z.string().trim().min(2).max(240),
   cost_note: z.string().trim().min(2).max(240),
+  price_type: z.enum(["FREE", "PAID", "MIXED"]).optional(),
+  location_source: z.object({name:z.string().min(2).max(160),url:z.string().url().max(1000),note:z.string().min(10).max(500)}).optional(),
   source_name: z.string().trim().min(2).max(160),
   source_url: z.string().url().max(1000),
   source_type: z.enum(["COURSE_OWNER", "PUBLIC_AGENCY"]),

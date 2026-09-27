@@ -11,7 +11,7 @@ export async function MobileNav() {
         <span>Play</span>
       </NavLink>
       <NavLink href="/events"><CalendarDays aria-hidden="true" /><span>Events</span></NavLink>
-      <NavLink exclude={["/rounds/new"]} match={["/more", "/profile", "/sign-in", "/sign-up", "/onboarding", "/account", "/favorites", "/bag", "/coach", "/fieldwork", "/rounds", "/community", "/messages"]} href="/more"><MoreHorizontal aria-hidden="true"/><span>More</span></NavLink>
+      <NavLink exclude={["/rounds/new"]} match={["/more", "/profile", "/sign-in", "/sign-up", "/forgot-password", "/verify-email", "/onboarding", "/account", "/favorites", "/bag", "/coach", "/fieldwork", "/rounds", "/community", "/messages", "/groups", "/updates", "/practice", "/recover", "/leagues", "/passport", "/plan", "/downloads"]} href="/more"><MoreHorizontal aria-hidden="true"/><span>More</span></NavLink>
     </nav>
   );
 }

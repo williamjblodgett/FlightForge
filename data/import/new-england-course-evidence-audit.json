@@ -1,6 +1,6 @@
 {
   "format_version": "1.0",
-  "generated_at": "2026-08-22T14:02:05.967Z",
+  "generated_at": "2026-09-19T23:06:05.547Z",
   "audit_scope": "Every candidate discovered in the refreshed six-state directory snapshot plus every primary-source-published regional record.",
   "publication_policy": "Outside Maine, candidates remain withheld until a current owner, facility, municipal, park, school, or university source confirms identity and location. Maine legacy listings retain their disclosed evidence level while uniform review continues.",
   "availability_policy": "Evidence of a published course is not an open-now guarantee. Weather, maintenance, private events, daylight, seasonal closures, and access restrictions can change after review.",
@@ -14,10 +14,10 @@
       "CT": 71,
       "RI": 8
     },
-    "primary_source_reviewed": 73,
+    "primary_source_reviewed": 82,
     "directory_cross_checked": 52,
     "directory_single_source": 52,
-    "withheld_pending_primary_source": 297,
+    "withheld_pending_primary_source": 288,
     "source_urls_needing_recheck": 0,
     "cited_source_urls": 595,
     "reachable_source_urls": 588,
@@ -1358,11 +1358,23 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "north-quarter-park",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "primary_source": {
+        "name": "Town of Chester",
+        "url": "https://www.chesterct.org/parks-recreation-commission/pages/parks",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:orenaug-park-disc-golf-YJ76",
@@ -1383,11 +1395,23 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "orenaug-park-disc-golf",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "primary_source": {
+        "name": "Woodbury Parks and Recreation",
+        "url": "https://woodburyct.myrec.com/info/facilities/details.aspx?FacilityID=13826",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:outdoor-adventure-ctr-subbase-access-p5y0",
@@ -2450,11 +2474,24 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "buffumville-lake",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "primary_source": {
+        "name": "U.S. Army Corps of Engineers — Buffumville Lake",
+        "url": "https://www.nae.usace.army.mil/Missions/Recreation/Buffumville-Lake/",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT",
+          "COST"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:burgess-park-23ur",
@@ -2808,11 +2845,26 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "crane-hill",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "primary_source": {
+        "name": "Town of Wilbraham",
+        "url": "https://www.wilbraham-ma.gov/290/Crane-Hill-Disc-Golf-Course",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT",
+          "COST",
+          "HOURS",
+          "SEASON"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:dacey-disc-golf-Kmia",
@@ -5075,11 +5127,25 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "tully-lake",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "primary_source": {
+        "name": "U.S. Army Corps of Engineers — Tully Lake",
+        "url": "https://www.nae.usace.army.mil/Missions/Recreation/Tully-Lake/",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT",
+          "COST",
+          "SEASON"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:u-mass-dartmouth-dgc-pv7P",
@@ -8708,11 +8774,25 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "bretton-woods-disc-golf",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_SEASONAL",
+      "primary_source": {
+        "name": "Bretton Woods",
+        "url": "https://www.brettonwoods.com/experiences/disc-golf/",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT",
+          "SEASON",
+          "HOURS"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:cam-baer-memorial-disc-golf-course-eYWr",
@@ -10116,11 +10196,24 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "the-pines-at-wheelock",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "primary_source": {
+        "name": "Keene Parks and Recreation",
+        "url": "https://keeneparks.recdesk.com/Community/Facility/Detail?facilityId=102",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT",
+          "HOURS"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:the-stevens-9-uSYW",
@@ -10900,11 +10993,24 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "awasiwi-woods",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "primary_source": {
+        "name": "City of South Burlington",
+        "url": "https://www.southburlingtonvt.gov/677/Awasiwi-Woods---Disc-Golf-Course",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT",
+          "HOURS"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:base-camp-outfitters-vML2",
@@ -11667,11 +11773,24 @@
         "outcome": "REACHABLE"
       },
       "canonical_slug": "hard-ack-dgc",
-      "evidence_status": "PRIMARY_SOURCE_REQUIRED",
-      "publication_status": "WITHHELD_PENDING_PRIMARY_SOURCE",
-      "operational_status": "STATUS_UNVERIFIED",
-      "primary_source": null,
-      "review_outcome": "Candidate reviewed and withheld because no approved primary source is attached."
+      "evidence_status": "PRIMARY_SOURCE_REVIEWED",
+      "publication_status": "PUBLISHED_PRIMARY_SOURCE",
+      "operational_status": "OPERATOR_CONFIRMED_AVAILABLE",
+      "primary_source": {
+        "name": "St. Albans Recreation",
+        "url": "https://stalbansvt.myrec.com/info/activities/program_details.aspx?ProgramID=21613",
+        "checked_at": "2026-09-19T23:00:00.000Z",
+        "next_review_due_at": "2026-10-19T23:00:00.000Z",
+        "evidence_fields": [
+          "IDENTITY",
+          "LOCATION",
+          "ACCESS",
+          "LAYOUT",
+          "COST"
+        ],
+        "health": null
+      },
+      "review_outcome": "Current owner, facility, or public-agency evidence is attached; same-day access is not guaranteed."
     },
     {
       "candidate_id": "udisc:horace-hill-disc-golf-park-vQhB",

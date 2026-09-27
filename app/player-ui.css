@@ -19,11 +19,15 @@
 .home-regions a{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface-soft);border:1px solid var(--border);border-radius:10px}
 .home-regions p{color:var(--ink-muted);font-size:14px}
 .tools-page header h1{font-size:36px;margin:8px 0}
-.tool-directory{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0 30px}
-.tool-directory a{display:flex;align-items:center;gap:14px;min-height:80px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px}
-.tool-directory a>svg{flex:none;width:24px;color:var(--forest)}
+.tool-groups{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:28px 0}
+.tool-groups>section{min-width:0}.tool-groups h2{font-size:1.125rem;margin:0 0 12px}
+.tool-directory{display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--border);border-radius:14px;background:var(--surface);overflow:hidden}
+.tool-directory a{display:flex;align-items:center;gap:12px;min-height:68px;padding:13px 14px;border-bottom:1px solid var(--border);border-radius:0}
+.tool-directory a:last-child{border-bottom:0}.tool-directory a:hover{background:var(--surface-soft,#edf3ed)}
+.tool-directory a>span{min-width:0;overflow-wrap:anywhere}.tool-directory a:focus-visible{outline-offset:-4px}
+.tool-directory a>svg{flex:none;width:20px;color:var(--forest)}
 .tool-directory a>svg:last-child{margin-left:auto;width:18px}
-.tool-directory strong{display:block;font-size:17px}.tool-directory small{display:block;font-size:14px;color:var(--ink-muted);margin-top:4px}
+.tool-directory strong{display:block;font-size:16px;line-height:1.4}.tool-directory small{display:block;font-size:14px;color:var(--ink-muted);margin-top:2px;line-height:1.4}
 .account-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.account-tools h2{width:100%}
 .account-tools>a{min-height:46px;display:flex;align-items:center;gap:8px}
 .compact-explorer{padding-top:28px}
@@ -72,12 +76,18 @@
  .player-home,.tools-page{padding-block:22px 30px}.player-greeting h1{font-size:34px}.player-greeting p{font-size:15px;margin-bottom:18px}
  .home-action-card{padding:20px;gap:16px;align-items:flex-start;flex-direction:column}.home-action-card h2{font-size:23px}.home-action-card .button{width:100%}
  .home-search{margin:20px 0}.home-search button{padding-inline:14px}.home-quick-tools{grid-template-columns:1fr}.home-quick-tools a{padding:14px}
- .home-regions>div{grid-template-columns:1fr 1fr}.tool-directory{grid-template-columns:1fr}.account-tools{align-items:stretch}.account-tools .button{width:100%}
+ .home-regions>div{grid-template-columns:1fr 1fr}.tool-groups{grid-template-columns:1fr;gap:22px}.account-tools{align-items:stretch}.account-tools .button{width:100%}
  .compact-explorer{padding-top:20px}.compact-page-heading{margin-bottom:12px}
  .compact-explorer .explorer-topbar{display:grid;grid-template-columns:1fr auto auto;gap:8px}
  .compact-explorer .search-field{grid-column:1/3}.compact-explorer .view-toggle{grid-column:3;grid-row:2}
  .compact-explorer .filter-trigger{grid-column:1/3;grid-row:2;justify-content:center;width:100%;min-height:44px}
- .compact-explorer .course-results-list{grid-template-columns:1fr;gap:12px}.compact-explorer .course-card .course-art{min-height:150px;max-height:150px}
+ .compact-explorer .course-results-list{grid-template-columns:1fr;gap:12px}.compact-explorer .course-card .course-art{min-height:96px;max-height:96px}
+ .compact-explorer .course-art-coordinate{top:12px;left:14px;font-size:12px}
+ .compact-explorer .course-art-holes{right:14px;bottom:12px;font-size:12px}.compact-explorer .course-art-holes b{font-size:26px}
+ .compact-explorer .course-art-route{display:none}.compact-explorer .course-art-pin{width:32px;height:32px}
+ .compact-explorer .course-card-body{padding:16px}.compact-explorer .course-trust-row{gap:6px;margin-block:10px}
+ .compact-explorer .course-meta-grid{display:flex;flex-wrap:wrap;gap:10px 16px}.compact-explorer .course-meta-grid>span{min-width:0}
+ .profile-menu summary{min-width:44px;min-height:44px}
  .compact-explorer .results-summary{display:block}.compact-explorer .results-summary p{font-size:14px;margin-top:6px;text-align:left}
  .compact-explorer .filter-row.is-open{padding:12px}.course-map .map-toolbar>span{font-size:14px}.map-toolbar>span>svg{display:none}.map-course-preview .button{width:100%}
  .auth-page{padding-block:20px}.auth-heading{margin-bottom:18px}.auth-heading h1{font-size:28px;line-height:1.15;margin:8px 0}

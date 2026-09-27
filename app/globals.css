@@ -400,6 +400,10 @@ svg {
   right: 0;
   display: grid;
   min-width: 250px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 160px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   gap: 5px;
   padding: 16px;
   border: 1px solid var(--border);

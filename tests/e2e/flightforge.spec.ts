@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures";
 
 test("course discovery keeps filters in the URL and opens an interactive map", async ({ page }) => {
   await page.goto("/courses");
@@ -167,6 +168,7 @@ test("personal round completes, persists, corrects and recovers from a failed sy
   await page.getByLabel("Strokes for hole 2").fill("8");
   await page.getByLabel("Strokes for hole 2").press("Enter");
   await page.getByRole("button",{name:"Add one penalty to hole 2",exact:true}).click();
+  await expect(page.locator('.penalty-control output')).toHaveText("1");
   await expect(page.getByText(/All scores saved/u)).toBeVisible();
   await page.getByRole("button",{name:"Finish round",exact:true}).click();
   await page.getByRole("button",{name:"Finish and save",exact:true}).click();

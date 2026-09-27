@@ -43,7 +43,6 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
   return (
     <main>
       <CourseExplorer
-        key={JSON.stringify({...initialFilters,view:undefined,page,bounds})}
         courses={pageCourses}
         mapCourses={matches.map(toCourseMapSummary)}
         initialBounds={bounds}

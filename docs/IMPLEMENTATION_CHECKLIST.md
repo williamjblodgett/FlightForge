@@ -1,5 +1,24 @@
 # Implementation checklist
 
+## September 27 cross-site reliability and mobile release
+
+- [x] Preserve unfinished September 19 changes and confirm existing live Site/source
+- [x] Review private-tool loading, authorization and save/refresh behavior
+- [x] Group the mobile tool directory and shorten repetitive discovery artwork
+- [x] Add retry states, account gates and abort-safe reads to passport, groups and leagues
+- [x] Reduce automatic account/menu/footer prefetch requests
+- [x] Validate the combined release with unit, server, browser and production-build checks
+- [ ] Publish matching source to GitHub main and the existing live Site
+
+## September 19 live-site review and real-data refresh
+
+- [x] Inspect the clean checkout, current live release and public catalog pipeline
+- [x] Retest public routes at desktop, phone and narrow-phone widths
+- [x] Reproduce and correct bounded navigation, bag feedback and discovery issues
+- [x] Add primary-source-supported New England courses, keeping restrictions visible
+- [x] Run isolated account/workflow/browser checks, data validation and production build
+- [ ] Publish matching source to main/live and document findings and remaining recommendations
+
 ## Connected player tools — September 10 expansion
 
 - [x] Time-limited course reports, scoped operator labels, follows and in-app updates
@@ -72,7 +91,7 @@
 
 ## New England evidence expansion
 
-- [x] Five-state primary-source-only launch and expansion batches (57 published regional records)
+- [x] Five-state primary-source-only launch and expansion batches (66 published regional records)
 - [x] State and regional discovery pages
 - [x] State and evidence-level search filters
 - [x] Facility grouping for multi-course properties
@@ -81,7 +100,7 @@
 - [x] Regional validation CLI and unit tests
 - [x] Maintain a 474-record six-state review ledger with source health and explicit publication outcomes
 - [x] Refresh and evidence-tier all 120 Maine records without inflating directory evidence into operator verification
-- [ ] Obtain primary owner or public-agency evidence for the 297 withheld expansion candidates
+- [ ] Obtain primary owner or public-agency evidence for the 288 withheld expansion candidates
 - [ ] Add operator outreach and correction-case workflow after communication approval
 
 ## GitHub Pages interactive edition
@@ -143,8 +162,8 @@
 
 - [ ] Complete public-workflow repository cutover from hosted D1 to Supabase PostgreSQL
 - [x] Initialize Supabase PostGIS/security foundation with the original 135 reviewed public course records
-- [x] Extend the idempotent Supabase seed generator to all 177 current public course records
-- [ ] Apply and verify the 42 newly reviewed regional records in Supabase during the controlled data rehearsal
+- [x] Extend the Supabase seed generator to all 186 current public course records
+- [ ] Apply and verify the 51 additional regional records in Supabase during the controlled data rehearsal
 - [ ] Configure server-only Supabase credentials and transaction-pooler `DATABASE_URL`
 - [ ] Prove full D1/PostgreSQL repository parity, identity linking, backup, rollback, and cutover rehearsal
 - [ ] Activate production Supabase SMTP/contact settings and rehearse verified-email recovery; social OAuth and MFA remain provider work

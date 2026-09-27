@@ -8,6 +8,7 @@ const inputPaths = process.argv.length > 2
       "data/import/new-england-courses.authoritative.json",
       "data/import/new-england-expansion-north.reviewed.json",
       "data/import/new-england-expansion-south.reviewed.json",
+      "data/import/new-england-september.reviewed.json",
     ].map((path) => resolve(path));
 const inputs = await Promise.all(inputPaths.map(async (path) => JSON.parse(await readFile(path, "utf8")) as unknown));
 const results = inputs.map((input) => authoritativeRegionalCourseBatchSchema.safeParse(input));

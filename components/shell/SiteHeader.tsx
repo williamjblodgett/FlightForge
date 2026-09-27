@@ -24,20 +24,20 @@ export async function SiteHeader() {
         <BrandMark />
         <nav className="desktop-nav" aria-label="Primary navigation">
           {primaryNavigation.map((item) => (
-            <NavLink key={item.label} href={item.href}>{item.label}</NavLink>
+            <NavLink key={item.label} href={item.href} prefetch={["/coach","/bag","/community"].includes(item.href)?false:undefined}>{item.label}</NavLink>
           ))}
         </nav>
         <div className="header-actions">
           {can(user, "viewAdmin") ? (
-            <Link className="manage-link" href="/admin/claims">
+            <Link prefetch={false} className="manage-link" href="/admin/claims">
               <ShieldCheck size={16} aria-hidden="true" /> Admin
             </Link>
           ) : can(user, "manageEvents") ? (
-            <Link className="manage-link" href="/events/manage">
+            <Link prefetch={false} className="manage-link" href="/events/manage">
               <CalendarPlus2 size={16} aria-hidden="true" /> Manage events
             </Link>
           ) : null}
-          <Link className="icon-button" href="/courses" aria-label="Search courses">
+          <Link prefetch={false} className="icon-button" href="/courses" aria-label="Search courses">
             <Search aria-hidden="true" />
           </Link>
           {user ? <UnreadMessagesLink /> : null}
@@ -51,29 +51,29 @@ export async function SiteHeader() {
                 <strong>{user.displayName}</strong>
                 <span>{user.email}</span>
                 {user.identityLinkRequired
-                  ? <Link href="/account/link">Securely link account</Link>
+                  ? <Link prefetch={false} href="/account/link">Securely link account</Link>
                   : user.mustChangePassword
-                  ? <Link href="/account/password">Secure account now</Link>
+                  ? <Link prefetch={false} href="/account/password">Secure account now</Link>
                   : !user.onboardingComplete
-                    ? <Link href="/onboarding">Finish profile setup</Link>
-                    : <Link href="/profile">Profile & privacy</Link>}
-                {!user.mustChangePassword && user.source === "password" ? <Link href="/account/password">Change password</Link> : null}
-                <Link href="/more">All player tools</Link>
-                <Link href="/rounds">Round history</Link>
-                <Link href="/favorites">Saved courses</Link>
-                <Link href="/bag">My disc bag</Link>
-                <Link href="/coach">Camera coach</Link>
-                <Link href="/fieldwork">Fieldwork & throw distance</Link>
-                <Link href="/play">Live scorecard</Link>
-                <Link href="/messages">Messages</Link>
-                <Link href="/community">Community</Link>
-                {can(user, "manageEvents") ? <Link href="/events/manage">Manage events</Link> : null}
-                {can(user, "viewAdmin") ? <Link href="/admin/claims">Admin review</Link> : null}
+                    ? <Link prefetch={false} href="/onboarding">Finish profile setup</Link>
+                    : <Link prefetch={false} href="/profile">Profile & privacy</Link>}
+                {!user.mustChangePassword && user.source === "password" ? <Link prefetch={false} href="/account/password">Change password</Link> : null}
+                <Link prefetch={false} href="/more">All player tools</Link>
+                <Link prefetch={false} href="/rounds">Round history</Link>
+                <Link prefetch={false} href="/favorites">Saved courses</Link>
+                <Link prefetch={false} href="/bag">My disc bag</Link>
+                <Link prefetch={false} href="/coach">Camera coach</Link>
+                <Link prefetch={false} href="/fieldwork">Fieldwork & throw distance</Link>
+                <Link prefetch={false} href="/play">Live scorecard</Link>
+                <Link prefetch={false} href="/messages">Messages</Link>
+                <Link prefetch={false} href="/community">Community</Link>
+                {can(user, "manageEvents") ? <Link prefetch={false} href="/events/manage">Manage events</Link> : null}
+                {can(user, "viewAdmin") ? <Link prefetch={false} href="/admin/claims">Admin review</Link> : null}
                 <SignOutButton />
               </div>
             </details>
           ) : (
-            <Link className="profile-link" href="/sign-in" aria-label="Sign in to FlightForge">
+            <Link prefetch={false} className="profile-link" href="/sign-in" aria-label="Sign in to FlightForge">
               <UserRound size={19} aria-hidden="true" />
               <span>Sign in</span>
             </Link>
