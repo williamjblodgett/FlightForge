@@ -144,9 +144,10 @@ export async function listMessages(
   conversationId: string,
   cursor: string | null,
   limit: number,
-): Promise<{ messages: CommunityMessage[]; nextCursor: string | null }> {
+): Promise<{ conversation: ConversationSummary; messages: CommunityMessage[]; nextCursor: string | null }> {
   await requireCommunityAccess(user.id);
   await requireConversationMember(conversationId, user.id);
+  const conversation = await requireSummary(conversationId, user.id);
   const decoded = decodeCursor(cursor);
   const database = getD1Database();
   const bindings: unknown[] = [conversationId, user.id, user.id];
@@ -175,6 +176,7 @@ export async function listMessages(
   const page = rows.slice(0, limit);
   const last = page.at(-1);
   return {
+    conversation,
     messages: page.reverse().map((row) => mapMessage(row, user)),
     nextCursor: hasMore && last ? encodeCursor(last.createdAt, last.id) : null,
   };
@@ -782,11 +784,18 @@ async function requireMessagePermission(senderUserId: string, targetUserId: stri
   })) throw new CommunityError("FORBIDDEN", "That player is not accepting messages from this account.", 403);
 }
 
-async function listConversationSummaries(userId: string, publicOnly: boolean): Promise<ConversationSummary[]> {
-  const bindings: string[] = [userId, userId, userId, userId, userId, userId];
+async function listConversationSummaries(userId: string, publicOnly: boolean, conversationId?: string): Promise<ConversationSummary[]> {
+  const bindings: string[] = [userId, userId, userId, userId, userId, userId, userId, userId];
   if (!publicOnly) bindings.push(userId, userId, userId);
+  if (conversationId !== undefined) bindings.push(conversationId);
   const result = await getD1Database().prepare(
-    `SELECT c.id, c.conversation_type AS conversationType,
+    `WITH visible_preview_messages AS (
+       SELECT m.* FROM messages m WHERE m.moderation_status = 'PUBLISHED' AND m.deleted_at IS NULL
+       AND NOT EXISTS (SELECT 1 FROM blocked_users b WHERE
+         (b.blocker_user_id = ? AND b.blocked_user_id = m.sender_user_id)
+         OR (b.blocker_user_id = m.sender_user_id AND b.blocked_user_id = ?))
+     )
+     SELECT c.id, c.conversation_type AS conversationType,
        CASE WHEN c.conversation_type = 'DIRECT' THEN
          (SELECT direct_user.display_name FROM conversation_members direct_member
           JOIN users direct_user ON direct_user.id = direct_member.user_id
@@ -803,23 +812,23 @@ async function listConversationSummaries(userId: string, publicOnly: boolean): P
        COALESCE(cm.notifications_muted, 0) AS muted, cm.role,
        CASE WHEN cm.id IS NULL OR cm.left_at IS NOT NULL THEN 0 ELSE
          (SELECT count(*) FROM messages unread WHERE unread.conversation_id = c.id
-          AND unread.sender_user_id != ? AND unread.moderation_status = 'PUBLISHED'
+          AND unread.sender_user_id != ? AND unread.moderation_status = 'PUBLISHED' AND unread.deleted_at IS NULL
           AND NOT EXISTS (SELECT 1 FROM blocked_users unread_block WHERE
             (unread_block.blocker_user_id = ? AND unread_block.blocked_user_id = unread.sender_user_id)
             OR (unread_block.blocker_user_id = unread.sender_user_id AND unread_block.blocked_user_id = ?))
           AND (unread.created_at > COALESCE(cm.last_read_at, '')
             OR (unread.created_at = COALESCE(cm.last_read_at, '')
               AND unread.id > COALESCE(cm.last_read_message_id, '')))) END AS unreadCount,
-       (SELECT latest.id FROM messages latest WHERE latest.conversation_id = c.id AND latest.moderation_status = 'PUBLISHED'
+       (SELECT latest.id FROM visible_preview_messages latest WHERE latest.conversation_id = c.id
          ORDER BY latest.created_at DESC, latest.id DESC LIMIT 1) AS lastMessageId,
-       (SELECT latest.body FROM messages latest WHERE latest.conversation_id = c.id AND latest.moderation_status = 'PUBLISHED'
+       (SELECT latest.body FROM visible_preview_messages latest WHERE latest.conversation_id = c.id
          ORDER BY latest.created_at DESC, latest.id DESC LIMIT 1) AS lastMessageBody,
-       (SELECT sender.display_name FROM messages latest JOIN users sender ON sender.id = latest.sender_user_id
-         WHERE latest.conversation_id = c.id AND latest.moderation_status = 'PUBLISHED'
+       (SELECT sender.display_name FROM visible_preview_messages latest JOIN users sender ON sender.id = latest.sender_user_id
+         WHERE latest.conversation_id = c.id
          ORDER BY latest.created_at DESC, latest.id DESC LIMIT 1) AS lastMessageSender,
-       (SELECT latest.created_at FROM messages latest WHERE latest.conversation_id = c.id AND latest.moderation_status = 'PUBLISHED'
+       (SELECT latest.created_at FROM visible_preview_messages latest WHERE latest.conversation_id = c.id
          ORDER BY latest.created_at DESC, latest.id DESC LIMIT 1) AS lastMessageCreatedAt,
-       (SELECT latest.moderation_status FROM messages latest WHERE latest.conversation_id = c.id AND latest.moderation_status = 'PUBLISHED'
+       (SELECT latest.moderation_status FROM visible_preview_messages latest WHERE latest.conversation_id = c.id
          ORDER BY latest.created_at DESC, latest.id DESC LIMIT 1) AS lastMessageModerationStatus
      FROM conversations c LEFT JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = ?
      WHERE c.status = 'ACTIVE' AND ${publicOnly
@@ -831,17 +840,16 @@ async function listConversationSummaries(userId: string, publicOnly: boolean): P
                OR (blocked_pair.blocker_user_id = blocked_member.user_id AND blocked_pair.blocked_user_id = ?))
             WHERE blocked_member.conversation_id = c.id AND blocked_member.user_id != ? AND blocked_member.left_at IS NULL
           )`}
-     ORDER BY COALESCE(c.last_message_at, c.updated_at) DESC LIMIT ${publicOnly ? 100 : 50}`,
+     ${conversationId !== undefined ? "AND c.id = ?" : ""}
+     ORDER BY COALESCE(c.last_message_at, c.updated_at) DESC LIMIT ${conversationId !== undefined ? 1 : publicOnly ? 100 : 50}`,
   ).bind(...bindings).all<ConversationRow>();
   return result.results.map(mapConversationSummary);
 }
 
 async function requireSummary(conversationId: string, userId: string): Promise<ConversationSummary> {
-  const summaries = await listConversationSummaries(userId, false);
-  const direct = summaries.find((summary) => summary.id === conversationId);
+  const [direct] = await listConversationSummaries(userId, false, conversationId);
   if (direct) return direct;
-  const channels = await listConversationSummaries(userId, true);
-  const channel = channels.find((summary) => summary.id === conversationId);
+  const [channel] = await listConversationSummaries(userId, true, conversationId);
   if (!channel) throw new CommunityError("NOT_FOUND", "That conversation was not found.", 404);
   return channel;
 }

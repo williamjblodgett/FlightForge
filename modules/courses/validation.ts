@@ -107,6 +107,7 @@ export const courseClaimSchema = z.object({
 });
 
 export const claimReviewSchema = z.object({
+  version: z.number().int().positive(),
   status: z.enum([
     "ADDITIONAL_INFORMATION_REQUIRED",
     "VERIFIED",

@@ -1,7 +1,31 @@
 import { getD1Database } from "@/db/runtime";
 import { ensurePersistedUserId, findAccountUserByEmail } from "@/modules/auth/account-repository";
 import type { AuthenticatedUser } from "@/modules/auth/types";
-import type { ClaimStatus, CourseClaimApplication } from "./types";
+import type { ClaimStatus, Course, CourseClaimApplication } from "./types";
+import { transactionGuard } from "@/db/transaction-guard";
+
+export class CourseClaimConflictError extends Error {
+  constructor(message = "This course or application changed, or you already applied. Refresh before trying again.") {
+    super(message); this.name = "CourseClaimConflictError";
+  }
+}
+
+async function runClaimBatch(statements: D1PreparedStatement[]) {
+  try { await getD1Database().batch(statements); }
+  catch (error) {
+    if (error instanceof Error && error.message.includes("player_tool_guard_valid")) throw new CourseClaimConflictError();
+    throw error;
+  }
+}
+
+export async function withCourseOwnership(listings: readonly Course[]): Promise<Course[]> {
+  if (!listings.length) return [];
+  await ensureSchema();
+  const result = await getD1Database().prepare(`SELECT course_id AS courseId FROM course_claims WHERE status='VERIFIED'
+    UNION SELECT id AS courseId FROM courses WHERE claim_status='VERIFIED'`).all<{courseId:string}>();
+  const verified = new Set(result.results.map(row => row.courseId));
+  return listings.map(course => verified.has(course.id) ? {...course,claimStatus:"VERIFIED",verifiedBadge:true} : course);
+}
 
 export type CourseClaimRecord = CourseClaimApplication & {
   id: string;
@@ -239,7 +263,11 @@ export async function submitCourseClaim(
   const id = crypto.randomUUID();
   const timestamp = new Date().toISOString();
 
-  await database.batch([
+  await runClaimBatch([
+    ...transactionGuard(`NOT EXISTS(SELECT 1 FROM course_claims WHERE course_id=? AND status='VERIFIED')
+      AND NOT EXISTS(SELECT 1 FROM courses WHERE id=? AND claim_status='VERIFIED')
+      AND NOT EXISTS(SELECT 1 FROM course_claims WHERE course_id=? AND applicant_user_email=?)`,
+      [application.courseId,application.courseId,application.courseId,user.email.toLowerCase()]),
     database
       .prepare(
         `INSERT INTO course_claims
@@ -340,15 +368,20 @@ export async function reviewCourseClaim(
   status: Exclude<ClaimStatus, "UNCLAIMED" | "CLAIM_SUBMITTED">,
   reason: string,
   courseName: string,
+  expectedVersion: number,
 ): Promise<CourseClaimRecord | null> {
   await ensureSchema();
   const database = getD1Database();
   const reviewerUserId = await ensurePersistedUserId(reviewer);
   const current = await getCourseClaim(claimId);
   if (!current) return null;
+  if (current.version !== expectedVersion || !["CLAIM_SUBMITTED","ADDITIONAL_INFORMATION_REQUIRED"].includes(current.status)) {
+    throw new CourseClaimConflictError();
+  }
 
   const timestamp = new Date().toISOString();
   const statements: D1PreparedStatement[] = [
+    ...transactionGuard("EXISTS(SELECT 1 FROM course_claims WHERE id=? AND version=? AND status IN ('CLAIM_SUBMITTED','ADDITIONAL_INFORMATION_REQUIRED'))",[claimId,expectedVersion]),
     database
       .prepare(
         `UPDATE course_claims SET status = ?, reviewed_by = ?, review_reason = ?,
@@ -382,7 +415,11 @@ export async function reviewCourseClaim(
 
   if (status === "VERIFIED") {
     const claimant = await findAccountUserByEmail(current.applicantUserEmail);
-    if (!claimant?.emailVerified) throw new Error("A verified claimant account is required before ownership can be granted.");
+    if (!claimant?.emailVerified) throw new CourseClaimConflictError("The claimant must verify their active account before ownership can be granted.");
+    statements.unshift(...transactionGuard(`NOT EXISTS(SELECT 1 FROM course_claims WHERE course_id=? AND status='VERIFIED')
+      AND NOT EXISTS(SELECT 1 FROM courses WHERE id=? AND claim_status='VERIFIED')
+      AND EXISTS(SELECT 1 FROM users WHERE id=? AND lower(email)=? AND status='ACTIVE' AND deleted_at IS NULL AND email_verified_at IS NOT NULL)`,
+      [current.courseId,current.courseId,claimant.id,current.applicantUserEmail.toLowerCase()]));
     const organizationId = `organization:${current.courseId}`;
     statements.push(
       database.prepare(
@@ -421,7 +458,7 @@ export async function reviewCourseClaim(
     );
   }
 
-  await database.batch(statements);
+  await runClaimBatch(statements);
 
   return getCourseClaim(claimId);
 }

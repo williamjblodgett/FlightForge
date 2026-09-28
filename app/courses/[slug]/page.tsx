@@ -22,7 +22,7 @@ import { listConditions } from "@/modules/courses/conditions-repository";
 import { CourseUpdates } from "@/modules/courses/components/CourseUpdates";
 import { DownloadCourse } from "@/modules/courses/components/DownloadCourse";
 import { getCurrentUser } from "@/modules/auth/current-user";
-import { getFavoriteCourseIds } from "@/modules/courses/course-repository";
+import { getFavoriteCourseIds, withCourseOwnership } from "@/modules/courses/course-repository";
 import { courses, formatCoursePrice, getCourseBySlug } from "@/modules/courses/demo-courses";
 import { CourseHeroArt } from "@/modules/courses/components/CourseHeroArt";
 import { CourseLocator } from "@/modules/courses/components/CourseLocator";
@@ -64,8 +64,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CourseDetailPage({ params }: Props) {
   const { slug } = await params;
-  const course = getCourseBySlug(slug);
-  if (!course) notFound();
+  const listing = getCourseBySlug(slug);
+  if (!listing) notFound();
+  const [course] = await withCourseOwnership([listing]);
 
   const user = await getCurrentUser();
   const notices=await listConditions(course.id,user?.id??null).catch(()=>[]);

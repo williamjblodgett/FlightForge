@@ -5,6 +5,7 @@ import { BadgeCheck, Building2, ShieldCheck } from "lucide-react";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { CourseClaimForm } from "@/modules/courses/components/CourseClaimForm";
 import { getCourseBySlug } from "@/modules/courses/demo-courses";
+import { withCourseOwnership } from "@/modules/courses/course-repository";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,9 @@ type Props = { params: Promise<{ slug: string }> };
 
 export default async function ClaimCoursePage({ params }: Props) {
   const { slug } = await params;
-  const course = getCourseBySlug(slug);
-  if (!course) notFound();
+  const listing = getCourseBySlug(slug);
+  if (!listing) notFound();
+  const [course] = await withCourseOwnership([listing]);
   const user = await getCurrentUser();
 
   if (course.claimStatus === "VERIFIED") {

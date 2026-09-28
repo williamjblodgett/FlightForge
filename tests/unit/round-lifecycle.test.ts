@@ -21,7 +21,7 @@ function adapter(database:DatabaseSync):D1Database{
  class Statement{
   constructor(readonly sql:string,readonly values:Value[]=[]){}
   bind(...values:Value[]){return new Statement(this.sql,values);}
-  execute(){const s=database.prepare(this.sql);if(/^\s*(SELECT|PRAGMA)\b/iu.test(this.sql))return {success:true,results:s.all(...this.values),meta:{changes:0}};return {success:true,results:[],meta:{changes:Number(s.run(...this.values).changes)}};}
+  execute(){const s=database.prepare(this.sql);if(s.columns().length)return {success:true,results:s.all(...this.values),meta:{changes:0}};return {success:true,results:[],meta:{changes:Number(s.run(...this.values).changes)}};}
   async first<T>(){return (database.prepare(this.sql).get(...this.values)??null) as T|null;}
   async all<T>(){const r=this.execute();return {...r,results:r.results as T[]};}
   async run(){return this.execute();}

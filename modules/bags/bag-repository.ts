@@ -574,6 +574,11 @@ export async function recordCaddieFeedback(
   if (existingObservation) throw new BagConflictError("Feedback was already recorded for this recommendation.");
 
   const timestamp = new Date().toISOString();
+  const adjustment = input.flightAdjustment === "MORE_UNDERSTABLE"
+    ? { turn: disc.turn - 0.75, fade: Math.max(0, disc.fade - 0.5) }
+    : input.flightAdjustment === "MORE_OVERSTABLE"
+      ? { turn: Math.min(2, disc.turn + 0.5), fade: Math.min(6, disc.fade + 0.75) }
+      : { turn: disc.turn, fade: disc.fade };
   const statements: D1PreparedStatement[] = [
     database.prepare(
       `INSERT INTO ai_feedback
@@ -582,7 +587,9 @@ export async function recordCaddieFeedback(
     ).bind(
       crypto.randomUUID(), recommendationId, userId,
       input.result === "SUCCESS" ? "HELPFUL" : "NEEDS_ADJUSTMENT",
-      JSON.stringify({ flightAdjustment: input.flightAdjustment, missDirection: input.missDirection }),
+      JSON.stringify({ flightAdjustment: input.flightAdjustment, missDirection: input.missDirection,
+        baselineTurn: disc.turn, baselineFade: disc.fade, observedTurn: adjustment.turn,
+        observedFade: adjustment.fade, ratingVersionId: disc.ratingVersionId }),
       input.comment, timestamp,
     ),
     database.prepare(
@@ -598,35 +605,70 @@ export async function recordCaddieFeedback(
     auditStatement(database, userId, "CADDIE_FEEDBACK_RECORDED", "ai_recommendation", recommendationId, timestamp),
   ];
 
-  let nextProfile: DiscProfile | null = null;
   if (input.representative) {
-    const current = (await listProfiles(userId)).get(input.playerDiscId)?.find((profile) => profile.throwType === input.throwType) ?? null;
-    nextProfile = nextDiscProfile(current, disc, input);
+    // Read observations inside the same transaction as their insertion. D1 serializes
+    // this aggregate, so concurrent feedback cannot overwrite a stale client count.
     statements.push(database.prepare(
       `INSERT INTO player_disc_profiles
         (id, user_id, player_disc_id, throw_type, sample_count, typical_distance_feet,
          success_rate, observed_turn, observed_fade, confidence, updated_at, version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+       SELECT ?, ?, ?, ?, COUNT(*), ROUND(AVG(distance_feet), 2),
+         ROUND(AVG(CASE WHEN result = 'SUCCESS' THEN 1.0 ELSE 0.0 END), 2),
+         ?, ?, ROUND(MIN(0.95, COUNT(*) / 12.0), 2), ?, 1
+       FROM disc_observations
+       WHERE user_id = ? AND player_disc_id = ? AND throw_type = ? AND representative = 1
+       HAVING COUNT(*) > 0
        ON CONFLICT(player_disc_id, throw_type) DO UPDATE SET
          sample_count = excluded.sample_count,
          typical_distance_feet = excluded.typical_distance_feet,
          success_rate = excluded.success_rate,
-         observed_turn = excluded.observed_turn,
-         observed_fade = excluded.observed_fade,
+         observed_turn = CASE WHEN player_disc_profiles.observed_turn IS NULL OR player_disc_profiles.sample_count = 0
+           THEN excluded.observed_turn ELSE ROUND((player_disc_profiles.observed_turn * player_disc_profiles.sample_count
+             + excluded.observed_turn) / (player_disc_profiles.sample_count + 1), 2) END,
+         observed_fade = CASE WHEN player_disc_profiles.observed_fade IS NULL OR player_disc_profiles.sample_count = 0
+           THEN excluded.observed_fade ELSE ROUND((player_disc_profiles.observed_fade * player_disc_profiles.sample_count
+             + excluded.observed_fade) / (player_disc_profiles.sample_count + 1), 2) END,
          confidence = excluded.confidence,
          updated_at = excluded.updated_at,
          version = player_disc_profiles.version + 1`,
     ).bind(
-      crypto.randomUUID(), userId, input.playerDiscId, nextProfile.throwType,
-      nextProfile.sampleCount, nextProfile.typicalDistanceFeet, nextProfile.successRate,
-      nextProfile.observedTurn, nextProfile.observedFade, nextProfile.confidence, timestamp,
+      crypto.randomUUID(), userId, input.playerDiscId, input.throwType,
+      adjustment.turn, adjustment.fade, timestamp, userId, input.playerDiscId, input.throwType,
     ));
+    statements.push(database.prepare(`SELECT throw_type AS throwType, sample_count AS sampleCount,
+      typical_distance_feet AS typicalDistanceFeet, success_rate AS successRate,
+      observed_turn AS observedTurn, observed_fade AS observedFade, confidence
+      FROM player_disc_profiles WHERE user_id=? AND player_disc_id=? AND throw_type=?`)
+      .bind(userId,input.playerDiscId,input.throwType));
   }
-  await database.batch(statements);
-  return nextProfile;
+  const results = await database.batch<Record<string,unknown>>(statements);
+  const row = input.representative ? results.at(-1)?.results[0] : null;
+  return row ? mapDiscProfile(row) : null;
+}
+
+function mapDiscProfile(row: Record<string,unknown>): DiscProfile {
+  return {
+    throwType: String(row.throwType) as DiscProfile["throwType"],
+    sampleCount: Number(row.sampleCount), typicalDistanceFeet: nullableNumber(row.typicalDistanceFeet),
+    successRate: nullableNumber(row.successRate), observedTurn: nullableNumber(row.observedTurn),
+    observedFade: nullableNumber(row.observedFade), confidence: Number(row.confidence),
+  };
 }
 
 async function listProfiles(userId: string): Promise<Map<string, DiscProfile[]>> {
+  // Reconcile old count/distance bugs from durable observations, without inventing
+  // historical flight-number baselines that were not recorded by earlier releases.
+  await getD1Database().prepare(
+    `WITH actual AS (
+       SELECT player_disc_id, throw_type, COUNT(*) AS n, ROUND(AVG(distance_feet), 2) AS distance,
+         ROUND(AVG(CASE WHEN result = 'SUCCESS' THEN 1.0 ELSE 0.0 END), 2) AS success
+       FROM disc_observations WHERE user_id = ? AND representative = 1 GROUP BY player_disc_id, throw_type
+     ) UPDATE player_disc_profiles AS p SET
+       sample_count = a.n, typical_distance_feet = a.distance, success_rate = a.success,
+       confidence = ROUND(MIN(0.95, a.n / 12.0), 2), version = p.version + 1
+     FROM actual a WHERE p.user_id = ? AND p.player_disc_id = a.player_disc_id AND p.throw_type = a.throw_type
+       AND (p.sample_count IS NOT a.n OR p.typical_distance_feet IS NOT a.distance OR p.success_rate IS NOT a.success)`,
+  ).bind(userId, userId).run();
   const result = await getD1Database().prepare(
     `SELECT player_disc_id AS playerDiscId, throw_type AS throwType,
       sample_count AS sampleCount, typical_distance_feet AS typicalDistanceFeet,
@@ -636,12 +678,7 @@ async function listProfiles(userId: string): Promise<Map<string, DiscProfile[]>>
   ).bind(userId).all<Record<string, unknown>>();
   const profiles = new Map<string, DiscProfile[]>();
   for (const row of result.results) {
-    const profile: DiscProfile = {
-      throwType: String(row.throwType) as DiscProfile["throwType"],
-      sampleCount: Number(row.sampleCount), typicalDistanceFeet: nullableNumber(row.typicalDistanceFeet),
-      successRate: nullableNumber(row.successRate), observedTurn: nullableNumber(row.observedTurn),
-      observedFade: nullableNumber(row.observedFade), confidence: Number(row.confidence),
-    };
+    const profile = mapDiscProfile(row);
     const id = String(row.playerDiscId);
     profiles.set(id, [...(profiles.get(id) ?? []), profile]);
   }
@@ -710,35 +747,6 @@ function toCaddieDisc(disc: PlayerDiscRecord, throwType: "BACKHAND" | "FOREHAND"
     reliability: profile?.successRate ?? undefined, sampleCount: profile?.sampleCount ?? 0,
     profileConfidence: profile?.confidence ?? 0,
   };
-}
-
-function nextDiscProfile(current: DiscProfile | null, disc: PlayerDiscRecord, input: CaddieFeedbackInput): DiscProfile {
-  const previousCount = current?.sampleCount ?? 0;
-  const sampleCount = previousCount + 1;
-  const typicalDistanceFeet = input.distanceFeet == null
-    ? current?.typicalDistanceFeet ?? null
-    : runningAverage(current?.typicalDistanceFeet, previousCount, input.distanceFeet);
-  const successValue = input.result === "SUCCESS" ? 1 : 0;
-  const successRate = runningAverage(current?.successRate, previousCount, successValue);
-  const adjustment = input.flightAdjustment === "MORE_UNDERSTABLE"
-    ? { turn: disc.turn - 0.75, fade: Math.max(0, disc.fade - 0.5) }
-    : input.flightAdjustment === "MORE_OVERSTABLE"
-      ? { turn: Math.min(2, disc.turn + 0.5), fade: Math.min(6, disc.fade + 0.75) }
-      : { turn: disc.turn, fade: disc.fade };
-  return {
-    throwType: input.throwType,
-    sampleCount,
-    typicalDistanceFeet,
-    successRate,
-    observedTurn: runningAverage(current?.observedTurn, previousCount, adjustment.turn),
-    observedFade: runningAverage(current?.observedFade, previousCount, adjustment.fade),
-    confidence: Math.round(Math.min(0.95, sampleCount / 12) * 100) / 100,
-  };
-}
-
-function runningAverage(previous: number | null | undefined, previousCount: number, next: number): number {
-  if (previous == null || previousCount === 0) return next;
-  return Math.round(((previous * previousCount + next) / (previousCount + 1)) * 100) / 100;
 }
 
 function stabilityFromRatings(turn: number, fade: number): DiscStability {

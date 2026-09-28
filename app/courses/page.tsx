@@ -2,7 +2,7 @@ import {clampCoursePage,isInMapBounds,parseMapBounds,toCourseMapSummary} from "@
 import type { Metadata } from "next";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { CourseExplorer } from "@/modules/courses/components/CourseExplorer";
-import { getFavoriteCourseIds } from "@/modules/courses/course-repository";
+import { getFavoriteCourseIds, withCourseOwnership } from "@/modules/courses/course-repository";
 import { courses } from "@/modules/courses/demo-courses";
 import { brand } from "@/config/brand";
 import { filterCourses, rankCoursesForDiscovery } from "@/modules/courses/search";
@@ -35,7 +35,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
   const areaMatches = matches.filter(c => isInMapBounds(c,bounds));
   const page = clampCoursePage(scalar(query.page),areaMatches.length);
   const pageSize = 24;
-  const pageCourses = areaMatches.slice((page - 1) * pageSize, page * pageSize);
+  const pageCourses = await withCourseOwnership(areaMatches.slice((page - 1) * pageSize, page * pageSize));
   const accountReady = Boolean(user && !user.identityLinkRequired);
   const favoriteIds = user && accountReady
     ? await getFavoriteCourseIds(user.email).catch(() => [])

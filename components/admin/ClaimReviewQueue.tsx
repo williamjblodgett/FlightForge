@@ -69,7 +69,7 @@ function ClaimReviewCard({
       const response = await fetch(`/api/admin/claims/${claim.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ status, reason }),
+        body: JSON.stringify({ status, reason, version: claim.version }),
       });
       const body = (await response.json()) as { claim?: CourseClaimRecord; error?: { message?: string } };
       if (!response.ok || !body.claim) {
@@ -111,7 +111,7 @@ function ClaimReviewCard({
 
       {claim.status === "CLAIM_SUBMITTED" || claim.status === "ADDITIONAL_INFORMATION_REQUIRED" ? (
         <div className="claim-decision-panel">
-          <div className="decision-warning"><ShieldAlert aria-hidden="true" /><span>Confirm evidence outside {brand.productName} when needed. A verified decision grants future management access.</span></div>
+          <div className="decision-warning"><ShieldAlert aria-hidden="true" /><span>Confirm the applicant’s authority outside {brand.productName} when needed. Approval grants management access for this course.</span></div>
           <div className="decision-fields">
             <label><span>Decision</span><select value={status} onChange={(event) => setStatus(event.target.value as DecisionStatus)}><option value="VERIFIED">Verify claim</option><option value="ADDITIONAL_INFORMATION_REQUIRED">Request more information</option><option value="REJECTED">Reject claim</option><option value="SUSPENDED">Suspend claim</option></select></label>
             <label><span>Required reason</span><textarea rows={3} value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Describe the evidence and policy basis for this decision." /></label>

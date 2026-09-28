@@ -1,7 +1,8 @@
 import { apiError } from "@/lib/http/api-response";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { can } from "@/modules/auth/permissions";
-import { getCourseClaim, reviewCourseClaim } from "@/modules/courses/course-repository";
+import { CourseClaimConflictError, getCourseClaim, reviewCourseClaim } from "@/modules/courses/course-repository";
+import { logError } from "@/lib/observability/logger";
 import { claimReviewSchema } from "@/modules/courses/validation";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
 import { getCourseById } from "@/modules/courses/demo-courses";
@@ -38,6 +39,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   const { claimId } = await params;
+  try {
   const existing = await getCourseClaim(claimId);
   if (!existing) return apiError("CLAIM_NOT_FOUND", "That claim does not exist.", 404);
   const course = getCourseById(existing.courseId);
@@ -48,7 +50,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     parsed.data.status,
     parsed.data.reason,
     course.name,
+    parsed.data.version,
   );
   if (!claim) return apiError("CLAIM_NOT_FOUND", "That claim does not exist.", 404);
-  return Response.json({ claim });
+  return Response.json({ claim },{headers:{"cache-control":"private, no-store"}});
+  } catch (error) {
+    if (error instanceof CourseClaimConflictError) return apiError("CLAIM_CONFLICT",error.message,409);
+    logError("claims.review_failed",error,{claimId});
+    return apiError("CLAIM_REVIEW_UNAVAILABLE","The review could not be saved. Refresh and try again.",503);
+  }
 }

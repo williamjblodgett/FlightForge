@@ -64,8 +64,4 @@ export function audit(actorId: string, resourceType: string, resourceId: string,
     .bind(crypto.randomUUID(),actorId,resourceType,resourceId,action,JSON.stringify(detail),new Date().toISOString());
 }
 // A failing CHECK aborts the complete D1 batch if authorization/version changed after a read.
-export function transactionGuard(condition:string,values:Array<string|number|null>):D1PreparedStatement[] {
-  const db=getD1Database(),id=crypto.randomUUID();
-  return [db.prepare(`INSERT INTO player_tool_guards(id,valid) VALUES(?,CASE WHEN ${condition} THEN 1 ELSE 0 END)`).bind(id,...values),
-    db.prepare("DELETE FROM player_tool_guards WHERE id=?").bind(id)];
-}
+export { transactionGuard } from "@/db/transaction-guard";

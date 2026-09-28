@@ -1,5 +1,6 @@
 import { getD1Database, getPrivateMediaBucket } from "@/db/runtime";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import {getAuthProviderHealth} from "@/lib/supabase/health";
 
 export async function GET() {
   const startedAt = Date.now();
@@ -20,7 +21,8 @@ export async function GET() {
     checks.privateStorage = Boolean(getPrivateMediaBucket());
   } catch { /* Report a degraded check without exposing binding details. */ }
 
-  const healthy = checks.database && checks.schema && checks.privateStorage;
+  const authentication = await getAuthProviderHealth();
+  const healthy = checks.database && checks.schema && checks.privateStorage && authentication.status!=="UNAVAILABLE";
   let supabaseConfigured = false;
   try { supabaseConfigured = isSupabaseConfigured(); } catch { /* Invalid configuration remains unavailable. */ }
   return Response.json({
@@ -29,6 +31,7 @@ export async function GET() {
     releaseId: process.env.RELEASE_ID ?? "unknown",
     checks,
     supabaseConfigured,
+    authentication,
     latencyMs: Date.now() - startedAt,
     checkedAt: new Date().toISOString(),
   }, { status: healthy ? 200 : 503, headers: { "Cache-Control": "no-store", "x-flightforge-release": process.env.RELEASE_ID ?? "unknown" } });

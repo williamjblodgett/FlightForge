@@ -393,4 +393,24 @@ test("lets an authorized coordinator publish an idempotent event to the public b
   const board = await render("/events");
   assert.equal(board.status, 200);
   assert.ok((await board.text()).includes(eventInput.title));
+
+  // Use the published ID from the real form; approval must update anonymous views.
+  const coursePath="/courses/sabattus-disc-golf-eagle";
+  const claimPage=await fetch(`${baseUrl}${coursePath}/claim`,{headers:{cookie:coordinatorCookie}});
+  const courseId=(await claimPage.text()).match(/name="courseId" value="([^"]+)"/u)?.[1];
+  assert.ok(courseId,"claim form must expose the published course identifier");
+  const form=new FormData();
+  for(const [key,value] of Object.entries({courseId,applicantName:"Integration Owner",applicantRole:"Operator",businessEmail:coordinatorEmail,businessPhone:"2075550100",website:"",explanation:"Isolated verification fixture confirming course management authority."}))form.set(key,value);
+  const application=await fetch(`${baseUrl}/api/claims`,{method:"POST",headers:{origin:baseUrl,cookie:coordinatorCookie},body:form});
+  assert.equal(application.status,201,await application.clone().text());
+  const claim=(await application.json()).claim;
+  const approve=()=>fetch(`${baseUrl}/api/admin/claims/${claim.id}`,{method:"PATCH",headers:coordinatorHeaders,body:JSON.stringify({status:"VERIFIED",reason:"Operator authority checked in isolated integration test.",version:claim.version})});
+  const decision=await approve();assert.equal(decision.status,200,await decision.clone().text());
+  assert.equal((await decision.json()).claim.status,"VERIFIED");
+  assert.equal((await approve()).status,409,"stale review must not repeat its grants");
+  const approvedPage=await render(coursePath);assert.equal(approvedPage.status,200);
+  assert.doesNotMatch(await approvedPage.text(),/This course has not joined FlightForge yet/u);
+  assert.match(await (await render(`${coursePath}/claim`)).text(),/This listing is already verified/u);
+  const duplicateClaim=await fetch(`${baseUrl}/api/claims`,{method:"POST",headers:{origin:baseUrl,cookie:coordinatorCookie},body:form});
+  assert.equal(duplicateClaim.status,409,"verified ownership must reject new applications");
 });

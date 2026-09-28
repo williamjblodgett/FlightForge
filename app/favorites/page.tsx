@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { Heart, Search } from "lucide-react";
 import { getCurrentUser } from "@/modules/auth/current-user";
 import { CourseCard } from "@/modules/courses/components/CourseCard";
-import { getFavoriteCourseIds } from "@/modules/courses/course-repository";
+import { getFavoriteCourseIds, withCourseOwnership } from "@/modules/courses/course-repository";
 import { courses } from "@/modules/courses/demo-courses";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export default async function FavoritesPage() {
   } catch {
     unavailable = true;
   }
-  const favorites = courses.filter((course) => ids.includes(course.id));
+  const favorites = await withCourseOwnership(courses.filter((course) => ids.includes(course.id)));
   return (
     <main className="saved-page page-shell">
       <header className="saved-heading"><span className="eyebrow">Your short list</span><h1>Saved courses</h1><p>Compare the places you want to play next.</p></header>

@@ -1,5 +1,18 @@
 # Implementation checklist
 
+## September 28 audit repairs
+
+- [ ] Restore/confirm external Supabase project (requires dashboard access and real-account pilot)
+- [x] Expose actual provider health and prevent misleading signup/recovery success during outages
+- [x] Retire linked local credentials/sessions and correct password-recovery failure handling
+- [x] Make coaching retention retryable, including previously mis-marked records and bounded background reconciliation
+- [x] Read persisted course ownership and reject duplicate claims after approval
+- [x] Respect selected event time zones, including DST validation
+- [x] Filter blocked message previews and open conversations beyond list limits
+- [x] Restore editable state after offline draft recovery
+- [x] Make caddie feedback aggregation atomic and ignore blank distance samples
+- [x] Add regression tests and validate desktop/mobile workflows; see `QA-FIXES-2026-09-28.md`
+
 ## Google sign-in — September 28
 
 - [x] Inspect existing Supabase, identity-linking and legal-consent boundaries
@@ -191,6 +204,6 @@
 - [ ] Persist booking and full import-review apply/rollback workflows across devices (round scoring and shared play groups are now persistent)
 - [ ] Connect verified course inventory, email/push delivery, and operator calendars
 - [ ] Add Stripe Connect sandbox, marketplace ledger, payouts, tax, refunds, and disputes
-- [ ] Add third-party malware scanning, isolated transcoding, and a scheduled global retention sweep (per-user expiry cleanup is active)
+- [ ] Add third-party malware scanning and isolated transcoding; verify the host's cron trigger in operations (scheduled entry point and bounded traffic-driven retention reconciliation are implemented)
 - [ ] Connect pose-landmark and approved multimodal providers only after coach benchmark, consent, and safety review
 - [ ] Complete independent security assessment, operational readiness, and legal review

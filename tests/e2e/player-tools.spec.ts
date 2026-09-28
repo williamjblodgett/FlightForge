@@ -1,6 +1,46 @@
 import {expect,type Page,type TestInfo} from "@playwright/test";
 import {test} from "./fixtures";
+import type {ActiveRound} from "@/modules/rounds/round-repository";
 test.use({serviceWorkers:"allow"});
+test("previous-round draft recovery immediately re-enables scoring",async({page},info)=>{
+  test.setTimeout(90_000);
+  await readyPlayer(page,info);
+  const eventId="flightforge-demo-event",origin=new URL(String(info.project.use.baseURL)).origin;
+  async function active(){
+    const response=await page.request.get(`/api/rounds/active?eventId=${eventId}`);
+    expect(response.status()).toBe(200);
+    return (await response.json() as {round:ActiveRound}).round;
+  }
+  await page.goto(`/play?eventId=${eventId}`);
+  await page.getByRole("button",{name:"Ace",exact:true}).click();
+  await expect(page.getByText(/All scores saved/u)).toBeVisible();
+  let round=await active();const previousId=round.id;
+  // Another device completes the server round without clearing this browser's draft.
+  for(let holeNumber=2;holeNumber<=(round.context?.holeCount??18);holeNumber++){
+    const response=await page.request.put("/api/rounds/active",{headers:{origin},data:{eventId,roundId:round.id,holeNumber,strokes:3,penalties:0,expectedVersion:round.version,clientMutationId:crypto.randomUUID()}});
+    expect(response.status()).toBe(200);round=(await response.json() as {round:ActiveRound}).round;
+  }
+  const finish=await page.request.post("/api/rounds/active",{headers:{origin},data:{eventId,roundId:round.id,expectedVersion:round.version,clientMutationId:crypto.randomUUID()}});
+  expect(finish.status()).toBe(200);
+  await page.reload();
+  await expect(page.getByText("Scoring is paused to protect your draft.",{exact:true})).toBeVisible();
+  const strokes=page.getByLabel("Strokes for hole 1");await expect(strokes).toBeDisabled();
+  const downloading=page.waitForEvent("download");
+  await page.getByRole("button",{name:"Download preserved scores",exact:true}).click();
+  const download=await downloading;expect(download.suggestedFilename()).toBe("flightforge-round-backup.json");
+  const stream=await download.createReadStream();expect(stream).not.toBeNull();
+  let text="";for await(const chunk of stream!)text+=chunk.toString();expect(JSON.parse(text).roundId).toBe(previousId);
+  await page.getByRole("button",{name:"I saved my backup — use the current round",exact:true}).click();
+  await expect(strokes).toBeEnabled();await expect(strokes).toHaveValue("");
+  await expect(page.getByRole("button",{name:"Next hole",exact:true})).toBeEnabled();
+  await expect(page.getByText("Restoring this round from this device…",{exact:true})).toBeHidden();
+  const replacement=await active();expect(replacement.id).not.toBe(previousId);expect(replacement.holeScores).toEqual([]);
+  await page.getByRole("button",{name:"Ace",exact:true}).click();
+  await expect(page.getByText(/All scores saved/u)).toBeVisible();
+  const saved=await active();expect(saved.id).toBe(replacement.id);expect(saved.holeScores).toEqual([expect.objectContaining({holeNumber:1,strokes:1,penalties:0})]);
+  await page.getByRole("button",{name:"Next hole",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"Score hole 2",exact:true})).toBeVisible();
+});
 async function readyPlayer(page:Page,info:TestInfo) {
   const origin=new URL(String(info.project.use.baseURL)).origin,unique=crypto.randomUUID();
   const response=await page.request.post("/api/auth/signup",{headers:{origin,"cf-connecting-ip":"tools-"+unique},data:{displayName:"Tools Player",email:"tools-"+unique+"@example.test",password:"BrowserTrail2026!",acceptTerms:true}});

@@ -4,6 +4,8 @@ import {drainVerificationOutbox} from "../modules/notifications/verification-out
 import type {VerificationDeliveryEnvironment} from "../modules/notifications/email-verification";
 import handler from "vinext/server/app-router-entry";
 import { withSecurityHeaders } from "../lib/security/response-headers";
+import { purgeCoachingCandidates } from "../modules/media-analysis/coaching-retention";
+import { retireLinkedCredentials } from "../modules/auth/legacy-credential-retirement";
 
 interface Env extends VerificationDeliveryEnvironment {
   ASSETS: Fetcher;
@@ -30,11 +32,22 @@ interface ExecutionContext {
 // const imageConfig: ImageConfig = { dangerouslyAllowSVG: true };
 
 let lastDeliverySweep=0;
+let lastRetentionSweep=0;
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     // Opportunistic retries keep delivery moving even when the host has no cron trigger.
-    if(Date.now()-lastDeliverySweep>60_000){lastDeliverySweep=Date.now();ctx.waitUntil(drainVerificationOutbox(env.DB,env).catch(()=>{console.error(JSON.stringify({event:"verification_outbox_failed"}));}));}
+    if(Date.now()-lastDeliverySweep>60_000){
+      lastDeliverySweep=Date.now();
+      ctx.waitUntil(drainVerificationOutbox(env.DB,env).catch(()=>{console.error(JSON.stringify({event:"verification_outbox_failed"}));}));
+      ctx.waitUntil(retireLinkedCredentials(env.DB).catch(()=>{console.error(JSON.stringify({event:"credential_retirement_retry_required"}));}));
+    }
+    // Bounded fallback where a hosting account has not enabled cron. Privacy
+    // cleanup must not depend on the affected owner opening their history.
+    if(Date.now()-lastRetentionSweep>300_000){
+      lastRetentionSweep=Date.now();
+      ctx.waitUntil(purgeCoachingCandidates(env.DB,env.MEDIA,20).catch(()=>{console.error(JSON.stringify({event:"media_retention_retry_required"}));}));
+    }
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
@@ -53,18 +66,23 @@ const worker = {
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(purgeExpiredMedia(env));
     ctx.waitUntil(drainVerificationOutbox(env.DB,env));
+    ctx.waitUntil(retireLinkedCredentials(env.DB));
   },
 };
 
 export default worker;
 
 async function purgeExpiredMedia(env: Env): Promise<void> {
+  const coaching = await purgeCoachingCandidates(env.DB,env.MEDIA);
   const now = new Date().toISOString();
   const expired = await env.DB.prepare(
-    "SELECT id, user_id AS userId, storage_key AS storageKey FROM media_uploads WHERE status != 'DELETED' AND deleted_at IS NULL AND expires_at <= ? ORDER BY expires_at LIMIT 100",
+    `SELECT id, user_id AS userId, storage_key AS storageKey FROM media_uploads u
+     WHERE status != 'DELETED' AND deleted_at IS NULL AND expires_at <= ?
+       AND NOT EXISTS(SELECT 1 FROM media_analysis_jobs j WHERE j.media_upload_id=u.id AND j.analysis_type='THROW_COACHING')
+     ORDER BY expires_at LIMIT 100`,
   ).bind(now).all<{ id: string; userId: string; storageKey: string }>();
-  let deleted = 0;
-  let failed = 0;
+  let deleted = coaching.deleted;
+  let failed = coaching.failed;
   for (const item of expired.results) {
     try {
       await env.MEDIA.delete(item.storageKey);

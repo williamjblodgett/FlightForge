@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, FilePenLine, Info, MapPin, Send, ShieldCheck } from "lucide-react";
 import type { EventRecord } from "@/modules/events/types";
+import { eventLocalTime, eventTimeToIso } from "@/modules/events/zoned-time";
 
 type CourseOption = { id: string; name: string; city: string };
 
@@ -66,6 +67,7 @@ export function EventPublisherForm({ organizerEmail, courses, initial }: Props) 
     const action = submitter?.value === "DRAFT" ? "DRAFT" : "PUBLISH";
     setSubmitting(action);
     setError(null);
+    try {
     const payload = {
       organizationName: form.organizationName,
       eventType: form.eventType,
@@ -81,10 +83,10 @@ export function EventPublisherForm({ organizerEmail, courses, initial }: Props) 
       city: form.city,
       regionCode: form.regionCode,
       countryCode: "US",
-      startsAt: toIso(form.startsAt),
-      endsAt: toIso(form.endsAt),
-      registrationOpensAt: form.registrationOpensAt ? toIso(form.registrationOpensAt) : null,
-      registrationClosesAt: form.registrationClosesAt ? toIso(form.registrationClosesAt) : null,
+      startsAt: eventTimeToIso(form.startsAt, form.timeZone, initial?.timeZone === form.timeZone ? initial.startsAt : undefined),
+      endsAt: eventTimeToIso(form.endsAt, form.timeZone, initial?.timeZone === form.timeZone ? initial.endsAt : undefined),
+      registrationOpensAt: form.registrationOpensAt ? eventTimeToIso(form.registrationOpensAt, form.timeZone, initial?.timeZone === form.timeZone ? initial.registrationOpensAt ?? undefined : undefined) : null,
+      registrationClosesAt: form.registrationClosesAt ? eventTimeToIso(form.registrationClosesAt, form.timeZone, initial?.timeZone === form.timeZone ? initial.registrationClosesAt ?? undefined : undefined) : null,
       registrationUrl: form.registrationUrl || null,
       contactEmail: form.contactEmail,
       capacity: form.capacity ? Number(form.capacity) : null,
@@ -97,7 +99,6 @@ export function EventPublisherForm({ organizerEmail, courses, initial }: Props) 
       action,
       ...(initial ? { version: initial.version } : {}),
     };
-    try {
       const response = await fetch(initial ? `/api/events/${initial.id}` : "/api/events", {
         method: initial ? "PUT" : "POST",
         headers: { "content-type": "application/json", "idempotency-key": idempotencyKey },
@@ -109,8 +110,8 @@ export function EventPublisherForm({ organizerEmail, courses, initial }: Props) 
         return;
       }
       window.location.assign(body.next ?? "/events/manage");
-    } catch {
-      setError("The event service could not be reached. Your entries remain in this form.");
+    } catch (cause) {
+      setError(cause instanceof RangeError ? cause.message : "The event service could not be reached. Your entries remain in this form.");
     } finally {
       setSubmitting(null);
     }
@@ -177,6 +178,7 @@ export function EventPublisherForm({ organizerEmail, courses, initial }: Props) 
 }
 
 function initialState(email: string, event?: EventRecord): FormState {
+  const timeZone = event?.timeZone ?? "America/New_York";
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
   tomorrow.setMinutes(0, 0, 0);
   const later = new Date(tomorrow.getTime() + 4 * 60 * 60 * 1000);
@@ -187,15 +189,15 @@ function initialState(email: string, event?: EventRecord): FormState {
     summary: event?.summary ?? "",
     description: event?.description ?? "",
     courseId: event?.courseId ?? "",
-    timeZone: event?.timeZone ?? "America/New_York",
+    timeZone,
     venueName: event?.venueName ?? "",
     addressLine1: event?.addressLine1 ?? "",
     city: event?.city ?? "",
     regionCode: event?.regionCode ?? "ME",
-    startsAt: fromIso(event?.startsAt ?? tomorrow.toISOString()),
-    endsAt: fromIso(event?.endsAt ?? later.toISOString()),
-    registrationOpensAt: event?.registrationOpensAt ? fromIso(event.registrationOpensAt) : "",
-    registrationClosesAt: event?.registrationClosesAt ? fromIso(event.registrationClosesAt) : "",
+    startsAt: eventLocalTime(event?.startsAt ?? tomorrow.toISOString(), timeZone),
+    endsAt: eventLocalTime(event?.endsAt ?? later.toISOString(), timeZone),
+    registrationOpensAt: event?.registrationOpensAt ? eventLocalTime(event.registrationOpensAt, timeZone) : "",
+    registrationClosesAt: event?.registrationClosesAt ? eventLocalTime(event.registrationClosesAt, timeZone) : "",
     registrationUrl: event?.registrationUrl ?? "",
     contactEmail: event?.contactEmail ?? email,
     capacity: event?.capacity ? String(event.capacity) : "",
@@ -205,15 +207,4 @@ function initialState(email: string, event?: EventRecord): FormState {
     accessibilityNotes: event?.accessibilityNotes ?? "",
     visibility: event?.visibility ?? "PUBLIC",
   };
-}
-
-function toIso(localDateTime: string): string {
-  const date = new Date(localDateTime);
-  return Number.isNaN(date.getTime()) ? localDateTime : date.toISOString();
-}
-
-function fromIso(iso: string): string {
-  const date = new Date(iso);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
 }

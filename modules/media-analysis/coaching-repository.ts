@@ -2,6 +2,7 @@ import { getD1Database, getPrivateMediaBucket } from "@/db/runtime";
 import type { AuthenticatedUser } from "@/modules/auth/types";
 import { coachingObservation, type ThrowType } from "./coaching-knowledge";
 import type { CoachingContext } from "./coaching-validation";
+import { purgeCoachingCandidates, purgeCoachingObject } from "./coaching-retention";
 
 export type CoachingUpload = {
   id: string; fileName: string; mediaType: string; byteSize: number; status: string;
@@ -69,8 +70,8 @@ export async function listCoachingUploads(user: AuthenticatedUser): Promise<Coac
       u.expires_at AS expiresAt, u.created_at AS createdAt, j.input_context_json AS contextJson, r.output_json AS outputJson
     FROM media_uploads u JOIN media_analysis_jobs j ON j.media_upload_id = u.id
     LEFT JOIN media_analysis_results r ON r.media_analysis_job_id = j.id
-    WHERE u.user_id = ? AND u.deleted_at IS NULL AND j.analysis_type = 'THROW_COACHING'
-    ORDER BY u.created_at DESC LIMIT 30`).bind(user.id).all<Record<string, unknown>>();
+    WHERE u.user_id = ? AND u.deleted_at IS NULL AND u.expires_at > ? AND j.analysis_type = 'THROW_COACHING'
+    ORDER BY u.created_at DESC LIMIT 30`).bind(user.id,new Date().toISOString()).all<Record<string, unknown>>();
   return result.results.map(mapUpload);
 }
 
@@ -80,37 +81,18 @@ function mapUpload(row: Record<string, unknown>): CoachingUpload {
 }
 
 async function purgeExpiredCoachingUploads(user: AuthenticatedUser): Promise<void> {
-  const database = getD1Database();
-  const now = new Date().toISOString();
-  const expired = await database.prepare("SELECT id, storage_key AS storageKey FROM media_uploads WHERE user_id = ? AND status != 'DELETED' AND deleted_at IS NULL AND expires_at <= ? LIMIT 30").bind(user.id, now).all<{ id: string; storageKey: string }>();
-  for (const item of expired.results) {
-    await getPrivateMediaBucket().delete(item.storageKey).catch(() => undefined);
-    await database.batch([
-      database.prepare("UPDATE media_uploads SET status = 'DELETED', deleted_at = ? WHERE id = ? AND user_id = ?").bind(now, item.id, user.id),
-      database.prepare("UPDATE media_analysis_results SET deleted_at = ? WHERE media_analysis_job_id IN (SELECT id FROM media_analysis_jobs WHERE media_upload_id = ?)").bind(now, item.id),
-    ]);
-  }
+  await purgeCoachingCandidates(getD1Database(),getPrivateMediaBucket(),30,user.id);
 }
 
 export async function purgeExpiredCoachingMedia(limit = 100): Promise<{ deleted: number; failed: number }> {
-  const database = getD1Database(); const now = new Date().toISOString();
-  const expired = await database.prepare("SELECT id, user_id AS userId, storage_key AS storageKey FROM media_uploads WHERE status != 'DELETED' AND deleted_at IS NULL AND expires_at <= ? ORDER BY expires_at LIMIT ?").bind(now, Math.max(1, Math.min(limit, 500))).all<{ id: string; userId: string; storageKey: string }>();
-  let deleted = 0, failed = 0;
-  for (const item of expired.results) { try { await getPrivateMediaBucket().delete(item.storageKey); await database.batch([database.prepare("UPDATE media_uploads SET status = 'DELETED', deleted_at = ? WHERE id = ? AND user_id = ?").bind(now, item.id, item.userId), database.prepare("UPDATE media_analysis_results SET deleted_at = ? WHERE media_analysis_job_id IN (SELECT id FROM media_analysis_jobs WHERE media_upload_id = ?)").bind(now, item.id)]); deleted++; } catch { failed++; } }
-  return { deleted, failed };
+  return purgeCoachingCandidates(getD1Database(),getPrivateMediaBucket(),limit);
 }
 
 export async function deleteCoachingUpload(user: AuthenticatedUser, id: string): Promise<boolean> {
   const database = getD1Database();
   const row = await database.prepare("SELECT storage_key AS storageKey, deleted_at AS deletedAt FROM media_uploads WHERE id = ? AND user_id = ?").bind(id, user.id).first<{ storageKey: string; deletedAt: string | null }>();
   if (!row) return false;
-  if (row.deletedAt) return true;
-  const now = new Date().toISOString();
-  await getPrivateMediaBucket().delete(row.storageKey);
-  await database.batch([
-    database.prepare("UPDATE media_uploads SET status = 'DELETED', deleted_at = ? WHERE id = ? AND user_id = ?").bind(now, id, user.id),
-    database.prepare("UPDATE media_analysis_results SET deleted_at = ? WHERE media_analysis_job_id IN (SELECT id FROM media_analysis_jobs WHERE media_upload_id = ?)").bind(now, id),
-  ]);
+  await purgeCoachingObject(database,getPrivateMediaBucket(),{id,userId:user.id,storageKey:row.storageKey});
   return true;
 }
 

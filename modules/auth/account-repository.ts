@@ -11,6 +11,7 @@ import {
 import { jPhillipsTestAccount } from "./test-account";
 import { legalPolicyVersions } from "@/config/public-launch";
 import { rolesForConfiguredEmail } from "./configured-roles";
+import { retireLinkedCredentials } from "./legacy-credential-retirement";
 
 export const ACCOUNT_SESSION_COOKIE = "flightforge_session";
 export const PASSWORD_RECOVERY_INTENT_COOKIE = "flightforge_recovery_intent";
@@ -192,6 +193,13 @@ async function initializeSchema(): Promise<void> {
     additions.push(database.prepare("ALTER TABLE users ADD COLUMN password_bootstrap_version INTEGER NOT NULL DEFAULT 0"));
   }
   if (additions.length) await database.batch(additions);
+  // Bounded operational cleanup, not a schema/data migration. Guards below
+  // immediately reject all linked credentials even before this batch reaches them.
+  await retireLinkedLegacyCredentials().catch(() => undefined);
+}
+
+export async function retireLinkedLegacyCredentials(limit = 100): Promise<number> {
+  return retireLinkedCredentials(getD1Database(),limit);
 }
 
 export async function createHostedSignupIntent(emailInput: string): Promise<string> {
@@ -415,7 +423,7 @@ export async function authenticateAccount(
   }
   const row = await findUserRowByEmail(email);
 
-  if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations) {
+  if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations || row.authProviderSubject?.startsWith("supabase:")) {
     await verifyPassword(passwordInput, {
       hash: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
       salt: "AAAAAAAAAAAAAAAAAAAAAA",
@@ -451,11 +459,12 @@ export async function createAccountSession(
   const tokenHash = await sha256Text(token);
   const now = new Date();
   const expiresAt = new Date(now.getTime() + SESSION_DURATION_SECONDS * 1000);
-  await getD1Database()
+  const inserted = await getD1Database()
     .prepare(
       `INSERT INTO auth_sessions
         (id, user_id, token_hash, created_at, expires_at, last_seen_at, user_agent)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       SELECT ?, ?, ?, ?, ?, ?, ? WHERE EXISTS(SELECT 1 FROM users WHERE id=? AND status='ACTIVE'
+         AND deleted_at IS NULL AND (auth_provider_subject IS NULL OR auth_provider_subject NOT GLOB 'supabase:*'))`,
     )
     .bind(
       crypto.randomUUID(),
@@ -465,8 +474,10 @@ export async function createAccountSession(
       expiresAt.toISOString(),
       now.toISOString(),
       userAgent?.slice(0, 300) ?? null,
+      userId,
     )
     .run();
+  if (inserted.meta.changes !== 1) throw new Error("The account sign-in method has changed. Please sign in again.");
   return { token, maxAge: SESSION_DURATION_SECONDS };
 }
 
@@ -492,7 +503,7 @@ export async function getAccountUserBySession(
     )
     .bind(tokenHash, new Date().toISOString())
     .first<UserRow>();
-  if (!row || row.status !== "ACTIVE") return null;
+  if (!row || row.status !== "ACTIVE" || row.authProviderSubject?.startsWith("supabase:")) return null;
   return accountUserFromRow(row, await rolesForUser(row.id));
 }
 
@@ -635,7 +646,7 @@ export async function linkSupabaseIdentity(input: {
   }
   const providerSubject = `supabase:${input.authUserId}`;
   const row = await findUserRowByEmail(input.email);
-  if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations) {
+  if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations || row.authProviderSubject?.startsWith("supabase:")) {
     throw new InvalidCurrentPasswordError();
   }
   const valid = await verifyPassword(input.password, {
@@ -652,9 +663,12 @@ export async function linkSupabaseIdentity(input: {
   const results=await getD1Database().batch([
     getD1Database().prepare(
       `UPDATE users SET auth_provider_subject = ?, email_verified_at = COALESCE(email_verified_at, ?),
-       status = 'ACTIVE', updated_at = ?, version = version + 1 WHERE id = ? AND status = 'ACTIVE' AND must_change_password = 0 AND deleted_at IS NULL`,
-    ).bind(providerSubject, now, now, row.id),
+       password_hash=NULL,password_salt=NULL,password_iterations=NULL,
+       status = 'ACTIVE', updated_at = ?, version = version + 1 WHERE id = ? AND status = 'ACTIVE' AND must_change_password = 0 AND deleted_at IS NULL
+       AND password_hash=? AND password_salt=? AND (auth_provider_subject IS NULL OR auth_provider_subject NOT GLOB 'supabase:*')`,
+    ).bind(providerSubject, now, now, row.id, row.passwordHash, row.passwordSalt),
     getD1Database().prepare("INSERT INTO audit_logs(id,actor_user_id,action,resource_type,resource_id,created_at) SELECT ?,?,'SUPABASE_IDENTITY_LINKED','user',?,? WHERE changes()=1").bind(crypto.randomUUID(),row.id,row.id,now),
+    getD1Database().prepare("UPDATE auth_sessions SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL AND EXISTS(SELECT 1 FROM users WHERE id=? AND auth_provider_subject=?)").bind(now,row.id,row.id,providerSubject),
   ]);
   if(results[0]?.meta.changes!==1)throw new ExternalIdentityLinkRequiredError();
   const linked = await findUserRowById(row.id);
@@ -669,7 +683,7 @@ export async function changeAccountPassword(
 ): Promise<void> {
   await ensureAccountSchema();
   const row = await findUserRowById(userId);
-  if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations) {
+  if (!row?.passwordHash || !row.passwordSalt || !row.passwordIterations || row.authProviderSubject?.startsWith("supabase:")) {
     throw new InvalidCurrentPasswordError();
   }
   const verified = await verifyPassword(currentPassword, {
@@ -682,16 +696,21 @@ export async function changeAccountPassword(
   const replacement = await createPasswordRecord(newPassword);
   const timestamp = new Date().toISOString();
   const database = getD1Database();
-  await database.batch([
+  const auditId = crypto.randomUUID();
+  const changes = await database.batch([
     database.prepare(
       `UPDATE users SET password_hash = ?, password_salt = ?, password_iterations = ?,
-        must_change_password = 0, updated_at = ?, version = version + 1 WHERE id = ?`,
-    ).bind(replacement.hash, replacement.salt, replacement.iterations, timestamp, userId),
+        must_change_password = 0, updated_at = ?, version = version + 1 WHERE id = ?
+        AND (auth_provider_subject IS NULL OR auth_provider_subject NOT GLOB 'supabase:*')
+        AND status='ACTIVE' AND deleted_at IS NULL AND password_hash=? AND password_salt=? AND password_iterations=?`,
+    ).bind(replacement.hash, replacement.salt, replacement.iterations, timestamp, userId,row.passwordHash,row.passwordSalt,row.passwordIterations),
+    database.prepare(`INSERT INTO audit_logs(id,actor_user_id,action,resource_type,resource_id,created_at)
+      SELECT ?,?,'PASSWORD_CHANGED','user',?,? WHERE changes()=1`).bind(auditId,userId,userId,timestamp),
     database.prepare(
-      "UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL",
-    ).bind(timestamp, userId),
-    auditStatement(database, userId, "PASSWORD_CHANGED", "user", userId, timestamp),
+      "UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL AND EXISTS(SELECT 1 FROM audit_logs WHERE id=?)",
+    ).bind(timestamp, userId,auditId),
   ]);
+  if (changes[0]?.meta.changes !== 1) throw new InvalidCurrentPasswordError();
 }
 
 export async function getAccountSettings(user: AuthenticatedUser): Promise<AccountSettings> {
@@ -845,6 +864,7 @@ export async function saveOnboarding(
 
 async function ensureJPhillipsTestAccount(): Promise<void> {
   const existing = await findUserRowByEmail(jPhillipsTestAccount.email);
+  if (existing?.authProviderSubject?.startsWith("supabase:")) return;
   if (
     existing
     && existing.passwordBootstrapVersion >= jPhillipsTestAccount.passwordBootstrapVersion
@@ -946,7 +966,7 @@ export async function ensurePersistedUserId(user: AuthenticatedUser): Promise<st
   await ensureAccountSchema();
   if (user.source === "password") {
     const persisted = await findUserRowByEmail(user.email);
-    if (!persisted || persisted.id !== user.id) throw new Error("The authenticated account no longer exists.");
+    if (!persisted || persisted.id !== user.id || persisted.authProviderSubject?.startsWith("supabase:")) throw new Error("The authenticated account no longer exists.");
     return persisted.id;
   }
   if (user.source === "supabase") {

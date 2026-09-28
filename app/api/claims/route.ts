@@ -6,7 +6,7 @@ import {
   deleteClaimEvidence,
   storeClaimEvidence,
 } from "@/modules/courses/claim-evidence";
-import { submitCourseClaim } from "@/modules/courses/course-repository";
+import { CourseClaimConflictError, submitCourseClaim, withCourseOwnership } from "@/modules/courses/course-repository";
 import { getCourseById } from "@/modules/courses/demo-courses";
 import { courseClaimSchema } from "@/modules/courses/validation";
 import { checkRateLimit, isSameOriginMutation } from "@/lib/security/request-security";
@@ -60,13 +60,16 @@ export async function POST(request: Request) {
   let evidenceKey: string | null = null;
   const file = formData.get("supportingDocument");
   try {
+    const [current] = await withCourseOwnership([course]);
+    if (current.claimStatus === "VERIFIED") return apiError("COURSE_ALREADY_VERIFIED","This course is already verified.",409);
     if (file instanceof File && file.size > 0) {
       evidenceKey = await storeClaimEvidence(file, await ensurePersistedUserId(user), course.id);
     }
     const claim = await submitCourseClaim(user, parsed.data, evidenceKey);
-    return Response.json({ claim }, { status: 201 });
+    return Response.json({ claim }, { status: 201, headers: {"cache-control":"private, no-store"} });
   } catch (error: unknown) {
     if (evidenceKey) await deleteClaimEvidence(evidenceKey).catch(() => undefined);
+    if (error instanceof CourseClaimConflictError) return apiError("CLAIM_CONFLICT",error.message,409);
     if (error instanceof ClaimEvidenceError) {
       return apiError("INVALID_EVIDENCE", error.message, 422);
     }
@@ -80,7 +83,7 @@ export async function POST(request: Request) {
     }
     return apiError(
       "CLAIM_SUBMISSION_FAILED",
-      `${brand.productName} could not save the claim. No evidence file was retained.`,
+      `${brand.productName} could not save the claim. Please try again later.`,
       503,
     );
   }

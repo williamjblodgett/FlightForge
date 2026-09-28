@@ -323,6 +323,33 @@ export function LiveRoundScorecard({
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = "flightforge-round-backup.json"; anchor.click(); URL.revokeObjectURL(url);
   }
 
+  async function adoptCurrentRound() {
+    if (!mismatchedDraftRef.current || !initialRound) return;
+    try {
+      await removeOfflineRound(eventId, offlineOwnerScope);
+      mismatchedDraftRef.current = null;
+      unavailableRef.current = false;
+      roundIdRef.current = initialRound.id;
+      serverVersionRef.current = initialRound.version;
+      lastSyncedRef.current = initialRound.lastSyncedAt;
+      conflictRoundRef.current = initialRound;
+      conflictHolesRef.current = [];
+      finishMutationRef.current = undefined;
+      currentHoleRef.current = 1;
+      restoredRef.current = true;
+      setCurrentHole(1);
+      setConflictHoles([]);
+      setLastSyncedAt(initialRound.lastSyncedAt);
+      applyClientState(mergeServerScoresWithPending(initialRound, [], holeCount), []);
+      setOnline(navigator.onLine);
+      setSyncState(navigator.onLine ? "SAVED" : "OFFLINE");
+      setDraftBlocked(false);
+      setMessage("The current server round is ready.");
+    } catch {
+      setMessage("The previous draft could not be cleared. Your scores remain protected; try again after saving your backup.");
+    }
+  }
+
   function resolveConflicts(keepLocal: boolean) {
     const server=conflictRoundRef.current;
     if(!server){setMessage("Reconnect and reload to review the server card. The local draft is preserved.");return;}
@@ -469,7 +496,7 @@ export function LiveRoundScorecard({
       </div>
     </header>
 
-    {draftBlocked?<section className="round-message" role="alert"><strong>Scoring is paused to protect your draft.</strong><p>Download the preserved scores before leaving. No entries will be sent to a different or completed round.</p><button className="button" onClick={exportScores}>Download preserved scores</button><Link className="button" href="/rounds">Review round history</Link>{initialRound?<button className="button" onClick={async()=>{if(!mismatchedDraftRef.current)return;await removeOfflineRound(eventId,offlineOwnerScope);mismatchedDraftRef.current=null;unavailableRef.current=false;setDraftBlocked(false);roundIdRef.current=initialRound.id;serverVersionRef.current=initialRound.version;applyClientState(mergeServerScoresWithPending(initialRound,[],holeCount),[]);setMessage("The current server round is ready.");}}>I saved my backup — use the current round</button>:null}</section>:null}
+    {draftBlocked?<section className="round-message" role="alert"><strong>Scoring is paused to protect your draft.</strong><p>Download the preserved scores before leaving. No entries will be sent to a different or completed round.</p><button className="button" onClick={exportScores}>Download preserved scores</button><Link className="button" href="/rounds">Review round history</Link>{initialRound?<button className="button" onClick={adoptCurrentRound}>I saved my backup — use the current round</button>:null}</section>:null}
 
     <section className="current-hole-card compact-hole-card" aria-labelledby="current-hole-title">
       <div className="hole-play-panel">

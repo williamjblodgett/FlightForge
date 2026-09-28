@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
 import { SignInForm } from "./SignInForm";
 import {isGoogleSignInEnabled} from "@/modules/auth/google-config";
+import {getAuthProviderHealth} from "@/lib/supabase/health";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ const confirmationErrors: Record<string, string> = {
 
 export default async function SignInPage({ searchParams }: Props) {
   const query = await searchParams;
+  const authentication=await getAuthProviderHealth();
   const returnTo = safeRelativeReturnPath(query.return_to);
   const initialError = query.error ? confirmationErrors[query.error] ?? "Sign-in could not be completed. Please try again." : null;
   return (
@@ -33,7 +35,8 @@ export default async function SignInPage({ searchParams }: Props) {
         <h1>Pick up at the next tee.</h1>
         <p>Save courses, carry your preferences, and decide exactly what other players can see.</p>
       </div>
-      <SignInForm returnTo={returnTo} initialError={initialError} googleEnabled={isGoogleSignInEnabled()} />
+      {authentication.status==="UNAVAILABLE"?<p role="status">Account services are temporarily disrupted. Some existing accounts can still sign in. New accounts and password recovery may be unavailable.</p>:null}
+      <SignInForm returnTo={returnTo} initialError={initialError} googleEnabled={isGoogleSignInEnabled()&&authentication.status==="AVAILABLE"} />
     </main>
   );
 }
