@@ -3,12 +3,14 @@
 import { useState,useRef } from "react";
 import { clearPrivatePacksOnSignOut,announceSignOut } from "@/modules/offline/store";
 import { LogOut } from "lucide-react";
+import {useClientReady} from "@/components/player-tools/ReadyControls";
 
 type Props = {
   variant?: "menu" | "header" | "standalone";
 };
 
 export function SignOutButton({ variant = "menu" }: Props) {
+  const clientReady=useClientReady();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +41,7 @@ export function SignOutButton({ variant = "menu" }: Props) {
         className={`profile-signout signout-${variant}`}
         type="button"
         onClick={()=>void signOut()}
-        disabled={busy}
+        disabled={!clientReady || busy}
         aria-label={busy ? "Signing out" : "Sign out"}
       >
         {variant !== "menu" ? <LogOut size={17} aria-hidden="true" /> : null}

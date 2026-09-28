@@ -95,6 +95,49 @@ test("discovery keeps the filter panel and focus while composing filters", async
   await expect(page.getByRole("button", { name: "Filters", exact: true })).toHaveAttribute("aria-expanded", "true");
 });
 
+test("nearby discovery is bookmarkable and a later state choice cancels delayed location",async({page})=>{
+  await page.addInitScript(()=>{
+    Object.defineProperty(navigator,"geolocation",{configurable:true,value:{getCurrentPosition(success:PositionCallback){document.addEventListener("test-location-ready",()=>success({coords:{latitude:43.66111,longitude:-70.25511}} as GeolocationPosition),{once:true});}}});
+  });
+  await page.goto("/courses");
+  await page.getByRole("button",{name:"Near me",exact:true}).click();
+  await page.getByRole("combobox",{name:"Browse courses by state"}).selectOption("NH");
+  await expect(page).toHaveURL(/state=NH/);
+  await page.evaluate(()=>document.dispatchEvent(new Event("test-location-ready")));
+  await expect(page.getByRole("button",{name:"Near me",exact:true})).toBeEnabled();
+  expect(new URL(page.url()).searchParams.has("bbox")).toBe(false);
+  await page.getByRole("button",{name:"Near me",exact:true}).click();
+  await page.evaluate(()=>document.dispatchEvent(new Event("test-location-ready")));
+  await expect(page).toHaveURL(/bbox=/);
+  expect(new URL(page.url()).searchParams.has("state")).toBe(false);
+  await expect(page.getByText(/approximately 25 miles/)).toBeVisible();
+  await page.getByRole("button",{name:"Clear map area",exact:true}).click();
+  await expect(page).not.toHaveURL(/bbox=/);
+  await expect(page.getByText(/approximately 25 miles/)).toHaveCount(0);
+});
+
+test("home uses saved courses and keeps all companion tools reachable on a narrow phone",async({page},info)=>{
+  await player(page,info);
+  await page.goto("/courses");
+  const first=page.locator(".course-card").first();
+  const courseName=await first.locator("h3").innerText();
+  await first.getByRole("button",{name:/Add .* to favorites/}).click();
+  await expect(first.getByRole("button",{name:/Remove .* from favorites/})).toHaveAttribute("aria-pressed","true");
+  await page.goto("/");
+  await page.setViewportSize({width:320,height:700});
+  await expect(page.getByRole("heading",{name:"Hello, Review",exact:true})).toBeVisible();
+  await expect(page.locator(".home-course-row").getByRole("link",{name:new RegExp(courseName.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"))})).toBeVisible();
+  for(const name of ["My Bag","Caddie","Fieldwork"]){await expect(page.getByRole("navigation",{name:"Player tools"}).getByRole("link",{name:new RegExp(name)})).toBeVisible();}
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
+  await page.screenshot({path:info.outputPath("companion-home.png"),fullPage:true});
+  await page.goto("/courses?state=NH");
+  await page.screenshot({path:info.outputPath("companion-explore.png"),fullPage:true});
+  await page.goto("/play?eventId=flightforge-demo-event");
+  await page.getByRole("button",{name:"Ace",exact:true}).click();
+  await expect(page.getByLabel("Strokes for hole 1",{exact:true})).toHaveValue("1");
+  await page.screenshot({path:info.outputPath("companion-score.png"),fullPage:true});
+});
+
 test("new player tools retain exactly one mobile navigation selection", async ({ page }, info) => {
   await player(page, info);
   for (const path of ["/groups", "/updates", "/practice", "/recover", "/leagues", "/passport", "/plan", "/downloads"]) {
@@ -110,7 +153,7 @@ test("map bounds follow clear-area and browser history without closing filters",
   const originalHeading=await page.locator("#results-heading").innerText();
   await page.getByRole("button", {name:"Filters",exact:true}).click();
   await page.getByRole("button", {name:"Clear map area",exact:true}).click();
-  await expect.poll(()=>new URL(page.url()).searchParams.has("bbox")).toBe(false);
+  await expect(page).not.toHaveURL(/(?:\?|&)bbox=/);
   await expect(page.locator("#results-heading")).not.toContainText("in this area");
   await page.getByRole("button", {name:"Search this area",exact:true}).click();
   await expect.poll(()=>{const bounds=new URL(page.url()).searchParams.get("bbox")?.split(",").map(Number);return bounds?bounds[2]-bounds[0]:0;}).toBeGreaterThan(6);

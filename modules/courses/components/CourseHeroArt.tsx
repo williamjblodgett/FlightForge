@@ -5,7 +5,7 @@ type Props = { course: Course; compact?: boolean };
 
 export function CourseHeroArt({ course, compact = false }: Props) {
   return (
-    <div className={`course-art course-art-${course.heroTone}${compact ? " course-art-compact" : ""}`} role="img" aria-label={`Field-map artwork for ${course.name}`}>
+    <div className={`course-art course-art-${course.heroTone}${compact ? " course-art-compact" : ""}`} role="img" aria-label={`Illustrative artwork, not a course map or photo, for ${course.name}`}>
       <svg className="course-contours" viewBox="0 0 640 420" preserveAspectRatio="none" aria-hidden="true">
         <path d="M-40 335C62 225 136 390 238 282s190-40 246-129 126-73 201-37" />
         <path d="M-55 300C57 185 143 347 226 246s180-36 240-125 139-62 211-34" />
@@ -16,7 +16,6 @@ export function CourseHeroArt({ course, compact = false }: Props) {
       <span className="course-art-coordinate">{course.city.toUpperCase()} / {course.state}</span>
       <span className="course-art-pin"><MapPin aria-hidden="true" /></span>
       <span className="course-art-holes"><b>{course.holeCount || "—"}</b> holes</span>
-      <span className="course-art-route" aria-hidden="true">01—07—12—18</span>
     </div>
   );
 }

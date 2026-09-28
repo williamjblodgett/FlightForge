@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
+import { useClientReady } from "@/components/player-tools/ReadyControls";
 
 type Props = {
   courseId: string;
@@ -19,6 +20,7 @@ export function FavoriteButton({
   showLabel = false,
 }: Props) {
   const [favorited, setFavorited] = useState(initialFavorite);
+  const clientReady = useClientReady();
   const [busy, setBusy] = useState(false);
   const [announcement, setAnnouncement] = useState("");
 
@@ -58,7 +60,7 @@ export function FavoriteButton({
         type="button"
         aria-label={favorited ? `Remove ${courseName} from favorites` : `Add ${courseName} to favorites`}
         aria-pressed={favorited}
-        disabled={busy}
+        disabled={!clientReady || busy}
         onClick={toggle}
       >
         <Heart aria-hidden="true" fill={favorited ? "currentColor" : "none"} />

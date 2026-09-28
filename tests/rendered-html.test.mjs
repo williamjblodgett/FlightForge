@@ -36,8 +36,11 @@ test("server-renders FlightForge discovery without starter metadata", async () =
   const html = await response.text();
   assert.match(html, /FlightForge/);
   assert.match(html, /Your next round/);
-  assert.match(html, /Where are you playing/);
-  assert.match(html, /Six states/);
+  assert.match(html, /Your next round starts here/);
+  assert.match(html, /Saved courses/);
+  assert.match(html, /Recent rounds/);
+  assert.match(html, /Explore New England/);
+  for (const state of ["ME","NH","VT","MA","CT","RI"]) assert.match(html,new RegExp(`state=${state}`));
   assert.doesNotMatch(html, /class="course-card/u);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/);
 });

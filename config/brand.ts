@@ -13,12 +13,12 @@ export const brand = {
   favicon: "/brand/flightforge-mark.png",
   colors: {
     primary: {
-      50: "#f2f4f6",
-      100: "#dce2e8",
-      500: "#254665",
-      700: "#12304e",
-      900: "#071f39",
-      950: "#041529",
+      50: "#f5f8f6",
+      100: "#e4eee7",
+      500: "#245b46",
+      700: "#194a37",
+      900: "#163c30",
+      950: "#0c2b20",
     },
     secondary: {
       300: "#ffa14a",

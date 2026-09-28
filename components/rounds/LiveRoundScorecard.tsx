@@ -12,6 +12,8 @@ import {
   type ReactNode,
 } from "react";
 import {
+  Backpack,
+  BookOpen,
   Camera,
   Check,
   ChevronLeft,
@@ -28,7 +30,6 @@ import {
   ScanLine,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Upload,
   Wifi,
   WifiOff,
@@ -461,41 +462,43 @@ export function LiveRoundScorecard({
   return <div className="live-round-shell">
     <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
     <header className="round-hud" aria-label="Active round controls">
-      <div className="round-hud-score"><span>Hole {currentHole}/{holeCount}</span><strong>{displayScore}</strong><small>{completedHoles} scored</small></div>
-      <div className="round-hud-title"><b>{eventTitle}</b><span>{courseName}</span></div>
+      <Link className="round-back" href="/play" aria-label="Back to Play"><ChevronLeft aria-hidden="true"/></Link>
+      <div className="round-hud-title"><b>{courseName}</b><span>{eventId === "flightforge-demo-event" ? "Fictional demo · " : ""}{completedHoles} of {holeCount} holes scored</span></div>
       <div className="round-hud-actions">
-        <Link href="/play" aria-label="Back to Play"><ChevronLeft aria-hidden="true"/></Link>
-        <Link href={`/bag?return_to=${encodeURIComponent(roundPath)}&round=${encodeURIComponent(eventId)}&hole=${currentHole}#caddie-chat`} aria-label="Ask the caddie"><Sparkles aria-hidden="true" /></Link>
-        <Link className="hud-secondary" href={`/community?context=${personal ? "course" : "event"}&id=${encodeURIComponent(personal ? courseId : eventId)}`} aria-label="Open round community chat"><MessageCircle aria-hidden="true" /></Link>
-        <Link href={`/coach?return_to=${encodeURIComponent(roundPath)}&round=${encodeURIComponent(eventId)}&hole=${currentHole}`} aria-label="Open camera coach"><ScanLine aria-hidden="true" /></Link>
-        {!personal ? <button type="button" disabled={!clientReady} onClick={(event) => {event.currentTarget.focus();setUploadHole(currentHole);}} aria-label={`Share video from hole ${currentHole}`}><Camera aria-hidden="true" /></button> : null}
         <button type="button" disabled={currentHole === holeCount || syncState === "RESTORING"} onClick={() => setCurrentHole((hole) => Math.min(holeCount, hole + 1))} aria-label="Next hole"><ChevronRight aria-hidden="true" /></button>
       </div>
     </header>
-    <p className="round-context-line"><strong>{courseName}</strong> · {eventTitle}{eventId === "flightforge-demo-event" ? " · Fictional demo" : ""}</p>
 
     {draftBlocked?<section className="round-message" role="alert"><strong>Scoring is paused to protect your draft.</strong><p>Download the preserved scores before leaving. No entries will be sent to a different or completed round.</p><button className="button" onClick={exportScores}>Download preserved scores</button><Link className="button" href="/rounds">Review round history</Link>{initialRound?<button className="button" onClick={async()=>{if(!mismatchedDraftRef.current)return;await removeOfflineRound(eventId,offlineOwnerScope);mismatchedDraftRef.current=null;unavailableRef.current=false;setDraftBlocked(false);roundIdRef.current=initialRound.id;serverVersionRef.current=initialRound.version;applyClientState(mergeServerScoresWithPending(initialRound,[],holeCount),[]);setMessage("The current server round is ready.");}}>I saved my backup — use the current round</button>:null}</section>:null}
-    {!hasPars ? <p className="round-data-note">Strokes-only scoring. Hole pars have not been confirmed for this layout.</p> : null}
 
     <section className="current-hole-card compact-hole-card" aria-labelledby="current-hole-title">
-      <div className="hole-number-block"><span>Hole</span><strong>{String(currentHole).padStart(2, "0")}</strong><small>{knownPar === null ? "Par not recorded" : `Par ${par}`} · distance unavailable</small></div>
       <div className="hole-play-panel">
-        <div className="hole-title-row"><div><span className="eyebrow">Live score entry</span><h1 id="current-hole-title">Score hole {currentHole}</h1></div></div>
+        <div className="hole-title-row"><h1 id="current-hole-title" aria-label={`Score hole ${currentHole}`}>Hole {currentHole} <small>of {holeCount}</small></h1><span className="hole-running-total">Total: <strong>{displayScore}</strong></span></div>
         <fieldset disabled={draftBlocked || syncState === "RESTORING"} className="score-entry" aria-label={`Score for hole ${currentHole}`}>
           <div className="stroke-control"><span>Strokes</span><button type="button" onClick={() => recordScore({ strokes: (score?.strokes ?? par) - 1, penalties: score?.penalties ?? 0 })} aria-label={`Subtract one stroke from hole ${currentHole}`}><CircleMinus aria-hidden="true" /></button><input key={`${currentHole}:${score?.updatedAt ?? "empty"}`} type="number" inputMode="numeric" min={1} max={99} defaultValue={score?.strokes ?? ""} placeholder="—" aria-label={`Strokes for hole ${currentHole}`} onBlur={(event) => { const value = Number(event.currentTarget.value); if (Number.isInteger(value) && value >= 1 && value <= 99) recordScore({ strokes: value, penalties: score?.penalties ?? 0 }); else event.currentTarget.value = score ? String(score.strokes) : ""; }} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); if (event.key === "Escape") { event.currentTarget.value = score ? String(score.strokes) : ""; event.currentTarget.blur(); } }} /><button type="button" onClick={() => recordScore({ strokes: (score?.strokes ?? par - 1) + 1, penalties: score?.penalties ?? 0 })} aria-label={`Add one stroke to hole ${currentHole}`}><CirclePlus aria-hidden="true" /></button></div>
-          <div className="quick-scores">{(knownPar === null ? [1,2,3,4,5] : [1, Math.max(1, par - 1), par, par + 1, par + 2]).filter((value, index, values) => values.indexOf(value) === index).map((value) => <button key={value} type="button" aria-pressed={score?.strokes === value} className={score?.strokes === value ? "is-selected" : ""} onClick={() => recordScore({ strokes: value, penalties: score?.penalties ?? 0 })}>{value === 1 ? "Ace" : knownPar === null ? `${value} strokes` : scoreLabel(value, par)}</button>)}</div>
+          <div className="quick-scores">{(knownPar === null ? [1,2,3,4,5] : [1, Math.max(1, par - 1), par, par + 1, par + 2]).filter((value, index, values) => values.indexOf(value) === index).map((value) => <button key={value} type="button" aria-label={value===1?"Ace":knownPar===null?`${value} strokes`:scoreLabel(value,par)} aria-pressed={score?.strokes === value} className={score?.strokes === value ? "is-selected" : ""} onClick={() => recordScore({ strokes: value, penalties: score?.penalties ?? 0 })}>{value === 1 ? "Ace" : knownPar === null ? value : scoreLabel(value, par)}</button>)}</div>
           <div className="penalty-control"><span>Penalty strokes</span><button type="button" onClick={() => recordScore({ strokes: score?.strokes ?? par, penalties: (score?.penalties ?? 0) - 1 })} aria-label={`Subtract one penalty from hole ${currentHole}`}><CircleMinus aria-hidden="true" /></button><output aria-label={`${score?.penalties ?? 0} penalty strokes`}>{score?.penalties ?? 0}</output><button type="button" onClick={() => recordScore({ strokes: score?.strokes ?? par, penalties: (score?.penalties ?? 0) + 1 })} aria-label={`Add one penalty to hole ${currentHole}`}><CirclePlus aria-hidden="true" /></button></div>
         </fieldset>
+        <nav className="round-pocket-tools" aria-label="Hole tools">
+          <Link prefetch={false} href={`/bag?return_to=${encodeURIComponent(roundPath)}&round=${encodeURIComponent(eventId)}&hole=${currentHole}#caddie-chat`} aria-label="Ask the caddie"><BookOpen aria-hidden="true"/><strong>Caddie</strong><small>Hole advice</small></Link>
+          <Link prefetch={false} href={`/bag?return_to=${encodeURIComponent(roundPath)}&round=${encodeURIComponent(eventId)}&hole=${currentHole}`} aria-label="My bag"><Backpack aria-hidden="true"/><strong>Bag</strong><small>View discs</small></Link>
+          {!personal ? <button type="button" disabled={!clientReady} onClick={(event) => {event.currentTarget.focus();setUploadHole(currentHole);}} aria-label={`Share video from hole ${currentHole}`}><Film aria-hidden="true"/><strong>Hole video</strong><small>Add a moment</small></button> : <Link prefetch={false} href={`/coach?return_to=${encodeURIComponent(roundPath)}&round=${encodeURIComponent(eventId)}&hole=${currentHole}`} aria-label="Open camera coach"><ScanLine aria-hidden="true"/><strong>Coach</strong><small>Practice form</small></Link>}
+        </nav>
+        <p className="hole-facts-line">{knownPar === null ? "Par not recorded" : `Par ${par}`} <span>Distance unavailable</span></p>
         <div className="hole-navigation"><button type="button" disabled={currentHole === 1 || syncState === "RESTORING"} onClick={() => setCurrentHole((hole) => hole - 1)}><ChevronLeft aria-hidden="true" />Previous</button><span>{score == null ? "Score not entered" : `${score.strokes + score.penalties} total · ${knownPar === null ? "par not recorded" : scoreLabel(score.strokes + score.penalties, par)}`}</span><button type="button" disabled={currentHole === holeCount || syncState === "RESTORING"} onClick={() => setCurrentHole((hole) => hole + 1)}>Next<ChevronRight aria-hidden="true" /></button></div>
       </div>
     </section>
 
     {/* Save-status changes must not move scoring controls during a tap. */}
+    <p className="round-context-line">{eventTitle}</p>
+    {!hasPars ? <p className="round-data-note">Strokes-only scoring. Hole pars have not been confirmed for this layout.</p> : null}
     {message ? <div className="round-message" role="status"><Check aria-hidden="true" />{message}</div> : null}
     {persistence === "MEMORY_ONLY" ? <div className="round-message" role="alert"><strong>Not saved on this device.</strong> Browser storage is unavailable. Keep this tab open until synced, or download a backup.<button className="button" onClick={exportScores}>Download scores</button><button className="button" onClick={() => void persistSnapshot(scoresRef.current, pendingRef.current)}>Retry device save</button></div> : <SyncSummary state={syncState} online={online} pendingCount={pending.length} lastSyncedAt={lastSyncedAt} conflictHoles={conflictHoles} onReviewConflict={setCurrentHole} />}
     {isSignedIn && pending.length > 0 ? <div className="round-sync-actions">{needsSignIn ? <Link className="button button-primary" href={`/sign-in?return_to=${encodeURIComponent(roundPath)}`}>Sign in to synchronize</Link> : <button className="button" disabled={!online || draftBlocked || conflictHoles.length > 0} onClick={() => void flush()}>Retry synchronization</button>}<button className="button" onClick={exportScores}>Download backup</button></div> : null}
     {guestDraft && !importingGuest ? <section className="round-message"><strong>Import this device’s guest round?</strong><p>{guestDraft.scores.filter(Boolean).length} scored holes. Importing replaces matching holes in this account’s current round. The guest copy stays until synchronization succeeds.</p><button className="button button-primary" disabled={draftBlocked||guestDraft.scores.length!==holeCount} onClick={importGuest}>Import guest scores</button><button className="button" onClick={() => setGuestDraft(null)}>Not now</button></section> : null}
     {conflictHoles.length ? <div className="round-message"><p>Review holes {conflictHoles.join(", ")} before choosing which scores to keep.</p><button className="button" onClick={() => resolveConflicts(true)}>Keep my local corrections</button><button className="button" onClick={() => resolveConflicts(false)}>Use synchronized scores</button><button className="button" onClick={exportScores}>Download local backup</button></div> : null}
+
+    <nav className="round-extra-tools" aria-label="More round tools"><Link prefetch={false} href={`/community?context=${personal ? "course" : "event"}&id=${encodeURIComponent(personal ? courseId : eventId)}`} aria-label="Open round community chat"><MessageCircle aria-hidden="true"/>Round chat</Link>{!personal ? <Link prefetch={false} href={`/coach?return_to=${encodeURIComponent(roundPath)}&round=${encodeURIComponent(eventId)}&hole=${currentHole}`} aria-label="Open camera coach"><ScanLine aria-hidden="true"/>Camera coach</Link> : null}</nav>
 
     <section className="scorecard-panel" aria-labelledby="scorecard-title"><div className="panel-title"><div><span className="eyebrow">Offline-ready round</span><h2 id="scorecard-title">Scorecard & moments</h2></div><span className="moderation-key"><ShieldCheck aria-hidden="true" />{personal ? "Private personal round" : "Only prepared videos can be published"}</span></div><div className="hole-score-grid">{pars.map((holePar, index) => {
       const hole = index + 1;

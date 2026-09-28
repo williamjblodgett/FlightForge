@@ -81,7 +81,7 @@ test("phone discovery controls stay readable and the map drawer stays above app 
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto("/courses");
 
-  const overview=page.getByRole("navigation",{name:"Browse courses by state"}).getByRole("link",{name:"All",exact:true});
+  const overview=page.getByRole("combobox",{name:"Browse courses by state"});
   await expect(overview).toBeVisible();
   expect(await overview.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
 

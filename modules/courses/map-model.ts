@@ -1,5 +1,12 @@
 import type { Course } from "./types";
 export type MapBounds = {north:number;south:number;east:number;west:number};
+// Coarsen location before making a bookmarkable search area; this is not precise GPS navigation.
+export function nearbyMapBounds(latitude:number,longitude:number):MapBounds|null {
+  if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180)return null;
+  const lat=Math.round(latitude*100)/100,lng=Math.round(longitude*100)/100;
+  const latSpan=25/69, lngSpan=Math.min(180,latSpan/Math.max(.01,Math.cos(lat*Math.PI/180)));
+  return {north:Math.min(90,lat+latSpan),south:Math.max(-90,lat-latSpan),east:Math.min(180,lng+lngSpan),west:Math.max(-180,lng-lngSpan)};
+}
 export type CourseMapSummary = Pick<Course,"id"|"slug"|"name"|"city"|"state"|"latitude"|"longitude"|"holeCount"|"priceType"|"priceFromCents"|"operationalStatus"|"locationPrecision">;
 export function toCourseMapSummary(c:Course):CourseMapSummary {const{id,slug,name,city,state,latitude,longitude,holeCount,priceType,priceFromCents,operationalStatus,locationPrecision}=c;return{id,slug,name,city,state,latitude,longitude,holeCount,priceType,priceFromCents,operationalStatus,locationPrecision};}
 export function parseMapBounds(value:string):MapBounds|null {const parts=value.split(",");if(parts.length!==4||parts.some(p=>!p.trim()))return null;const[west,south,east,north]=parts.map(Number);if(![west,south,east,north].every(Number.isFinite)||west < -180||east>180||south < -90||north>90||west>=east||south>=north)return null;return{west,south,east,north};}

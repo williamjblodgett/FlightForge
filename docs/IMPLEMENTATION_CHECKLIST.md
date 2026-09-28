@@ -1,5 +1,15 @@
 # Implementation checklist
 
+## September 28 approved field-companion UI
+
+- [x] Inspect the supplied concept, existing source, course imagery and player data
+- [x] Apply white/forest-green theme and compact shared navigation
+- [x] Rebuild Home around real saved courses, active rounds and recent results
+- [x] Implement compact Explore cards, state selector and labeled map/list switch
+- [x] Restyle scoring with large inputs and accessible assistance controls; preserve offline behavior
+- [x] Validate mobile/desktop layouts and workflows; prepare matching main/live release
+- Publication record: native Sites version metadata identifies the deployed commit and URL.
+
 ## September 27 cross-site reliability and mobile release
 
 - [x] Preserve unfinished September 19 changes and confirm existing live Site/source
@@ -8,7 +18,7 @@
 - [x] Add retry states, account gates and abort-safe reads to passport, groups and leagues
 - [x] Reduce automatic account/menu/footer prefetch requests
 - [x] Validate the combined release with unit, server, browser and production-build checks
-- [ ] Publish matching source to GitHub main and the existing live Site
+- [x] Publish matching source to GitHub main and the existing live Site (version 33)
 
 ## September 19 live-site review and real-data refresh
 
@@ -17,7 +27,7 @@
 - [x] Reproduce and correct bounded navigation, bag feedback and discovery issues
 - [x] Add primary-source-supported New England courses, keeping restrictions visible
 - [x] Run isolated account/workflow/browser checks, data validation and production build
-- [ ] Publish matching source to main/live and document findings and remaining recommendations
+- [x] Publish matching source to main/live and document findings and remaining recommendations (included in version 33)
 
 ## Connected player tools — September 10 expansion
 
