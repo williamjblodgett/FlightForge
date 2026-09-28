@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SignupForm } from "./SignupForm";
 import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
 import { isRegistrationReady } from "@/modules/auth/registration-readiness";
+import {isGoogleSignInEnabled} from "@/modules/auth/google-config";
 
 export const metadata: Metadata = {
   title: "Create a free account",
@@ -19,7 +20,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
         <h1>{registrationReady ? "Make the course yours." : "New account registration is temporarily unavailable."}</h1>
         <p>{registrationReady ? "Create the account now; tune skill details, social preferences, and privacy on the next screen." : "Existing players can still sign in. Registration will reopen when verified account-support and email-delivery channels are active."}</p>
       </div>
-      <SignupForm returnTo={returnTo} registrationReady={registrationReady} />
+      <SignupForm returnTo={returnTo} registrationReady={registrationReady} googleEnabled={isGoogleSignInEnabled()} />
     </main>
   );
 }

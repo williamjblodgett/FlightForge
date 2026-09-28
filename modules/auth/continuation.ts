@@ -1,6 +1,6 @@
 import { safeRelativeReturnPath } from "@/lib/http/safe-return-path";
 type AccountStep = {mustChangePassword?: boolean; identityLinkRequired?: boolean; onboardingComplete?: boolean};
-const entryPaths=new Set(["/sign-in","/sign-up","/verify-email","/auth/callback","/onboarding","/account/password","/account/link","/forgot-password","/account/update-password"]);
+const entryPaths=new Set(["/sign-in","/sign-up","/verify-email","/auth/callback","/auth/google/callback","/auth/complete","/onboarding","/account/password","/account/link","/forgot-password","/account/update-password"]);
 export function authReturnPath(value: unknown): string {
   const safe=safeRelativeReturnPath(typeof value==="string"?value:"/profile");
   const path=new URL(safe,"https://flightforge.invalid").pathname;

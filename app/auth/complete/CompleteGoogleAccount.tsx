@@ -1,0 +1,11 @@
+"use client";
+import {useState,type FormEvent} from "react";
+import Link from "next/link";
+import {useClientReady} from "@/components/player-tools/ReadyControls";
+import {SignOutButton} from "@/components/auth/SignOutButton";
+
+export function CompleteGoogleAccount({displayName,returnTo,registrationReady}:{displayName:string;returnTo:string;registrationReady:boolean}){
+  const ready=useClientReady();const [name,setName]=useState(displayName),[acceptTerms,setAcceptTerms]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState("");
+  async function submit(event:FormEvent){event.preventDefault();setBusy(true);setError("");try{const response=await fetch("/api/auth/google/complete",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({displayName:name,acceptTerms,returnTo})});const result=await response.json() as {next?:string;error?:{message?:string}};if(!response.ok||!result.next)throw new Error(result.error?.message||"Your account could not be completed. Try again.");window.location.assign(result.next);}catch(error){setError(error instanceof Error?error.message:"Your account could not be completed.");setBusy(false);}}
+  return <section className="auth-card account-form">{registrationReady?<form onSubmit={submit}><label className="field-label" htmlFor="google-player-name">Display name</label><input id="google-player-name" autoComplete="nickname" value={name} onChange={event=>setName(event.target.value)} minLength={2} maxLength={60} required/><label className="check-row"><input type="checkbox" checked={acceptTerms} onChange={event=>setAcceptTerms(event.target.checked)} required/><span>I agree to the <Link href="/legal/terms">Terms</Link> and acknowledge the <Link href="/legal/privacy">Privacy Notice</Link>.</span></label><p className="field-help">Your profile starts private. Google sign-in does not give us access to your Gmail, Drive, or Calendar.</p>{error?<p className="form-error" role="alert">{error}</p>:null}<button type="submit" className="button button-primary button-wide" disabled={!ready||busy}>{busy?"Creating account…":"Continue to profile & privacy"}</button></form>:<p role="status">New accounts are temporarily unavailable. Your FlightForge profile has not been created.</p>}<div className="auth-switch"><SignOutButton variant="standalone"/></div></section>;
+}

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { withSecurityHeaders } from "./response-headers";
 
 describe("withSecurityHeaders", () => {
+  it("never caches or leaks authentication callback referrers",()=>{const secured=withSecurityHeaders(new Request("https://flightforge.example/auth/google/callback?code=sensitive-code"),new Response(null,{status:302,headers:{location:"/profile"}}));expect(secured.headers.get("cache-control")).toBe("private, no-store");expect(secured.headers.get("referrer-policy")).toBe("no-referrer");});
   it("adds browser security policy and HSTS on HTTPS", async () => {
     const secured = withSecurityHeaders(
       new Request("https://flightforge.example/courses"),

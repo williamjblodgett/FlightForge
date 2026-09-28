@@ -17,6 +17,18 @@ async function player(page: Page, info: TestInfo) {
   await expect(page.getByRole("heading",{name:"Review Player",exact:true})).toBeVisible();
 }
 
+test("unconfigured Google sign-in stays hidden and cannot replace normal account access",async({page},info)=>{
+  await page.goto("/sign-in?return_to=%2Fbag");
+  await expect(page.getByRole("button",{name:"Continue with Google",exact:true})).toHaveCount(0);
+  await expect(page.getByRole("button",{name:"Sign in",exact:true})).toBeVisible();
+  const response=await page.request.post("/api/auth/google",{headers:{origin:new URL(String(info.project.use.baseURL)).origin},data:{returnTo:"/bag"}});
+  expect(response.status()).toBe(503);
+  expect((await response.json()).error.code).toBe("GOOGLE_NOT_READY");
+  await page.goto("/sign-up?return_to=%2Fbag");
+  await expect(page.getByRole("button",{name:"Continue with Google",exact:true})).toHaveCount(0);
+  await expect(page.getByRole("button",{name:"Create free account",exact:true})).toBeVisible();
+});
+
 test("guest messages redirect preserves the destination without a render crash", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));

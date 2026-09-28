@@ -4,13 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, KeyRound } from "lucide-react";
 import { brand } from "@/config/brand";
+import {GoogleSignInButton} from "@/components/auth/GoogleSignInButton";
 
 type Props = {
   returnTo: string;
   initialError?: string | null;
+  googleEnabled?: boolean;
 };
 
-export function SignInForm({ returnTo, initialError = null }: Props) {
+export function SignInForm({ returnTo, initialError = null,googleEnabled=false }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(initialError);
@@ -48,6 +50,7 @@ export function SignInForm({ returnTo, initialError = null }: Props) {
       <form className="auth-card account-form" onSubmit={submit} aria-busy={submitting}>
         <span className="eyebrow"><KeyRound aria-hidden="true" /> Player access</span>
         <h2>Sign in to your FlightForge account</h2>
+        {googleEnabled?<GoogleSignInButton returnTo={returnTo}/>:null}
         <p className="field-help">Use your email and FlightForge password. No third-party account is required.</p>
 
         <label className="field-label" htmlFor="account-email">Email</label>

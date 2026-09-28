@@ -2,6 +2,14 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 describe("Supabase authentication security contracts", () => {
+  it("never bootstraps privileged roles from hosted email/provider changes", () => {
+    const source = readFileSync("modules/auth/account-repository.ts", "utf8");
+    const resolver = source.slice(source.indexOf("export async function resolveSupabaseAccount"), source.indexOf("async function persistConfiguredRoles"));
+    expect(resolver).not.toContain("rolesForConfiguredEmail(");
+    expect(resolver).not.toContain("persistConfiguredRoles(");
+    expect(resolver).toContain('const configuredRoles: Role[] = ["PLAYER"]');
+    expect(resolver).toContain("rolesForUser(linked.id)");
+  });
   it("binds Supabase provisioning to an app-recorded legal acceptance", () => {
     const signupRoute = readFileSync("app/api/auth/signup/route.ts", "utf8");
     const accountRepository = readFileSync("modules/auth/account-repository.ts", "utf8");

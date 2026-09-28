@@ -1,5 +1,16 @@
 # Implementation checklist
 
+## Google sign-in — September 28
+
+- [x] Inspect existing Supabase, identity-linking and legal-consent boundaries
+- [x] Add explicitly gated Google initiation and dedicated PKCE callback
+- [x] Add first-time app-consent completion and preserve onboarding/return destinations
+- [x] Prevent OAuth codes from acquiring recovery authority through URL parameters
+- [x] Verify signed recovery claims and preserve existing assigned roles without hosted-email privilege bootstrap
+- [x] Prevent pre-hydration mobile score-correction submissions discovered in the browser sweep
+- [ ] Complete Google/Supabase account configuration and real-account mobile/desktop pilot
+- Activation and callback instructions: `docs/GOOGLE_SIGN_IN_SETUP.md`
+
 ## September 28 approved field-companion UI
 
 - [x] Inspect the supplied concept, existing source, course imagery and player data

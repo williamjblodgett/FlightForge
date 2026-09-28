@@ -4,8 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, LockKeyhole, Shield } from "lucide-react";
 import { brand } from "@/config/brand";
+import {GoogleSignInButton} from "@/components/auth/GoogleSignInButton";
 
-export function SignupForm({ returnTo = "/onboarding", registrationReady = true }: { returnTo?: string; registrationReady?: boolean }) {
+export function SignupForm({ returnTo = "/onboarding", registrationReady = true,googleEnabled=false }: { returnTo?: string; registrationReady?: boolean;googleEnabled?:boolean }) {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,6 +60,7 @@ export function SignupForm({ returnTo = "/onboarding", registrationReady = true 
       <form className="auth-card account-form" onSubmit={submit}>
         <span className="eyebrow"><LockKeyhole aria-hidden="true" /> Create account</span>
         <h2>Your player name comes first</h2>
+        {googleEnabled?<GoogleSignInButton returnTo={returnTo}/>:null}
 
         <label className="field-label" htmlFor="signup-name">Display name</label>
         <input id="signup-name" autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} minLength={2} maxLength={60} required />

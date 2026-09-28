@@ -530,7 +530,8 @@ export async function resolveSupabaseAccount(input: {
   const linked = await findUserRowByProviderSubject(subject);
   if (linked) {
     if(linked.status!=="ACTIVE")throw new Error("This account is unavailable.");
-    await persistConfiguredRoles(linked.id, input.email);
+    // Hosted identity email/provider membership is not fresh mailbox proof.
+    // Preserve assigned roles, never bootstrap privilege from a social-linked email.
     const resolved = accountUserFromRow(linked, await rolesForUser(linked.id));
     return { ...resolved, source: "supabase", emailVerified: true };
   }
@@ -556,7 +557,7 @@ export async function resolveSupabaseAccount(input: {
   const id = crypto.randomUUID();
   const timestamp = new Date().toISOString();
   const consent = await claimHostedSignupIntent({ nonce: input.registrationNonce ?? null, email, authUserId: input.authUserId });
-  const configuredRoles = rolesForConfiguredEmail(email);
+  const configuredRoles: Role[] = ["PLAYER"];
   try {
     await database.batch([
       database.prepare(
