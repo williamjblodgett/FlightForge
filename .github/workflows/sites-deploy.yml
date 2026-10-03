@@ -14,26 +14,43 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+  configuration:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      configured: ${{ steps.hook.outputs.configured }}
+    env:
+      DEPLOY_HOOK: ${{ secrets.SITES_DEPLOY_HOOK_URL }}
+    steps:
+      - name: Check deployment configuration
+        id: hook
+        run: |
+          if [ -n "$DEPLOY_HOOK" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "### No automatic Sites deployment requested" >> "$GITHUB_STEP_SUMMARY"
+            echo "SITES_DEPLOY_HOOK_URL is not configured. Use the native Sites release workflow. This run does not publish the live application. Availability is tracked separately by Production synthetic health." >> "$GITHUB_STEP_SUMMARY"
+          fi
+  deploy:
+    needs: configuration
+    if: needs.configuration.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     environment: production
     env:
       DEPLOY_HOOK: ${{ secrets.SITES_DEPLOY_HOOK_URL }}
-      SITE_URL: ${{ vars.SITES_PRODUCTION_URL }}
     steps:
-      - name: Report unconfigured deployment hook
-        if: env.DEPLOY_HOOK == ''
-        run: echo "Sites automation is paused until SITES_DEPLOY_HOOK_URL is configured; use the verified Sites release workflow in the meantime."
       - name: Request immutable Sites deployment
-        if: env.DEPLOY_HOOK != ''
         env:
           RELEASE_ID: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: >-
-          curl --fail-with-body --retry 3 -X POST
+          curl --fail-with-body --max-time 60 --retry 3 -X POST
           -H "content-type: application/json"
           --data "{\"branch\":\"main\",\"releaseId\":\"$RELEASE_ID\"}"
           "$DEPLOY_HOOK"
-      - name: Synthetic production health check
-        if: env.SITE_URL != ''
-        run: curl --fail-with-body --retry 6 --retry-delay 10 "$SITE_URL/api/health"
+      - name: Report deployment request
+        run: |
+          echo "### Deployment request accepted" >> "$GITHUB_STEP_SUMMARY"
+          echo "Confirm the release through the Sites deployment status. Production synthetic health independently tracks availability and maintains one incident per outage; an unrelated dependency failure is not a deployment result." >> "$GITHUB_STEP_SUMMARY"

@@ -1,5 +1,16 @@
 # Implementation checklist
 
+## October 3 recurring production failures
+
+- [x] Identify separate Node compatibility, repeated auth-outage alerts and absent-deployment-hook causes
+- [x] Share the CI/Pages Node version through `.node-version`
+- [x] Keep real health failures visible through deduplicated incidents and confirm recovery
+- [x] Restrict production deployment triggers to trusted main pushes
+- [x] Implement patched dependencies and a documented, regression-tested braces depth-limit backport
+- [ ] Verify repaired GitHub CI, Pages and consecutive production monitor runs
+- [ ] Restore external Supabase authentication (project dashboard access unavailable in this session)
+- Details and validation record: `PRODUCTION-ALERTS-2026-10-03.md`
+
 ## September 28 audit repairs
 
 - [ ] Restore/confirm external Supabase project (requires dashboard access and real-account pilot)

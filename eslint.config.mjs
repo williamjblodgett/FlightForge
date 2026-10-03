@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "dist/**",
     "pages-dist/**",
     "work/**",
+    "vendor/**", // Third-party sources retain their upstream style; security changes have regression tests.
     "next-env.d.ts",
   ]),
 ]);

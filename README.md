@@ -54,7 +54,7 @@ For a clean local preview without any production credentials, run `npm ci --igno
 
 ## Quick start
 
-Prerequisites: Node.js 22.13 or newer. Docker is optional and is used only when exercising the PostgreSQL/PostGIS adapter locally.
+Prerequisites: Node.js 22.16 or newer; use the version in `.node-version` to match CI. SQLite test adapters require the `StatementSync.columns()` API added in 22.16. Docker is optional and is used only when exercising the PostgreSQL/PostGIS adapter locally.
 
 ```powershell
 Copy-Item .env.example .env

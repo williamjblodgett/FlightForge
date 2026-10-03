@@ -7,15 +7,28 @@ on:
 
 permissions:
   contents: read
+  issues: write
+
+# Serialize incident updates so overlapping checks cannot create duplicates.
+concurrency:
+  group: flightforge-production-health
+  cancel-in-progress: false
 
 jobs:
   health:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Check HTML and dependencies
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Check production and maintain outage incident
+        uses: actions/github-script@v8
         env:
           SITE_URL: ${{ vars.SITES_PRODUCTION_URL }}
-        run: |
-          test -n "$SITE_URL"
-          curl --fail-with-body --max-time 20 "$SITE_URL/"
-          curl --fail-with-body --max-time 20 "$SITE_URL/api/health"
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const { runMonitor } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/production-health.mjs`).href);
+            await runMonitor({ github, context, core, siteUrl: process.env.SITE_URL });

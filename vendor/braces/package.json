@@ -1,0 +1,10 @@
+{
+  "name": "braces",
+  "version": "3.0.3-flightforge.1",
+  "private": true,
+  "description": "MIT-licensed braces 3.0.3 with a local CVE-2026-93687 depth-limit backport",
+  "license": "MIT",
+  "main": "index.js",
+  "type": "commonjs",
+  "dependencies": { "fill-range": "^7.1.1" }
+}

@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Node.js 22.13+
+- Node.js 22.16+ (use `.node-version` to match CI)
 - npm 10+
 - Docker Desktop only if running PostgreSQL/PostGIS locally
 
